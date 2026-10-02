@@ -1,0 +1,27 @@
+{
+  "name": "mat-rivals",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Mat Rivals - a 3D NCAA collegiate wrestling game for the browser",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "sim:stats": "esbuild src/dev/simStats.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/sim-stats.mjs --log-level=warning && node node_modules/.cache/sim-stats.mjs"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@types/three": "^0.180.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.3.5"
+  }
+}
