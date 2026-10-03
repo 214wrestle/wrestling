@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wrestling Games</title>
+<meta name="description" content="Two browser 3D college wrestling games built by AI coding agents, plus character style mockups.">
+<style>
+  :root {
+    --bg: #f4f2ee; --panel: #ffffff; --ink: #1c1d21; --muted: #5d6068; --line: #dedad2;
+    --accent: #b31b1b; --chip: #efece6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1115; --panel: #181b21; --ink: #eceae6; --muted: #a2a6ae; --line: #2a2e36;
+      --accent: #ff7a70; --chip: #22262e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1115; --panel: #181b21; --ink: #eceae6; --muted: #a2a6ae; --line: #2a2e36;
+    --accent: #ff7a70; --chip: #22262e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1120px; margin: 0 auto; padding: 40px 16px 64px; }
+  h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.1; margin: 0 0 10px; letter-spacing: -0.02em; }
+  .lede { color: var(--muted); max-width: 680px; margin: 0 0 32px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000; }
+  .body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .card h2 { font-size: 20px; margin: 0; }
+  .by { font-size: 13px; color: var(--muted); }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 8px; }
+  .btn { text-decoration: none; border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 14px; border: 1px solid var(--line); color: var(--ink); }
+  .btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .note { margin-top: 28px; color: var(--muted); font-size: 14px; }
+  .note a, .lede a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Wrestling games</h1>
+  <p class="lede">Two independent 3D college wrestling games that run in the browser, built from the same brief by two different AI coding agents, plus mockups of new character styles for one of them. Best on a desktop with a keyboard; phones get touch controls.</p>
+
+  <div class="grid">
+    <article class="card">
+      <img src="img/mat-rivals.jpg" alt="Mat Rivals title screen with two wrestlers squared up" loading="lazy">
+      <div class="body">
+        <h2>Mat Rivals</h2>
+        <div class="by">Built by Claude Opus 5 and Opus 5.5 · three.js + React</div>
+        <p>NCAA folkstyle under full college rules: periods, position choices, riding time, overtime. Pick your wrestler, opponent and difficulty.</p>
+        <div class="actions"><a class="btn primary" href="mat-rivals/">Play</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <img src="img/varsity.jpg" alt="VARSITY title screen in a college fieldhouse" loading="lazy">
+      <div class="body">
+        <h2>VARSITY</h2>
+        <div class="by">Built by GPT 6 Astra Extra (Codex) · Babylon.js</div>
+        <p>A complete exhibition bout in a college fieldhouse: introductions, three periods, near falls and pins, then a rematch.</p>
+        <div class="actions"><a class="btn primary" href="varsity/">Play</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <img src="img/mockups.jpg" alt="Stylized toon mockup of Kyle Dake and David Taylor in a cel-shaded arena" loading="lazy">
+      <div class="body">
+        <h2>Mat Rivals character style mockups</h2>
+        <div class="by">Kyle Dake vs David Taylor · 2013 NCAA final, 165 lb</div>
+        <p>Three candidate art styles for Mat Rivals' wrestlers (stylized toon, low-poly, realistic) to orbit in 3D, with a side-by-side comparison.</p>
+        <div class="actions">
+          <a class="btn primary" href="mat-rivals/mockups.html">3D mockups</a>
+          <a class="btn" href="mat-rivals/docs/style-mockups/">Comparison</a>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <p class="note">An unofficial fan project, not affiliated with or endorsed by the NCAA, any school or any athlete. Source on <a href="https://github.com/memorex386/wrestling">GitHub</a>.</p>
+</main>
+</body>
+</html>

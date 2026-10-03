@@ -26,6 +26,19 @@ project; the root is only a container.
 - `node_modules/`, `dist/`, logs and screenshots are ignored. Restore dependencies with
   `npm ci`.
 
+## Public website
+
+The repo is public, and every push to `main` deploys a public site to https://memorex386.github.io/wrestling/
+via `.github/workflows/pages.yml` and `scripts/build-site.sh` (details in the README's
+"Website" section). Keep that in mind before pushing, and:
+
+- Keep both games buildable with relative asset paths (`wrestling_codex` sets `base: './'`;
+  `wrestling_claude` is built with `--base=./`). Don't add root-absolute URLs such as
+  `/assets/x.png`; the site is served from a subpath.
+- The landing page is `site/index.html` with its images in `site/img/`. Update its cards if
+  a game or page is added, renamed or removed.
+- After changing either game, `bash scripts/build-site.sh` checks the whole site builds.
+
 ## Verified run commands
 
 ```bash

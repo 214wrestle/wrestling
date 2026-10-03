@@ -149,6 +149,8 @@ In development, `?lab=…` replaces the game with review views rendered from fix
   `&hold=1&t=0.5` shows a hold at a given progress.
 - `?lab=style&v=cartoon|lowpoly|realistic|current` — the character art-direction mockups,
   as a six-shot sheet; `&orbit=1` to rotate. See [docs/style-mockups](docs/style-mockups/).
+  The same mockups are also built as a standalone page, `mockups.html`, which is published at
+  https://memorex386.github.io/wrestling/mat-rivals/mockups.html.
 
 `window.matRivals` exposes the running `Game` (and `.sim`) for poking at live state.
 

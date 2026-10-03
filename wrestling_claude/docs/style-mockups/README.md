@@ -9,8 +9,12 @@ State), from the 2013 NCAA Division I final at 165 lb, which Dake won 5–4. The
 use real wrestlers and is fine with them being public. The likenesses come from written
 descriptions, not photos.
 
-- **Open [`index.html`](index.html)** for the comparison page. It works straight from disk or on
-  any static host; the "live" links on it need the dev server.
+- **Online:** [3D mockups](https://memorex386.github.io/wrestling/mat-rivals/mockups.html) (orbit each style in the browser)
+  and the [comparison page](https://memorex386.github.io/wrestling/mat-rivals/docs/style-mockups/), published by GitHub Pages.
+  These are the links to share.
+- **Locally:** [`index.html`](index.html) is the comparison page. Its 3D links work through
+  the dev server (`http://localhost:5190/docs/style-mockups/index.html`); opened from disk,
+  only the screenshots work.
 - On GitHub, this README shows the same screenshots inline.
 
 ## The styles
@@ -40,7 +44,10 @@ The page in `index.html` has the strengths, weak spots, performance and effort t
 
 ## Viewing them live
 
-From `wrestling_claude/`, run `npm ci` once, then `npm run dev`, and open:
+Online, open [https://memorex386.github.io/wrestling/mat-rivals/mockups.html](https://memorex386.github.io/wrestling/mat-rivals/mockups.html), a menu
+of the styles. Locally, from `wrestling_claude/`, run `npm ci` once, then `npm run dev`, and
+open `http://localhost:5190/mockups.html`. The same parameters work there (`?v=cartoon&orbit=1`)
+and on the dev-only lab URL:
 
 | URL | Shows |
 | --- | --- |
@@ -48,8 +55,9 @@ From `wrestling_claude/`, run `npm ci` once, then `npm run dev`, and open:
 | `…&view=hero` | one shot, full window: `hero`, `faceA`, `faceB`, `tapeFront`, `tapeSide` or `game` |
 | `…&orbit=1` | interactive 3D: drag to orbit, scroll to zoom; `&pose=stand` for the standing pose |
 
-The sheet is laid out for 1440×810. The mockups are development-only: `?lab=` is
-ignored in production builds, so nothing here ships in the game bundle.
+The sheet is laid out for 1440×810. The mockups don't ship in the game itself: `?lab=`
+is ignored in production builds, and `mockups.html` (entry `src/lab/mockups.ts`) is a
+separate page in the build, which is what GitHub Pages serves.
 
 ## How they work
 
@@ -85,7 +93,8 @@ The images in `img/` are `<style>-sheet.png` (the six-shot sheet) and `<style>-h
 2. Keep edits inside your style's folder. Don't change `shared.ts`: a different harness
    would make the styles unfair to compare.
 3. Typecheck (`npm run typecheck`), re-shoot the sheet and hero shot into `img/`, and add the
-   style to `index.html` and this README.
+   style to `index.html`, this README and the `STYLES` list in `src/lab/mockups.ts`, which
+   drives the online menu and style switcher.
 
 ## Taking a style into the game
 

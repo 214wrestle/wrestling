@@ -9,6 +9,20 @@ code, dependencies or build. Each folder is a complete project on its own.
 | [`wrestling_codex/`](wrestling_codex/) | **VARSITY — College Wrestling** | GPT 6 Astra Extra (Codex) | Babylon.js, TypeScript, Vite, Vitest | 5188 |
 | [`wrestling_claude/`](wrestling_claude/) | **Mat Rivals** | Claude Opus 5, then Opus 5.5 Extra (Claude Code) | three.js, React, TypeScript, Vite | 5190 |
 
+## Play online
+
+Everything is published to GitHub Pages at **https://memorex386.github.io/wrestling/**:
+
+| Page | URL |
+| --- | --- |
+| Landing page | https://memorex386.github.io/wrestling/ |
+| Mat Rivals | https://memorex386.github.io/wrestling/mat-rivals/ |
+| VARSITY | https://memorex386.github.io/wrestling/varsity/ |
+| Character style mockups (3D) | https://memorex386.github.io/wrestling/mat-rivals/mockups.html |
+| Style comparison page | https://memorex386.github.io/wrestling/mat-rivals/docs/style-mockups/ |
+
+Every push to `main` rebuilds and redeploys the site (see [Website](#website) below).
+
 ## Quick start
 
 Node.js 22+ and npm. Run commands **inside the project folder**, not at the root:
@@ -48,5 +62,15 @@ Three candidate art styles for Mat Rivals' wrestlers (stylized toon, low-poly sc
 broadcast realism), with Kyle Dake vs David Taylor. No direction has been chosen yet. See
 [wrestling_claude/docs/style-mockups](wrestling_claude/docs/style-mockups/) for screenshots,
 the comparison page and how to view them live.
+
+## Website
+
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) runs
+[`scripts/build-site.sh`](scripts/build-site.sh) on every push to `main` and deploys the
+result to GitHub Pages. The script builds both games, copies the landing page from
+[`site/`](site/) and the style comparison page, and assembles everything in `_site/`
+(ignored by git). To build it locally, run `bash scripts/build-site.sh` from the repo root;
+`SKIP_INSTALL=1` reuses existing `node_modules`. Any static server pointed at `_site/` then
+serves the whole site.
 
 Working on either one? Read [AGENTS.md](AGENTS.md) first, then the folder's own README.

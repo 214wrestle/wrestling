@@ -47,9 +47,12 @@ how to view and re-shoot them, how to add a style and what shipping each would t
   `src/lab/styles/shared.ts`; don't change it, so the styles stay comparable.
 - View: `npm run dev`, then `http://localhost:5190/?lab=style&v=cartoon` (or `lowpoly`,
   `realistic`, `current`); add `&orbit=1` to rotate.
-- Show other people: `docs/style-mockups/index.html` is a self-contained comparison page
-  that works from disk or any static host. On GitHub, `docs/style-mockups/README.md` shows
-  the screenshots inline.
+- Show other people: they're published at
+  https://memorex386.github.io/wrestling/mat-rivals/mockups.html (3D) and
+  https://memorex386.github.io/wrestling/mat-rivals/docs/style-mockups/ (comparison page).
+  `mockups.html` + `src/lab/mockups.ts` is the production entry for the 3D page; it's a
+  second input in `vite.config.ts`. On GitHub, `docs/style-mockups/README.md` shows the
+  screenshots inline.
 - They feature two real wrestlers (Kyle Dake, David Taylor) by the owner's choice; the
   playable roster stays fictional unless the owner says otherwise.
 
