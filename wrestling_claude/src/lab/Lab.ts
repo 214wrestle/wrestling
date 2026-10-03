@@ -44,6 +44,11 @@ const DEG = Math.PI / 180;
 export function startLab(host: HTMLElement): void {
   const params = new URLSearchParams(location.search);
   const mode = params.get('lab') ?? 'body';
+  if (mode === 'style') {
+    // Art-direction mockups have their own harness.
+    void import('./styles').then((m) => m.startStyle(host));
+    return;
+  }
   host.innerHTML = '';
   host.style.cssText = 'position:fixed;inset:0;background:#3a3f48';
   const canvas = document.createElement('canvas');

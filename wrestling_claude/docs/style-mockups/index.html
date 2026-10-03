@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mat Rivals Styles</title>
+<style>
+  :root {
+    --bg: #f4f2ee; --panel: #ffffff; --ink: #1c1d21; --muted: #5d6068; --line: #dedad2;
+    --good: #1f7a4d; --warn: #a3601b; --bad: #b3261e; --accent: #b31b1b; --chip: #efece6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111317; --panel: #1a1d23; --ink: #eceae6; --muted: #a2a6ae; --line: #2c3038;
+      --good: #5fcf96; --warn: #e6a35a; --bad: #f2867d; --accent: #ff6b6b; --chip: #242830;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111317; --panel: #1a1d23; --ink: #eceae6; --muted: #a2a6ae; --line: #2c3038;
+    --good: #5fcf96; --warn: #e6a35a; --bad: #f2867d; --accent: #ff6b6b; --chip: #242830;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; padding: 28px 16px 64px; }
+  h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 21px; margin: 0; }
+  .lede { color: var(--muted); margin: 0 0 22px; max-width: 760px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; position: sticky; top: 0; background: var(--bg); padding: 10px 0; z-index: 2; }
+  .tabs button { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 7px 14px; font: inherit; cursor: pointer; }
+  .tabs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  section.style { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin: 0 0 22px; }
+  .head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px; margin-bottom: 12px; }
+  .score { font-weight: 700; font-variant-numeric: tabular-nums; padding: 2px 10px; border-radius: 999px; background: var(--chip); }
+  .score.good { color: var(--good); } .score.warn { color: var(--warn); } .score.bad { color: var(--bad); }
+  .tag { color: var(--muted); }
+  img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid var(--line); background: #000; }
+  .shots { display: grid; gap: 10px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 14px; }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+  h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 6px; }
+  ul { margin: 0; padding-left: 18px; }
+  li { margin: 3px 0; }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin-top: 14px; }
+  .fact { background: var(--chip); border-radius: 8px; padding: 8px 10px; }
+  .fact b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .links { margin-top: 12px; color: var(--muted); font-size: 14px; }
+  .links a { color: var(--accent); }
+  .note { border-left: 3px solid var(--warn); padding: 8px 12px; background: var(--chip); border-radius: 0 8px 8px 0; margin: 12px 0 0; }
+  .compare { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } }
+  figure { margin: 0; } figcaption { font-size: 13px; color: var(--muted); margin-top: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Mat Rivals — character style options</h1>
+  <p class="lede">Three art directions for the wrestlers, each shown with the same six shots of Kyle Dake (Cornell) vs David Taylor (Penn State), the 2013 NCAA 165&nbsp;lb final that Dake won 5–4. Every pose runs through the game's own animation solver, so each style can drop into the real game. Scores come from an independent art-director review, out of 10.</p>
+
+  <div class="tabs" role="group" aria-label="Show">
+    <button data-show="all" aria-pressed="true">All</button>
+    <button data-show="compare">Side by side</button>
+    <button data-show="cartoon">Stylized toon</button>
+    <button data-show="lowpoly">Low-poly sculpt</button>
+    <button data-show="realistic">Broadcast realism</button>
+    <button data-show="current">Current look</button>
+  </div>
+
+  <section class="style" data-id="compare">
+    <div class="head"><h2>Side by side — the match shot</h2></div>
+    <div class="compare">
+      <figure><img src="img/cartoon-hero.png" alt="Stylized toon match shot" loading="lazy"><figcaption>Stylized toon</figcaption></figure>
+      <figure><img src="img/lowpoly-hero.png" alt="Low-poly match shot" loading="lazy"><figcaption>Low-poly sculpt</figcaption></figure>
+      <figure><img src="img/realistic-hero.png" alt="Realistic match shot" loading="lazy"><figcaption>Broadcast realism</figcaption></figure>
+      <figure><img src="img/current-hero.png" alt="Current look match shot" loading="lazy"><figcaption>Current look (today)</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="style" data-id="cartoon">
+    <div class="head"><h2>1 · Stylized toon</h2><span class="score good">7.5 / 10</span><span class="tag">Cel-shaded comic-book look with ink outlines and a graphic arena</span></div>
+    <div class="shots"><img src="img/cartoon-sheet.png" alt="Stylized toon six-shot sheet" loading="lazy"></div>
+    <div class="cols">
+      <div><h3>Strengths</h3><ul>
+        <li>The most appealing of the three: it looks like a finished game.</li>
+        <li>Athletic, clearly different builds: compact, thick-necked Dake vs long, rangy Taylor. That fixes the "weird body types" problem.</li>
+        <li>Taylor is recognizable from his grin.</li>
+        <li>Easiest to read at the gameplay camera.</li>
+      </ul></div>
+      <div><h3>Weak spots</h3><ul>
+        <li>Dake's likeness is the weakest part: a generic swept-back hero haircut and a long lower face. He needs a short dark crop and a broader face.</li>
+        <li>The chin strap reads as a scruffy beard in the match shots.</li>
+        <li>The ink outlines still need testing in mat wrestling, where bodies overlap.</li>
+      </ul></div>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>Triangles / athlete</b>150–170k (high), ~80k (low)</div>
+      <div class="fact"><b>Build time / body</b>~1.9 s (move to worker)</div>
+      <div class="fact"><b>Phones</b>Use the low setting</div>
+      <div class="fact"><b>Effort to ship</b>Medium</div>
+    </div>
+    <p class="note">The match shots in this style use a collar-tie pose instead of the plain neutral stance, so some of its energy comes from the pose rather than the rendering.</p>
+    <p class="links">Live (needs the dev server on 5190): <a href="http://localhost:5190/?lab=style&amp;v=cartoon&amp;orbit=1">orbit</a> · <a href="http://localhost:5190/?lab=style&amp;v=cartoon">sheet</a></p>
+  </section>
+
+  <section class="style" data-id="lowpoly">
+    <div class="head"><h2>2 · Low-poly sculpt</h2><span class="score good">7 / 10</span><span class="tag">Faceted athletes with banded poster lighting, ~3.7k triangles each</span></div>
+    <div class="shots"><img src="img/lowpoly-sheet.png" alt="Low-poly six-shot sheet" loading="lazy"></div>
+    <div class="cols">
+      <div><h3>Strengths</h3><ul>
+        <li>Clean and deliberate: it looks like a style choice, not a decimated mesh.</li>
+        <li>By far the cheapest to run: about 3.7k triangles per body, 10–30&nbsp;ms to build, no worker needed. Ideal for phones.</li>
+        <li>Dake is most recognizable here: short dark crop and a stern, broad face. Taylor's grin works too.</li>
+        <li>Faceted shapes hide animation imperfections well.</li>
+      </ul></div>
+      <div><h3>Weak spots</h3><ul>
+        <li>A notch less premium and less expressive than the toon style.</li>
+        <li>The chest plates read as rounded mounds, worst on Dake.</li>
+        <li>Mitten hands up close, and Taylor's neck looks thin from the front.</li>
+        <li>The mat center is a hexagon (should be a circle), and the crowd is a bit dim.</li>
+      </ul></div>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>Triangles / athlete</b>~3.7k</div>
+      <div class="fact"><b>Build time / body</b>10–30 ms</div>
+      <div class="fact"><b>Phones</b>Excellent</div>
+      <div class="fact"><b>Effort to ship</b>Low–medium</div>
+    </div>
+    <p class="links">Live: <a href="http://localhost:5190/?lab=style&amp;v=lowpoly&amp;orbit=1">orbit</a> · <a href="http://localhost:5190/?lab=style&amp;v=lowpoly">sheet</a></p>
+  </section>
+
+  <section class="style" data-id="realistic">
+    <div class="head"><h2>3 · Broadcast realism</h2><span class="score bad">3.5 / 10</span><span class="tag">Grounded anatomy, skin shading and lycra under TV lights</span></div>
+    <div class="shots"><img src="img/realistic-sheet.png" alt="Realistic six-shot sheet" loading="lazy"></div>
+    <div class="cols">
+      <div><h3>Strengths</h3><ul>
+        <li>Bodies and arena hold up well at match distance (see the side-by-side): human proportions, believable lighting.</li>
+        <li>A big improvement over today's rubbery bodies.</li>
+      </ul></div>
+      <div><h3>Weak spots</h3><ul>
+        <li>Close-up faces fall into the uncanny valley, and neither man is recognizable. Four rounds of tuning didn't fix it.</li>
+        <li>That's a limit of building faces procedurally from shapes in code, not of realism itself. Real-looking faces would need an artist-made base head (for example a free-licensed base mesh) shaped per athlete. That means downloading an asset, which I'd only do with your OK.</li>
+        <li>The heaviest option: about 240k triangles and ~2.7&nbsp;s to build each body.</li>
+      </ul></div>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>Triangles / athlete</b>~240k (high), ~95k (low)</div>
+      <div class="fact"><b>Build time / body</b>~2.7 s</div>
+      <div class="fact"><b>Phones</b>Heavy</div>
+      <div class="fact"><b>Effort to ship</b>High (needs authored heads)</div>
+    </div>
+    <p class="links">Live: <a href="http://localhost:5190/?lab=style&amp;v=realistic&amp;orbit=1">orbit</a> · <a href="http://localhost:5190/?lab=style&amp;v=realistic">sheet</a></p>
+  </section>
+
+  <section class="style" data-id="current">
+    <div class="head"><h2>Current look (today)</h2><span class="tag">For reference: the game's characters unchanged, in the game's own arena</span></div>
+    <div class="shots"><img src="img/current-sheet.png" alt="Current look six-shot sheet" loading="lazy"></div>
+    <p class="links">Live: <a href="http://localhost:5190/?lab=style&amp;v=current&amp;orbit=1">orbit</a> · <a href="http://localhost:5190/?lab=style&amp;v=current">sheet</a></p>
+  </section>
+
+  <section class="style" data-id="all-notes">
+    <div class="head"><h2>Using real wrestlers</h2></div>
+    <ul>
+      <li>All three likenesses are built from written descriptions, not checked against photos, so expect caricatures rather than portraits.</li>
+      <li>A recognizable real athlete in a public game carries name, image and likeness risk whatever the style. Courts sided with the athletes against EA in 2013 even when names were left out. Stylizing them doesn't remove that. A free, non-commercial hobby repo is low risk, but an "unofficial fan project" notice and no school logos would be sensible.</li>
+      <li>Other strong real pairings: Joseph vs Martinez (165, 2017), Nickal vs Martin (184, 2018), Snyder vs Coon (HWT, 2018), Steveson vs Parris (HWT, 2021).</li>
+    </ul>
+  </section>
+</main>
+<script>
+  const buttons = document.querySelectorAll('.tabs button');
+  const sections = document.querySelectorAll('section.style');
+  function show(id) {
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.show === id)));
+    sections.forEach((s) => { s.hidden = !(id === 'all' || s.dataset.id === id); });
+  }
+  buttons.forEach((b) => b.addEventListener('click', () => show(b.dataset.show)));
+</script>
+</body>
+</html>
