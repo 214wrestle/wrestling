@@ -147,6 +147,8 @@ In development, `?lab=…` replaces the game with review views rendered from fix
 - `?lab=stance&d=1.0` — two wrestlers squared up.
 - `?lab=pair&clip=finishDouble&strip=1&cam=side` — a move as a six-frame strip;
   `&hold=1&t=0.5` shows a hold at a given progress.
+- `?lab=style&v=cartoon|lowpoly|realistic|current` — the character art-direction mockups,
+  as a six-shot sheet; `&orbit=1` to rotate. See [docs/style-mockups](docs/style-mockups/).
 
 `window.matRivals` exposes the running `Game` (and `.sim`) for poking at live state.
 
@@ -156,4 +158,6 @@ Desktop is the main target: 60 fps at 1440×810 in a headless Chromium, no conso
 across full matches. Phones get a lower mesh resolution, touch controls and a compact
 layout; they have been checked at phone size in a browser, not yet on a physical device.
 
-Teams and wrestlers are fictional so the project carries no licensing baggage.
+Teams and wrestlers in the game are fictional. The art-direction mockups in
+[docs/style-mockups](docs/style-mockups/) use two real wrestlers, Kyle Dake and David Taylor,
+by the owner's choice.

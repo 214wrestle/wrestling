@@ -17,7 +17,10 @@ project; the root is only a container.
 - Keep each project's port. Both can run side by side.
 - Neither project depends on any backend, account, API key or analytics.
   Keep assets (fonts, sound, graphics) self-contained; no runtime CDNs.
-- Teams and athletes are fictional. Do not add real NCAA marks, schools or athletes.
+- The playable rosters are fictional. Mat Rivals' art-direction mockups
+  (`wrestling_claude/docs/style-mockups/`) feature two real wrestlers, Kyle Dake and David
+  Taylor; the owner chose that and is fine with it being public. Ask before putting real
+  athletes, schools or logos into a shipped roster.
 - Before finishing, run that project's checks (listed in its `AGENTS.md`) and look at
   visual changes in a browser. Report what you could not verify.
 - `node_modules/`, `dist/`, logs and screenshots are ignored. Restore dependencies with

@@ -35,6 +35,24 @@ There is no unit-test suite. Use these instead:
 `mat-rivals-before-after.png` is a reference screenshot from development, not a
 runtime asset.
 
+## Character art-direction mockups
+
+The owner found today's characters unappealing, with odd body types, so three candidate
+styles were built: stylized toon, low-poly sculpt and broadcast realism. No direction has
+been chosen yet; the game still uses `src/body/*`. Everything about them, including scores,
+how to view and re-shoot them, how to add a style and what shipping each would take, is in
+[docs/style-mockups/README.md](docs/style-mockups/README.md).
+
+- Code: `src/lab/styles/<id>/`, one self-contained folder per style. The shared harness is
+  `src/lab/styles/shared.ts`; don't change it, so the styles stay comparable.
+- View: `npm run dev`, then `http://localhost:5190/?lab=style&v=cartoon` (or `lowpoly`,
+  `realistic`, `current`); add `&orbit=1` to rotate.
+- Show other people: `docs/style-mockups/index.html` is a self-contained comparison page
+  that works from disk or any static host. On GitHub, `docs/style-mockups/README.md` shows
+  the screenshots inline.
+- They feature two real wrestlers (Kyle Dake, David Taylor) by the owner's choice; the
+  playable roster stays fictional unless the owner says otherwise.
+
 ## Invariants
 
 - `src/sim/` is the referee and never imports rendering code; animation reads the

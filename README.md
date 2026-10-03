@@ -42,4 +42,11 @@ opens the browser; `Stop Varsity.cmd` stops it.
   `npm run sim:stats` succeed; dev server serves on 5190.
 - Neither has been tested on a physical phone or with a hardware gamepad.
 
+## Mat Rivals character style mockups
+
+Three candidate art styles for Mat Rivals' wrestlers (stylized toon, low-poly sculpt,
+broadcast realism), with Kyle Dake vs David Taylor. No direction has been chosen yet. See
+[wrestling_claude/docs/style-mockups](wrestling_claude/docs/style-mockups/) for screenshots,
+the comparison page and how to view them live.
+
 Working on either one? Read [AGENTS.md](AGENTS.md) first, then the folder's own README.
