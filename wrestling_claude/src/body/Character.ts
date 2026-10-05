@@ -60,7 +60,15 @@ function eyeTexture(iris: string): CanvasTexture {
   return tex;
 }
 
-export class Character {
+/** Shared rendering contract; anatomy implementations can change without coupling the sim. */
+export interface CharacterRig {
+  root: Group; bones: Record<BoneName, Bone>; boneList: Bone[]; scale: number;
+  motion: WrestlingStyle;
+  setExertion(sweat: number, flush: number): void;
+  dispose(): void;
+}
+
+export class Character implements CharacterRig {
   readonly root = new Group();
   readonly motion: WrestlingStyle;
   readonly bones = {} as Record<BoneName, Bone>;

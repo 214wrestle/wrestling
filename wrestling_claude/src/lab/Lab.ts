@@ -16,6 +16,7 @@ import {
 } from 'three';
 import { buildBodyNow } from '../body/factory';
 import { Character } from '../body/Character';
+import { buildRealCharacterNow } from '../body/realistic/factory';
 import type { BodyParams } from '../body/anatomy';
 import type { BodyLook } from '../body/material';
 import type { BoneName } from '../body/skeleton';
@@ -99,7 +100,9 @@ export function startLab(host: HTMLElement): void {
     const scale = Number(params.get('height') ?? athlete?.height ?? 1.76) / 1.76;
     const bp: BodyParams = { scale, mass, hair, clothing, shape: athlete?.appearance };
     const t0 = performance.now();
-    const buffers = buildBodyNow(bp, quality, clothing !== 'referee');
+    const realPilot = athlete?.firstName === 'Michael' && athlete?.lastName === 'Moreno' && params.get('realism') !== '0' && clothing !== 'referee';
+    const real = realPilot ? buildRealCharacterNow(athlete!, '#c8261f', quality) : null;
+    const buffers = real ? null : buildBodyNow(bp, quality, clothing !== 'referee');
     const t1 = performance.now();
     const look: BodyLook = {
       skin: params.get('skin') ?? athlete?.skinTone ?? (who === 'b' ? '#e0b48f' : '#9c6b4a'),
@@ -117,7 +120,7 @@ export function startLab(host: HTMLElement): void {
       eye: '#4a2c1a',
       scale,
     };
-    const ch = new Character(buffers, {
+    const ch = real?.character ?? new Character(buffers!, {
       look,
       shape: athlete?.appearance, motion: athlete?.motion,
       gear: clothing === 'referee' ? null : { shell: athlete?.headgearColor ?? '#1d1f26', strap: athlete?.headgearColor ?? '#1d1f26' },
@@ -151,10 +154,10 @@ export function startLab(host: HTMLElement): void {
     }
     ch.root.updateMatrixWorld(true);
 
-    const vb = buffers.body.getAttribute('position').count;
-    const vh = buffers.head.getAttribute('position').count;
-    const vg = buffers.headgear?.getAttribute('position').count ?? 0;
-    info.textContent = `body ${vb} verts · head ${vh} · gear ${vg} · built in ${(t1 - t0).toFixed(0)} ms (worker est ${buffers.ms.toFixed(0)})`;
+    const vb = real ? real.geo.body.positions.length / 3 : buffers!.body.getAttribute('position').count;
+    const vh = real ? real.geo.head.positions.length / 3 + (real.geo.face?.positions.length ?? 0) / 3 : buffers!.head.getAttribute('position').count;
+    const vg = real ? (real.geo.headgear?.positions.length ?? 0) / 3 : buffers!.headgear?.getAttribute('position').count ?? 0;
+    info.textContent = `body ${vb} verts · head ${vh} · gear ${vg} · built in ${(t1 - t0).toFixed(0)} ms (worker est ${(real?.geo.ms ?? buffers!.ms).toFixed(0)})`;
 
     const cy = 0.95 * scale;
     if (params.get('focus') === 'hands') {

@@ -33,7 +33,7 @@ export const ATHLETE_PROFILES: Record<string, AthleteProfile> = {
     era: 'Iowa State collegiate, 2013–2015',
     summary: 'Patient top control and opportunistic turns; recorded a ride-to-pin against Isaac Jordan in 2015.',
     appearanceStatus: 'Likeness reconstruction in progress. Official photos guide art estimates; top-control tendencies interpret documented bouts, not measured film frequencies.',
-    shape: {torso: 0.97, limbs: 0.97, neck: 1.02, shoulders: 1.01, faceWidth: 0.98, faceLength: 1.01, jaw: 0.96, nose: 0.002},
+    shape: {torso: 0.97, limbs: 0.97, neck: 1.02, shoulders: 1.01, faceWidth: 0.98, faceLength: 0.98, jaw: 0.98, nose: 0.001},
     motion: {...DEFAULT_MOTION, topPatience: 1.2, turnPreference: 1.15},
     look: {height: 1.77, build: 0.42, skinTone: '#d6ac90', hairColor: '#241d19', hairStyle: 'crop', eyeColor: '#43362d', gear: '#f0eee7'},
     sources: [

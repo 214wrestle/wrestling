@@ -1,5 +1,5 @@
 import { Matrix4, Vector3 } from 'three';
-import type { Character } from '../body/Character';
+import type { CharacterRig } from '../body/Character';
 import type { BoneName } from '../body/skeleton';
 import { Solver } from './solver';
 import { createPosture, FOOT, P, PostureSpring } from './posture';
@@ -117,7 +117,7 @@ export class Animator {
   /** Skip the blend on the next update (cuts, tools). */
   instant = false;
 
-  constructor(readonly character: Character) {
+  constructor(readonly character: CharacterRig) {
     this.solver = new Solver(character);
   }
 

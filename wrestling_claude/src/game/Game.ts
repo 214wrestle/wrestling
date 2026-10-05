@@ -25,6 +25,7 @@ import type { Command, MatchPhase, School, Side, StartPosition, Wrestler } from 
 import { requestBody } from '../body/factory';
 import type { MeshQuality } from '../body/generate';
 import { Character } from '../body/Character';
+import type { CharacterRig } from '../body/Character';
 import { Animator } from '../anim/Animator';
 import type { AnimView } from '../anim/Animator';
 import '../anim/library';
@@ -105,7 +106,7 @@ const wrapAngle = (a: number) => {
 };
 
 interface Body {
-  char: Character;
+  char: CharacterRig;
   anim: Animator;
   wrestler: Wrestler;
 }
@@ -209,7 +210,11 @@ export class Game implements GameApi {
 
   /* ------------------------------------------------------------- bodies --- */
 
-  private async buildCharacter(w: Wrestler, band: string | null): Promise<Character> {
+  private async buildCharacter(w: Wrestler, band: string | null): Promise<CharacterRig> {
+    if (w.firstName === 'Michael' && w.lastName === 'Moreno') {
+      const { buildRealCharacter } = await import('../body/realistic/factory');
+      return buildRealCharacter(w, band ?? '#111', this.quality);
+    }
     const scale = w.height / 1.76;
     const referee = w.id === OFFICIAL.id;
     const buffers = await requestBody(
