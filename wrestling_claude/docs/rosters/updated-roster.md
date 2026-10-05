@@ -1,6 +1,6 @@
 # College Wrestling Legends — Updated Roster
 
-26 teams · 312 starters · 133 Coach’s Choice slots. Updated October 5, 2026.
+26 teams · 312 starters · 134 Coach’s Choice slots. Updated October 5, 2026.
 
 ## PENN STATE
 
@@ -60,7 +60,7 @@
 | 118 | Eric Akin |  |
 | 125 | Bill Kelly |  |
 | 133 | Jim Gibbons | Zach Roberson; Mike Moreno Sr. |
-| 141 | Nate Gallick | Aaron Holker; Shawn Rustad |
+| 141 | Dan Gable (99) | Aaron Holker; Shawn Rustad; Nate Gallick |
 | 149 | Nate Carr | Gabe Moreno; Tim Krieger |
 | 157 | David Carr | Carl Adams; Trent Paulson |
 | 165 | Joe Heskett | Michael Moreno; Travis Paulson |

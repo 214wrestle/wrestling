@@ -16,6 +16,8 @@ check(byId(DEFAULT_MATCHUP[0]).weightClass === byId(DEFAULT_MATCHUP[1]).weightCl
 check(!ROSTER.some(w => w.lastName === 'Samson'), 'Hud Samson absent');
 check(byId('penn-state-190-starter-quentin-wright').legends?.bioNote?.includes('184 and 197') === true, 'Wright career note');
 check(ROSTER.filter(w => w.firstName === 'Dylan' && w.lastName === 'Ness').every(w => w.weightClass === 157), 'Ness locked weights');
+check(byId('iowa-state-141-starter-dan-gable').rating === 99, 'Gable 99');
+check(byId('iowa-state-141-starter-dan-gable').ncaaCareer?.total === 30, 'Gable verified career points');
 console.log(`${LEGENDS_TEAMS.length} teams, 312 assigned starters, ${ROSTER.length - 312} assigned Coach’s Choice slots verified`);
 
 check(ROSTER.every(w => w.firstName.trim().length > 0 && w.lastName.trim().length > 0), 'all entries have first and last names');
@@ -47,3 +49,5 @@ for (const name of ['Mike Moreno Sr.', 'Michael Moreno', 'Gabe Moreno']) {
  check(!!morenoFamilyNote(izzy) && !!morenoFamilyNote(cyclone), `${name} family notes both ways`);
  check(!!morenoMatchupNote(izzy, cyclone) && morenoMatchupNote(izzy, cyclone) === morenoMatchupNote(cyclone, izzy), 'family matchup independent of corner');
 }
+
+check(ROSTER.filter(w=>w.rating===99).map(w=>`${w.firstName} ${w.lastName}`).sort().join('|') === 'Cael Sanderson|Dan Gable', 'Only Gable and Sanderson 99');

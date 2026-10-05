@@ -1,3 +1,4 @@
+import { CAREER_RECORDS, ELIGIBILITY_SEASONS, COLLEGE_RECORDS, overallRating, scoreCareer } from './ratings';
 import { ATHLETE_PROFILES } from './athleteProfiles';
 import type { School, Wrestler } from './types';
 import locked from './legends-roster.json';
@@ -175,6 +176,17 @@ export const ROSTER: Wrestler[] = LEGENDS_TEAMS.flatMap((team, i) => {
 });
 
 for (const w of ROSTER) {
+  const career = CAREER_RECORDS[`${w.firstName} ${w.lastName}`];
+  if (career) {
+    w.ncaaCareer = scoreCareer(career, ELIGIBILITY_SEASONS[`${w.firstName} ${w.lastName}`] ?? 4);
+    w.rating = overallRating(`${w.firstName} ${w.lastName}`, w.ncaaCareer, COLLEGE_RECORDS[`${w.firstName} ${w.lastName}`]);
+    const value = w.rating / 100;
+    w.attributes = {quickness: value, strength: value, conditioning: value, mat: value, defense: value};
+  }
+  if (w.school.id === 'iowa-state' && w.firstName === 'Dan' && w.lastName === 'Gable') {
+    w.rating = 99;
+    w.attributes = {quickness: 0.99, strength: 0.99, conditioning: 0.99, mat: 0.99, defense: 0.99};
+  }
   const profile = ATHLETE_PROFILES[`${w.firstName} ${w.lastName}`];
   if (!profile) continue;
   Object.assign(w, profile.look);

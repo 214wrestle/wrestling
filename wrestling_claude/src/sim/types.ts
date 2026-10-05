@@ -37,6 +37,8 @@ export interface School {
 
 export interface Wrestler {
   id: string;
+  rating?: number;
+  ncaaCareer?: import('./ratings').CareerScore;
   profile?: AthleteProfile;
   motion?: WrestlingStyle;
   appearance?: AppearanceShape;

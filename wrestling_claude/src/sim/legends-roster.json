@@ -411,8 +411,8 @@
         },
         {
           "weight": "141",
-          "name": "Nate Gallick",
-          "source": "141 — Nate Gallick"
+          "name": "Dan Gable",
+          "source": "Owner revision: Dan Gable — 141 starter, rating 99"
         },
         {
           "weight": "149",
@@ -455,7 +455,7 @@
           "source": "HWT — Chris Taylor"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nZach Roberson — 133\nMike Moreno Sr. — 133\nAaron Holker — 141\nShawn Rustad — 141\nGabe Moreno — 149\nTim Krieger — 149\nCarl Adams — 157\nMichael Moreno — 165\nKyven Gadson — 197\nDavid Zabriskie — HWT\n\nSpecial:\nMoreno family connections with UNI's Israel \"Izzy\" Moreno trigger\nspecial Iowa State–UNI commentary.\n\nOwner additions: Trent Paulson — 157; Travis Paulson — 165.\nEaster egg: Identical twins Trent and Travis Paulson grew up wrestling at Council Bluffs Lewis Central High School.\nOwner-confirmed family detail: Israel “Izzy” Moreno is Michael and Gabe Moreno’s cousin, Mike Moreno Sr.’s nephew, and Rick and Rebekah’s son.",
+      "notesAndChoices": "Coach's Choice:\nZach Roberson — 133\nMike Moreno Sr. — 133\nAaron Holker — 141\nShawn Rustad — 141\nGabe Moreno — 149\nTim Krieger — 149\nCarl Adams — 157\nMichael Moreno — 165\nKyven Gadson — 197\nDavid Zabriskie — HWT\n\nSpecial:\nMoreno family connections with UNI's Israel \"Izzy\" Moreno trigger\nspecial Iowa State–UNI commentary.\n\nOwner additions: Trent Paulson — 157; Travis Paulson — 165.\nEaster egg: Identical twins Trent and Travis Paulson grew up wrestling at Council Bluffs Lewis Central High School.\nOwner-confirmed family detail: Israel “Izzy” Moreno is Michael and Gabe Moreno’s cousin, Mike Moreno Sr.’s nephew, and Rick and Rebekah’s son.\nOwner revision: Dan Gable starts at 141 (99 rating); Nate Gallick is Coach’s Choice at 141.",
       "id": "iowa-state",
       "choices": [
         {
@@ -517,6 +517,11 @@
           "name": "Travis Paulson",
           "weight": "165",
           "source": "Travis Paulson — 165 [owner addition]"
+        },
+        {
+          "weight": "141",
+          "name": "Nate Gallick",
+          "source": "141 — Nate Gallick"
         }
       ]
     },

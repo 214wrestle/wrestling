@@ -37,6 +37,7 @@ function Tile({ w, on, onPick, corner }: { w: Wrestler; on: boolean; onPick: () 
       <span className="tile__meta">
         {w.weightClass === 285 ? 'HWT' : `${w.weightClass} lbs`} · {w.legends?.role === 'choice' ? 'Coach’s Choice' : 'Starter'}
       </span>
+      <span className="tile__meta">{w.rating !== undefined ? `OVR ${w.rating} · ` : ''}{w.ncaaCareer ? `NCAA: ${w.ncaaCareer.total} pts · ${w.ncaaCareer.averagePlacementPoints.toFixed(2)} avg · ${w.ncaaCareer.tier}` : 'NCAA career: research pending'}</span>
       {on && corner && <span className={`tile__corner tile__corner--${corner}`}>{corner === 'red' ? 'Red' : 'Green'}</span>}
     </button>
   );

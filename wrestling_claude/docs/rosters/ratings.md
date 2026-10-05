@@ -1,0 +1,18 @@
+# NCAA career ratings — provisional
+
+Placement points: champion 10; runner-up 9; third 7; fourth 6; fifth 5; sixth 4; seventh 3; eighth 2; qualified without placing 1. This interpretation reserves 8; it follows the owner's explicit 10/9/2 endpoints. No tournament appearance earns zero, and an unknown result must remain unknown rather than be entered as zero.
+
+Keep the four highest season scores, including a +1 NCAA tournament Outstanding Wrestler bonus within each season. In historically verified three-season eligibility eras, keep three. Normalize placement points by eligible career seasons (three or four), not only the seasons in which the athlete qualified. Never infer eligibility restrictions from missing results. A fifth result can replace a weaker counted result but cannot supply another score or bonus. Cancelled tournaments are not qualifiers or placements; any eligibility adjustment must be verified before a career is rated. Active/incomplete careers and freshman exceptions remain pending until their treatment is agreed.
+
+Provisional gameplay scale, interpolated by average placement points: 0→50, qualifier (1)→60, eighth (2)→70, seventh (3)→74, sixth (4)→78, fifth (5)→82, fourth (6)→86, third (7)→90, runner-up (9)→95, champion (10)→98. Add one overall rating point for each counted NCAA Outstanding Wrestler award, capped at 98; only Dan Gable and Cael Sanderson are fixed at 99. Average placement drives the tier; bonus awards remain visible separately. Attributes currently share the overall value as an initial baseline; individualized strengths require further research.
+
+Dan Gable: 1968 first, 1969 first and Outstanding Wrestler, 1970 second. Placement points 29, bonus 1, total 30, placement average 29/3 = 9.67; provisional overall 98, owner override 99. Starts at Iowa State 141; Nate Gallick remains a 141 choice. Freshmen were ineligible in his era.
+
+Sources: [NWHOF season results](https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38), [Iowa State eligibility biography](https://cyclones.com/honors/hall-of-fame/dan-gable/56), [Iowa State record book, Individual Awards p.21](https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf).
+
+Dan Gable and Cael Sanderson's careers are populated in this first pass. Other wrestlers display research pending and retain their prototype gameplay attributes. Missing data is never presented as a verified zero-point career.
+
+
+Cael Sanderson: four NCAA titles and four Outstanding Wrestler awards, 1999–2002: 44 points, placement average 10.00, college record 159–0, owner-set 99. [ISU Hall of Fame](https://cyclones.com/honors/hall-of-fame/cael-sanderson/176).
+
+Verified college win percentage adds a small provisional adjustment: 4 × (win percentage − .75), with ties counted as half wins. 75% is neutral, 100% adds one rating point. Round once after placement scale, bonuses and record adjustment; cap at 98 except the two owner overrides. Raw career wins do not add points, avoiding another fifth-year advantage. Unknown records add no adjustment. Gable's record is pending scope reconciliation: ISU record book lists 100–1, NWHOF 94–1, and ISU biography references an initial 118-win streak. His NCAA finishes are consistent; his explicit 99 does not depend on resolving those record-count definitions.
