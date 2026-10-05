@@ -1,3 +1,4 @@
+import { SHOT_CLIPS, LEG_HOLDS } from '../sim/moves';
 import type { AnimView } from '../anim/Animator';
 import type { MatchSim } from '../sim/MatchSim';
 import type { Athlete, Position } from '../sim/bout';
@@ -47,7 +48,7 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete]): AnimV
     case 'shot':
       return {
         mode: 'paired',
-        clip: p.shot === 'double' ? 'shotDouble' : 'shotSingle',
+        clip: SHOT_CLIPS[p.shot],
         hold: false,
         role: p.A === side ? 'A' : 'B',
         frame: p.frame,
@@ -61,7 +62,7 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete]): AnimV
     case 'legs':
       return {
         mode: 'paired',
-        clip: p.shot === 'double' ? 'legsDouble' : 'legsSingle',
+        clip: LEG_HOLDS[p.shot],
         hold: true,
         role: p.A === side ? 'A' : 'B',
         frame: p.frame,
@@ -114,7 +115,7 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete]): AnimV
         u: Math.min(1, p.t / p.dur),
         progress: 0,
         intensity: 1,
-        dist: p.id === 'stuffed' || p.id === 'shotDouble' || p.id === 'shotSingle' ? p.dist : undefined,
+        dist: p.id === 'stuffed' || p.id === 'shotDouble' || p.id === 'shotSingle' || p.id === 'shotHighCrotch' ? p.dist : undefined,
         ...base,
       };
     default:

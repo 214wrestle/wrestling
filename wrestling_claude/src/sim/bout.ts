@@ -1,5 +1,5 @@
 import { MAT } from './rules';
-import { HOLD_PLACES, MOVES } from './moves';
+import { HOLD_PLACES, MOVES, SHOT_CLIPS, LEG_HOLDS } from './moves';
 import type { MatSub, MoveDef, MoveId, NextSpec, Place, Role, ShotKind } from './moves';
 import { otherSide } from './types';
 import type { Command, ScoreKind, Side, Vec2, Wrestler } from './types';
@@ -546,14 +546,20 @@ export class Bout {
       return;
     }
 
-    // Shot choice follows the angle: square up for the double, off an angle for
-    // the single on the near leg.
+    // Individual tendencies choose the attack; an angle favors the near leg.
+    // Keep the original selection for athletes without a researched profile.
     const toA = Math.atan2(a.pos.x - o.pos.x, a.pos.z - o.pos.z);
     const off = wrap(toA - o.yaw);
     const angled = Math.abs(off) > 0.36;
-    const shot: ShotKind = angled || this.rng.chance(0.3) ? 'single' : 'double';
-    // Single on his left leg when attacking from his left.
-    const mirror = shot === 'single' ? off < 0 : false;
+    const style = this.wrestlers[a.side].motion?.shots;
+    const weights = style ?? { double: 0.7, single: 0.3, highCrotch: 0 };
+    const double = angled ? weights.double * 0.25 : weights.double;
+    const single = angled ? weights.single * 1.6 : weights.single;
+    const roll = style ? this.rng.next() * (double + single + weights.highCrotch) : 0;
+    const shot: ShotKind = !style ? (angled || this.rng.chance(0.3) ? 'single' : 'double')
+      : roll < double ? 'double' : roll < double + single ? 'single' : 'highCrotch';
+    // Near-leg attacks mirror when entering from his left.
+    const mirror = shot !== 'double' ? off < 0 : false;
 
     const fd = clamp01(1 - Math.abs(dist - BOUT.shotIdeal) / 0.55);
     const fl = clamp01(0.5 + (o.level - a.level) * 1.2);
@@ -585,7 +591,7 @@ export class Bout {
       sprawlAt: alreadySprawling ? 0 : -1,
       stuffRoll: this.rng.next(),
     };
-    this.ev.move?.(MOVES[shot === 'double' ? 'shotDouble' : 'shotSingle'], a.side);
+    this.ev.move?.(MOVES[SHOT_CLIPS[shot]], a.side);
     this.ev.tell?.(o.side, 'shot');
     this.ev.feedback?.(a.side, 'shoot', 'ok');
   }
@@ -800,7 +806,7 @@ export class Bout {
       this.ev.feedback?.(D.side, 'sprawl', 'ok');
     }
     if (this.take(D, 'fight')) {
-      s.progress -= (s.shot === 'single' ? 0.035 : 0.025) * (0.7 + wd.strength * 0.6);
+      s.progress -= (s.shot !== 'double' ? 0.035 : 0.025) * (0.7 + wd.strength * 0.6);
       this.spend(D, 0.02);
       this.ev.feedback?.(D.side, 'fight', 'ok');
     }
@@ -816,7 +822,7 @@ export class Bout {
     if (s.progress >= 1) {
       // A double won quickly, by a strong man with gas left, often goes up in the air.
       const lift = s.shot === 'double' && s.t < 1.2 && A.stamina > 0.4 && this.rng.chance(0.06 + wa.strength * 0.2);
-      this.startMove(s.shot === 'single' ? 'finishSingle' : lift ? 'liftDouble' : 'finishDouble', s.A, s.frame, s.mirror);
+      this.startMove(s.shot === 'highCrotch' ? 'finishHighCrotch' : s.shot === 'single' ? 'finishSingle' : lift ? 'liftDouble' : 'finishDouble', s.A, s.frame, s.mirror);
       return;
     }
     if (s.progress <= 0) {
@@ -1154,7 +1160,7 @@ export class Bout {
       return { x: dx * c - dz * s, z: dx * s + dz * c, yaw: wrap(a.yaw - frame.yaw) };
     };
     let dur = def.dur;
-    if (id === 'shotDouble' || id === 'shotSingle') dur = from.kind === 'shot' ? from.dur : def.dur;
+    if (id === 'shotDouble' || id === 'shotSingle' || id === 'shotHighCrotch') dur = from.kind === 'shot' ? from.dur : def.dur;
     this.position = {
       kind: 'move',
       id,
@@ -1279,7 +1285,7 @@ export class Bout {
     const p = this.position;
     switch (p.kind) {
       case 'legs':
-        return { ...(p.shot === 'double' ? HOLD_PLACES.legsDouble : HOLD_PLACES.legsSingle), frame: p.frame, ASide: p.A, mirror: p.mirror };
+        return { ...(HOLD_PLACES[LEG_HOLDS[p.shot]]), frame: p.frame, ASide: p.A, mirror: p.mirror };
       case 'fhl':
         return { ...HOLD_PLACES.fhl, frame: p.frame, ASide: p.A, mirror: false };
       case 'mat':
@@ -1317,9 +1323,7 @@ export class Bout {
     } else if (next.kind !== 'fall') {
       const holdKey =
         next.kind === 'legs'
-          ? next.shot === 'double'
-            ? 'legsDouble'
-            : 'legsSingle'
+          ? LEG_HOLDS[next.shot]
           : next.kind === 'fhl'
             ? 'fhl'
             : next.sub;

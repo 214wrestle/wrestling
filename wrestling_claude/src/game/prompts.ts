@@ -78,7 +78,7 @@ export function readPrompts(sim: MatchSim, me: Side): PromptRead {
           ? { shoot: P('Drive through', 'hold'), fight: P('—', 'off'), sprawl: P('—', 'off') }
           : {
               shoot: P('—', 'off'),
-              fight: P(pos.shot === 'single' ? 'Whizzer' : 'Down block', 'mash'),
+              fight: P(pos.shot !== 'double' ? 'Whizzer' : 'Down block', 'mash'),
               sprawl: P('Sprawl hips', 'mash'),
             },
         meters: [{ label: 'Finish', value: pos.progress, tone: attacking ? 'you' : 'them' }],

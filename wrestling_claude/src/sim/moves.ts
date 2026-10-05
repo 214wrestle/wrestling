@@ -16,7 +16,9 @@ import type { ScoreKind } from './types';
 
 export type Role = 'A' | 'B';
 export type MatSub = 'ride' | 'flat' | 'standing' | 'exposed';
-export type ShotKind = 'double' | 'single';
+export type ShotKind = 'double' | 'single' | 'highCrotch';
+export const SHOT_CLIPS = { double: 'shotDouble', single: 'shotSingle', highCrotch: 'shotHighCrotch' } as const;
+export const LEG_HOLDS = { double: 'legsDouble', single: 'legsSingle', highCrotch: 'legsHighCrotch' } as const;
 
 export interface Place {
   x: number;
@@ -53,6 +55,7 @@ const PI = Math.PI;
 export const HOLD_PLACES = {
   legsDouble: { A: { x: 0, z: -0.12, yaw: 0 }, B: { x: 0, z: 0.42, yaw: PI } },
   legsSingle: { A: { x: 0.06, z: -0.1, yaw: 0.25 }, B: { x: -0.05, z: 0.45, yaw: PI } },
+  legsHighCrotch: { A: { x: 0.22, z: 0.04, yaw: -0.2 }, B: { x: 0, z: 0.48, yaw: PI } },
   fhl: { A: { x: 0, z: -0.38, yaw: 0 }, B: { x: 0, z: 0.32, yaw: PI } },
   ride: { A: { x: 0.3, z: -0.14, yaw: -0.25 }, B: { x: 0, z: 0, yaw: 0 } },
   flat: { A: { x: 0.18, z: -0.05, yaw: -0.1 }, B: { x: 0, z: 0.12, yaw: 0 } },
@@ -61,6 +64,16 @@ export const HOLD_PLACES = {
 } as const;
 
 export const MOVES: Record<string, MoveDef> = {
+  shotHighCrotch: {
+    id: 'shotHighCrotch', dur: 0.44, camera: 'low',
+    next: { kind: 'legs', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, shot: 'highCrotch' },
+  },
+  finishHighCrotch: {
+    id: 'finishHighCrotch', dur: 1.65, camera: 'tight', slowmo: true,
+    award: { to: 'A', kind: 'takedown', at: 0.76, detail: 'High crotch — cut the corner' },
+    impact: { at: 0.65, strength: 0.8 },
+    next: { kind: 'mat', A: 'A', frame: { x: -0.3, z: 0.88, yaw: PI / 2 }, sub: 'ride', base: 0.55 },
+  },
   /* ---------------------------------------------------------- on the feet */
   shotDouble: {
     id: 'shotDouble',

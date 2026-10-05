@@ -4,5 +4,6 @@
  */
 import './mat';
 import './neutral';
+import './highCrotch';
 import './moves';
 import './solo';
