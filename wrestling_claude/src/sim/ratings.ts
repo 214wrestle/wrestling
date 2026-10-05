@@ -40,6 +40,7 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Pat Smith": [{"year": 1990, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/1498"}, {"year": 1991, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/1498"}, {"year": 1992, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/1498"}, {"year": 1994, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/1498", "outstandingWrestler": true}],
   "Kyle Snyder": [{"year": 2015, "place": 2, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210"}, {"year": 2016, "place": 1, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210", "outstandingWrestler": true}, {"year": 2017, "place": 1, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210"}, {"year": 2018, "place": 1, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210"}],
   "Jordan Burroughs": [{"year": 2007, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/season/2010-11/player/jordan-burroughs"}, {"year": 2008, "place": 3, "source": "https://huskers.com/sports/wrestling/roster/season/2010-11/player/jordan-burroughs"}, {"year": 2009, "place": 1, "source": "https://huskers.com/sports/wrestling/roster/season/2010-11/player/jordan-burroughs"}, {"year": 2011, "place": 1, "source": "https://huskers.com/sports/wrestling/roster/season/2010-11/player/jordan-burroughs"}],
   "Nate Carr": [{"year": 1980, "place": "qualifier", "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=13"}, {"year": 1981, "place": 1, "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"}, {"year": 1982, "place": 1, "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"}, {"year": 1983, "place": 1, "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"}],
@@ -128,6 +129,7 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Pat Smith": {"wins": 121, "losses": 5, "ties": 2, "source": "https://nwhof.org/hall_of_fame/bio/1498"},
   "Kyle Snyder": {"wins": 75, "losses": 5, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210"},
   "Jordan Burroughs": {"wins": 128, "losses": 20, "source": "https://huskers.com/sports/wrestling/roster/season/2010-11/player/jordan-burroughs"},
   "Nate Carr": {"wins": 117, "losses": 20, "ties": 1, "source": "https://sportsintegration.wvu.edu/coaches/nate-carr"},
