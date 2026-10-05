@@ -39,6 +39,8 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Jason Nolf": [{"year":2016,"place":2,"source":"https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald"},{"year":2017,"place":1,"source":"https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald"},{"year":2018,"place":1,"source":"https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald"},{"year":2019,"place":1,"source":"https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald"}],
+  "Bo Nickal": [{"year":2016,"place":2,"source":"https://www.themat.com/news/2019/july/03/bo-nickal-is-the-2019-big-ten-male-athlete-of-the-year"},{"year":2017,"place":1,"source":"https://www.themat.com/news/2019/july/03/bo-nickal-is-the-2019-big-ten-male-athlete-of-the-year"},{"year":2018,"place":1,"outstandingWrestler":true,"source":"https://gopsusports.com/news/2019/04/1/bo-nickal-wins-the-hodge"},{"year":2019,"place":1,"source":"https://www.themat.com/news/2019/july/03/bo-nickal-is-the-2019-big-ten-male-athlete-of-the-year"}],
   'Matt McDonough': [
     { year: 2010, place: 1, source: 'https://hawkeyesports.com/sports/hof/roster/player/matt-mcdonough-hof' },
     { year: 2011, place: 2, source: 'https://hawkeyesports.com/sports/hof/roster/player/matt-mcdonough-hof' },
@@ -110,6 +112,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Jason Nolf": {"wins":117,"losses":3,"source":"https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald"},
+  "Bo Nickal": {"wins":120,"losses":3,"source":"https://gopsusports.com/news/2019/04/1/bo-nickal-wins-the-hodge"},
   'Matt McDonough': { wins: 122, losses: 9, source: 'https://hawkeyesports.com/sports/hof/roster/player/matt-mcdonough-hof' },
   'Joe Heskett': {"wins":143,"losses":9,"source":"https://cyclones.com/news/2007/10/3/1255899"},
   'Nate Gallick': {"wins":106,"losses":23,"source":"https://nwhof.org/hall_of_fame/bio/16013"},
