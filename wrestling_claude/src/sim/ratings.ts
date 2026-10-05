@@ -40,6 +40,10 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Johnny Thompson": [{"year": 2001, "place": 2, "source": "https://okstate.com/news/2003/9/23/Johnny_Thompson"}, {"year": 2002, "place": 1, "source": "https://okstate.com/news/2003/9/23/Johnny_Thompson"}, {"year": 2003, "place": 1, "source": "https://okstate.com/news/2003/9/23/Johnny_Thompson"}, {"year": 2004, "place": 3, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"}],
+  "Eric Guerrero": [{"year": 1996, "place": 5, "source": "https://nwhof.org/hall_of_fame/bio/3348"}, {"year": 1997, "place": 1, "source": "https://okstate.com/news/2009/2/27/Eric_Guerrero"}, {"year": 1998, "place": 1, "source": "https://okstate.com/news/2009/2/27/Eric_Guerrero"}, {"year": 1999, "place": 1, "source": "https://okstate.com/news/2009/2/27/Eric_Guerrero"}],
+  "Zack Esposito": [{"year": 2003, "place": "qualifier", "source": "https://okstate.com/news/2005/10/6/Zack_Esposito"}, {"year": 2004, "place": 2, "source": "https://okstate.com/news/2005/10/6/Zack_Esposito"}, {"year": 2005, "place": 1, "source": "https://okstate.com/news/2005/10/6/Zack_Esposito"}, {"year": 2006, "place": 2, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"}],
+
   "Chris Pendleton": [{"year": 2001, "place": "qualifier", "source": "https://okstate.com/news/2001/3/15/Cowboys_wrestlers_in_third_following_the_morning_session"}, {"year": 2003, "place": 3, "source": "https://okstate.com/news/2004/10/12/Chris_Pendleton"}, {"year": 2004, "place": 1, "source": "https://okstate.com/news/2004/10/12/Chris_Pendleton"}, {"year": 2005, "place": 1, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"}],
   "Jake Rosholt": [{"year": 2003, "place": 1, "source": "https://okstate.com/news/2005/10/6/Jake_Rosholt"}, {"year": 2004, "place": 3, "source": "https://okstate.com/news/2005/10/6/Jake_Rosholt"}, {"year": 2005, "place": 1, "source": "https://okstate.com/news/2005/10/6/Jake_Rosholt"}, {"year": 2006, "place": 1, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"}],
 
@@ -138,6 +142,10 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Johnny Thompson": {"wins": 125, "losses": 14, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"},
+  "Eric Guerrero": {"wins": 117, "losses": 13, "source": "https://okstate.com/news/2009/2/27/Eric_Guerrero"},
+  "Zack Esposito": {"wins": 120, "losses": 12, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"},
+
   "Chris Pendleton": {"wins": 118, "losses": 12, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"},
   "Jake Rosholt": {"wins": 104, "losses": 21, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"},
 
