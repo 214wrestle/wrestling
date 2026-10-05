@@ -27,3 +27,5 @@ Snyder and Burroughs are audited in [careers 44–45](rating-batch-45.md).
 Dieringer and Oliver are audited in [careers 48–49](rating-batch-49.md).
 
 Hendricks and Chris Perry are audited in [careers 50–51](rating-batch-51.md).
+
+Owner override: David Taylor is 96, reflecting the owner’s assessment of his NCAA finals opposition, including Kyle Dake. This is an explicit exception to the two-title ceiling; his verified seasons and computed career evidence are retained. Gable and Sanderson remain the only 99 ratings.

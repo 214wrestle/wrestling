@@ -73,7 +73,8 @@ function eyeTexture(iris: string): CanvasTexture {
   // Front of the sphere is u = 0.25, v = 0.5.
   const cx = W * 0.25;
   const cy = H * 0.5;
-  const R = 46;
+  // A roughly 11.5 mm iris on the 23.8 mm globe; avoid oversized doll eyes.
+  const R = 41;
   const base = new Color(iris);
   const dark = base.clone().multiplyScalar(0.45).getStyle();
   const light = base.clone().lerp(new Color('#d8c49a'), 0.35).getStyle();
@@ -107,7 +108,8 @@ function eyeTexture(iris: string): CanvasTexture {
   const lid = g.createLinearGradient(0, 0, 0, H);
   lid.addColorStop(0, 'rgba(40,20,15,0.6)');
   lid.addColorStop(0.3, 'rgba(40,20,15,0.25)');
-  lid.addColorStop(0.4, 'rgba(40,20,15,0.0)');
+  lid.addColorStop(0.45, 'rgba(40,20,15,0.18)');
+  lid.addColorStop(0.51, 'rgba(40,20,15,0.0)');
   lid.addColorStop(1, 'rgba(40,20,15,0.0)');
   g.fillStyle = lid;
   g.fillRect(0, 0, W, H);
@@ -252,10 +254,12 @@ export class RealCharacter {
 
     const eyeMat = new MeshPhysicalMaterial({
       map: eyeTexture(opts.eye),
-      color: '#cbc4be',
-      roughness: 0.3,
-      clearcoat: 1,
-      clearcoatRoughness: 0.03,
+      // The texture supplies sclera tint; retain a soft wet highlight rather
+      // than a second dark tint and a sharp plastic-looking coat.
+      color: '#ffffff',
+      roughness: 0.45,
+      clearcoat: 0.65,
+      clearcoatRoughness: 0.16,
       ior: 1.376,
     });
     this.materials.push(eyeMat);

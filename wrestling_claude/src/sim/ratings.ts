@@ -201,5 +201,7 @@ export function championshipCeiling(seasons: readonly NcaaSeason[]): number {
 }
 export function overallRating(name: string, career: CareerScore, record?: CollegeRecord): number {
   if (name === 'Dan Gable' || name === 'Cael Sanderson') return 99;
+  // Owner-approved exception: Taylor's finals opposition included Kyle Dake.
+  if (name === 'David Taylor') return 96;
   return Math.min(championshipCeiling(career.counted), Math.max(0, Math.round(placementRating(career.averagePlacementPoints) + career.bonusPoints + (HODGE_AWARDS[name]?.years.length ?? 0) + (record ? recordAdjustment(record) : 0))));
 }

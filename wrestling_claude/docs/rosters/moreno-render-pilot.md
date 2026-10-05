@@ -19,3 +19,7 @@ Post-shader live verification: the current Moreno/Perry quick match completed by
 Cheek-volume refinement: moved the buccal volume forward and widened its support across the cheek-to-jaw transition. The prior face retained a hollow lateral contour even with the hollow parameter at zero. Body-lab rebuild: 60,035 total vertices, 41,055 head vertices; the six views show a softer transition. This is an art estimate and modest contour improvement, not proof of recognizable likeness. Typecheck, paired clip checks and full-site build pass.
 
 Completed browser quick bout after cheek refinement: Moreno/Perry fall at 0:12 left in P1, 0–7, no warnings or errors. This validates the animated model through a result screen, not likeness or scoring calibration.
+
+## Eye material revision
+
+Reduced the procedural iris radius from 46 to 41 texture pixels (roughly an 11.5 mm iris on the 23.8 mm globe), extended upper-lid shading onto the visible eye, removed duplicate dark sclera tint, and softened the clearcoat highlight. Fresh local body-lab views render without warnings or errors; typecheck and full site build pass. The face is still visibly artificial and this does not establish likeness or UFC-quality characters. Further facial anatomy, hair and motion work remains required.
