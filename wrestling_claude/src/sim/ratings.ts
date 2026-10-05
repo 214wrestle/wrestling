@@ -40,6 +40,9 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Chris Pendleton": [{"year": 2001, "place": "qualifier", "source": "https://okstate.com/news/2001/3/15/Cowboys_wrestlers_in_third_following_the_morning_session"}, {"year": 2003, "place": 3, "source": "https://okstate.com/news/2004/10/12/Chris_Pendleton"}, {"year": 2004, "place": 1, "source": "https://okstate.com/news/2004/10/12/Chris_Pendleton"}, {"year": 2005, "place": 1, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"}],
+  "Jake Rosholt": [{"year": 2003, "place": 1, "source": "https://okstate.com/news/2005/10/6/Jake_Rosholt"}, {"year": 2004, "place": 3, "source": "https://okstate.com/news/2005/10/6/Jake_Rosholt"}, {"year": 2005, "place": 1, "source": "https://okstate.com/news/2005/10/6/Jake_Rosholt"}, {"year": 2006, "place": 1, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"}],
+
   "Johny Hendricks": [{"year": 2004, "place": 5, "source": "https://okstate.com/news/2006/10/30/Johny_Hendricks"}, {"year": 2005, "place": 1, "source": "https://okstate.com/news/2006/10/30/Johny_Hendricks"}, {"year": 2006, "place": 1, "source": "https://okstate.com/news/2006/10/30/Johny_Hendricks"}, {"year": 2007, "place": 2, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"}],
   "Chris Perry": [{"year": 2011, "place": "qualifier", "source": "https://okstate.com/sports/wrestling/roster/chris-perry/1728"}, {"year": 2012, "place": 3, "source": "https://okstate.com/sports/wrestling/roster/chris-perry/1728"}, {"year": 2013, "place": 1, "source": "https://okstate.com/sports/wrestling/roster/chris-perry/1728"}, {"year": 2014, "place": 1, "source": "https://okstate.com/sports/wrestling/roster/chris-perry/1728"}],
 
@@ -135,6 +138,9 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Chris Pendleton": {"wins": 118, "losses": 12, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"},
+  "Jake Rosholt": {"wins": 104, "losses": 21, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"},
+
   "Johny Hendricks": {"wins": 126, "losses": 13, "source": "https://okstate.com/news/2013/11/14/Former_Cowboy_Johny_Hendricks_Fights_for_UFC_Welterweight_Belt"},
   "Chris Perry": {"wins": 122, "losses": 11, "source": "https://okstate.com/sports/wrestling/roster/coaches/chris-perry/2318"},
 
