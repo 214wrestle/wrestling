@@ -1,0 +1,51 @@
+/** Career awards are independent of NCAA placements (including cancelled 2020). */
+const pastHodge = 'https://ohiostatebuckeyes.com/news/2015/3/30/stieber-wins-2015-dan-hodge-trophy';
+export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> = {
+  'T.J. Jaworsky': { years: [1995], source: pastHodge },
+  'Les Gutches': { years: [1996], source: pastHodge },
+  'Kerry McCoy': { years: [1997], source: pastHodge },
+  'Mark Ironside': { years: [1998], source: pastHodge },
+  'Stephen Neal': { years: [1999], source: pastHodge },
+  'Cael Sanderson': { years: [2000, 2001, 2002], source: pastHodge },
+  'Nick Ackerman': { years: [2001], source: pastHodge },
+  'Eric Larkin': { years: [2003], source: pastHodge },
+  'Emmett Willson': { years: [2004], source: pastHodge },
+  'Steve Mocco': { years: [2005], source: pastHodge },
+  'Ben Askren': { years: [2006, 2007], source: pastHodge },
+  'Brent Metcalf': { years: [2008], source: pastHodge },
+  'Jake Herbert': { years: [2009], source: pastHodge },
+  'Jayson Ness': { years: [2010], source: pastHodge },
+  'Jordan Burroughs': { years: [2011], source: pastHodge },
+  'David Taylor': { years: [2012, 2014], source: pastHodge },
+  'Kyle Dake': { years: [2013], source: pastHodge },
+  'Logan Stieber': { years: [2015], source: pastHodge },
+  'Alex Dieringer': { years: [2016], source: 'https://okstate.com/news/2016/3/28/wrestling-alex-dieringer-wins-2016-hodge-trophy?path=mbball' },
+  'Zain Retherford': { years: [2017, 2018], source: 'https://gopsusports.com/news/2018/03/26/wr-zain-wins-the-hodge-again' },
+  'Bo Nickal': { years: [2019], source: 'https://gopsusports.com/news/2019/04/1/bo-nickal-wins-the-hodge' },
+  'Spencer Lee': { years: [2020, 2021], source: 'https://hawkeyesports.com/news/2021/03/29/spencer-lee-wins-dan-hodge-trophy-2' },
+  'Gable Steveson': { years: [2021, 2022], source: 'https://gophersports.com/sports/wrestling/roster/gable-steveson/22871' },
+  'Mason Parris': { years: [2023], source: 'https://mgoblue.com/news/2023/3/27/wrestling-parris-wins-prestigious-dan-hodge-trophy' },
+  'Aaron Brooks': { years: [2024], source: 'https://gopsusports.com/news/2024/04/1/nittany-lion-aaron-brooks-wins-2024-hodge-trophy-as-nations-top-collegiate-wrestler' },
+  'Wyatt Hendrickson': { years: [2025], source: 'https://goairforcefalcons.com/news/2025/3/31/wrestling-wyatt-hendrickson-wins-dan-hodge-trophy' },
+  'Mitchell Mesenbrink': { years: [2026], source: 'https://gopsusports.com/news/2026/03/30/mitchell-mesenbrink-wins-2026-hodge-trophy-as-nations-top-collegiate-wrestler' },
+};
+
+export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
+export const PIN_HISTORY: Record<string, PinHistory> = {
+  'Jason Nolf': { falls: 60, bouts: 120, source: 'https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald' },
+  'Bo Nickal': { falls: 59, bouts: 123, gorriaranYears: [2017], source: 'https://gopsusports.com/news/2019/04/1/bo-nickal-wins-the-hodge' },
+  'Zain Retherford': { falls: 53, bouts: 129, source: 'https://gopsusports.com/news/2018/03/26/wr-zain-wins-the-hodge-again' },
+  'Ed Ruth': { falls: 46, bouts: 139, source: 'https://gopsusports.com/news/2014/09/5/former-lion-great-ed-ruth-ready-for-world-freestyle-championships' },
+  'David Taylor': { falls: 53, bouts: 137, gorriaranYears: [2013], gorriaranSource: 'https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/nwca.sidearmsports.com/documents/2023/11/14/NCAA_Championship_2013.pdf#page=1', source: 'https://gopsusports.com/news/2014/03/23/penn-state-wrestlers-win-fourth-straight-national-championship' },
+  'Mark Perry': { gorriaranYears: [2006], source: 'https://storage.googleapis.com/hawkeyesports-com/2023/11/ad81eaac-2023-24-media-guide.pdf#page=72' },
+  'Jayson Ness': { falls: 73, bouts: 163, source: 'https://gophersports.com/news/2010/3/26/jayson_ness_wins_hodge_trophy' },
+  'Logan Stieber': { falls: 50, bouts: 122, source: pastHodge },
+};
+
+/** Rates avoid rewarding an extra eligibility year merely for more bouts. */
+export function pinningMultiplier(name: string): number {
+  const history = PIN_HISTORY[name];
+  if (!history) return 1;
+  const rate = history.falls !== undefined && history.bouts ? history.falls / history.bouts : 0;
+  return Math.min(1.4, 1 + rate * 0.5 + (history.gorriaranYears?.length ? 0.1 : 0));
+}

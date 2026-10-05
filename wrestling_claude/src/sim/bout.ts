@@ -1,4 +1,5 @@
 import { MAT } from './rules';
+import { pinningMultiplier } from './careerAwards';
 import { HOLD_PLACES, MOVES, SHOT_CLIPS, LEG_HOLDS } from './moves';
 import type { MatSub, MoveDef, MoveId, NextSpec, Place, Role, ShotKind } from './moves';
 import { otherSide } from './types';
@@ -1110,9 +1111,11 @@ export class Bout {
       this.ev.score?.(T.side, 'nearFall4', 'Near fall');
     }
     const ct = cmds[T.side];
-    if (ct.shoot || ct.fight) s.pin += dt * 0.22 * (0.7 + wt.strength * 0.6);
+    const wrestler = this.wrestlers[T.side];
+    const pinSkill = pinningMultiplier(`${wrestler.firstName} ${wrestler.lastName}`);
+    if (ct.shoot || ct.fight) s.pin += dt * 0.22 * (0.7 + wt.strength * 0.6) * pinSkill;
     if (this.take(T, 'shoot') || this.take(T, 'fight')) {
-      s.pin += 0.06;
+      s.pin += 0.06 * pinSkill;
       this.ev.feedback?.(T.side, 'shoot', 'ok');
     }
     for (const b of ['sprawl', 'fight', 'shoot'] as const) {

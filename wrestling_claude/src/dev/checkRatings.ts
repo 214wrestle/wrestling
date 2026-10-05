@@ -1,4 +1,5 @@
 import { scoreCareer, seasonPoints, type NcaaSeason, CAREER_RECORDS, overallRating, recordAdjustment, ELIGIBILITY_SEASONS, COLLEGE_RECORDS } from '../sim/ratings';
+import { HODGE_AWARDS, PIN_HISTORY, pinningMultiplier } from '../sim/careerAwards';
 const assert = (ok: boolean) => { if (!ok) throw new Error('Rating scoring regression'); };
 const result = (year: number, place: NcaaSeason['place'], outstandingWrestler = false): NcaaSeason => ({year, place, outstandingWrestler, source: 'test'});
 assert([1,2,3,4,5,6,7,8].map(p=>seasonPoints(result(2000,p as NcaaSeason['place']))).join() === '10,9,7,6,5,4,3,2');
@@ -31,3 +32,26 @@ for (const [name, seasons] of Object.entries(CAREER_RECORDS)) {
   if (!Number.isFinite(rating) || rating < 0 || rating > 99 || (rating === 99 && !['Dan Gable', 'Cael Sanderson'].includes(name))) throw new Error(`${name}: invalid overall rating`);
 }
 console.log(`${Object.keys(CAREER_RECORDS).length} researched careers have complete counted-season coverage and source links`);
+const ordinary = scoreCareer([1997,1998,1999,2000].map(y=>result(y,4)));
+assert(overallRating('Mark Ironside', ordinary) === overallRating('Other athlete', ordinary) + 1);
+assert(overallRating('Spencer Lee', ordinary) === overallRating('Other athlete', ordinary) + 2);
+const awards = Object.values(HODGE_AWARDS).flatMap(a=>a.years);
+for (let year=1995;year<=2026;year++) assert(awards.filter(y=>y===year).length === ([2001,2021].includes(year)?2:1));
+for (const h of Object.values(PIN_HISTORY)) {
+  assert(/^https:\/\//.test(h.source));
+  if (h.falls !== undefined) assert(Number.isInteger(h.falls) && h.falls>=0 && Number.isInteger(h.bouts) && h.bouts!>=h.falls);
+}
+assert(pinningMultiplier('Other athlete') === 1);
+assert(pinningMultiplier('Mark Perry') > 1);
+assert(pinningMultiplier('Jason Nolf') > pinningMultiplier('Ed Ruth'));
+console.log('Hodge award coverage 1995–2026, shared awards, rating bonuses and fall-rate tendencies passed');
+
+for (let titles = 0; titles <= 4; titles++) {
+  const career = scoreCareer([0,1,2,3].map(i=>result(2000+i,i<titles?1:2,true)));
+  assert(overallRating('Other athlete',career,{wins:100,losses:0,source:'test'}) <= 90 + 2*titles);
+}
+for (const [name,seasons] of Object.entries(CAREER_RECORDS)) {
+  if (seasons.filter(s=>s.place===1).length === 3) assert(overallRating(name,scoreCareer(seasons),COLLEGE_RECORDS[name]) <= 96);
+}
+assert(overallRating('Dan Gable',gable) === 99);
+console.log('Championship tiers and three-title 96 ceiling passed');

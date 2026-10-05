@@ -1,3 +1,4 @@
+import { HODGE_AWARDS } from './careerAwards';
 /** NCAA tournament results only; no invented points for cancelled events or missing data. */
 export interface NcaaSeason {
   year: number;
@@ -35,10 +36,12 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
   const tier = averagePlacementPoints >= 10 ? 'Champion' : averagePlacementPoints >= 9 ? 'Finalist' : averagePlacementPoints >= 7 ? 'Top three' : averagePlacementPoints >= 2 ? 'All-American' : 'Qualifier';
   return {counted, excluded: sorted.slice(eligibilitySeasons), placementPoints: total - bonusPoints, bonusPoints, total,
     eligibilitySeasons, averagePlacementPoints, averagePoints: total / eligibilitySeasons, tier,
-    provisionalRating: Math.min(98, Math.round(placementRating(averagePlacementPoints) + bonusPoints))};
+    provisionalRating: Math.min(championshipCeiling(counted), Math.round(placementRating(averagePlacementPoints) + bonusPoints))};
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Zain Retherford": [{"year":2014,"place":5,"source":"https://gopsusports.com/news/2018/03/26/wr-zain-wins-the-hodge-again"},{"year":2016,"place":1,"source":"https://gopsusports.com/news/2018/03/26/wr-zain-wins-the-hodge-again"},{"year":2017,"place":1,"outstandingWrestler":true,"source":"https://gopsusports.com/news/2018/03/26/wr-zain-wins-the-hodge-again"},{"year":2018,"place":1,"source":"https://gopsusports.com/news/2018/03/26/wr-zain-wins-the-hodge-again"}],
+  "Ed Ruth": [{"year":2011,"place":3,"source":"https://gopsusports.com/news/2011/03/19/long-and-ruth-put-penn-state-on-precipice-of-first-national-championship-since-1953"},{"year":2012,"place":1,"source":"https://gopsusports.com/news/2014/09/5/former-lion-great-ed-ruth-ready-for-world-freestyle-championships"},{"year":2013,"place":1,"source":"https://gopsusports.com/news/2014/09/5/former-lion-great-ed-ruth-ready-for-world-freestyle-championships"},{"year":2014,"place":1,"source":"https://gopsusports.com/news/2014/09/5/former-lion-great-ed-ruth-ready-for-world-freestyle-championships"}],
   "Jason Nolf": [{"year":2016,"place":2,"source":"https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald"},{"year":2017,"place":1,"source":"https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald"},{"year":2018,"place":1,"source":"https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald"},{"year":2019,"place":1,"source":"https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald"}],
   "Bo Nickal": [{"year":2016,"place":2,"source":"https://www.themat.com/news/2019/july/03/bo-nickal-is-the-2019-big-ten-male-athlete-of-the-year"},{"year":2017,"place":1,"source":"https://www.themat.com/news/2019/july/03/bo-nickal-is-the-2019-big-ten-male-athlete-of-the-year"},{"year":2018,"place":1,"outstandingWrestler":true,"source":"https://gopsusports.com/news/2019/04/1/bo-nickal-wins-the-hodge"},{"year":2019,"place":1,"source":"https://www.themat.com/news/2019/july/03/bo-nickal-is-the-2019-big-ten-male-athlete-of-the-year"}],
   'Matt McDonough': [
@@ -112,6 +115,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Zain Retherford": {"wins":126,"losses":3,"source":"https://gopsusports.com/news/2018/03/26/wr-zain-wins-the-hodge-again"},
+  "Ed Ruth": {"wins":136,"losses":3,"source":"https://gopsusports.com/news/2014/09/5/former-lion-great-ed-ruth-ready-for-world-freestyle-championships"},
   "Jason Nolf": {"wins":117,"losses":3,"source":"https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald"},
   "Bo Nickal": {"wins":120,"losses":3,"source":"https://gopsusports.com/news/2019/04/1/bo-nickal-wins-the-hodge"},
   'Matt McDonough': { wins: 122, losses: 9, source: 'https://hawkeyesports.com/sports/hof/roster/player/matt-mcdonough-hof' },
@@ -149,7 +154,12 @@ export function recordAdjustment(record: CollegeRecord): number {
   // Ties count as half a win. Modest adjustment: 75% is neutral, 100% adds 1.
   return 4 * ((record.wins + ties / 2) / (record.wins + record.losses + ties) - 0.75);
 }
+/** Owner-approved provisional tiers, applied after all bonuses and record adjustments. */
+export function championshipCeiling(seasons: readonly NcaaSeason[]): number {
+  const titles = Math.min(4, seasons.filter(s => s.place === 1).length);
+  return 90 + titles * 2; // 0 / 1 / 2 / 3 / 4 titles: 90 / 92 / 94 / 96 / 98.
+}
 export function overallRating(name: string, career: CareerScore, record?: CollegeRecord): number {
   if (name === 'Dan Gable' || name === 'Cael Sanderson') return 99;
-  return Math.min(98, Math.max(0, Math.round(placementRating(career.averagePlacementPoints) + career.bonusPoints + (record ? recordAdjustment(record) : 0))));
+  return Math.min(championshipCeiling(career.counted), Math.max(0, Math.round(placementRating(career.averagePlacementPoints) + career.bonusPoints + (HODGE_AWARDS[name]?.years.length ?? 0) + (record ? recordAdjustment(record) : 0))));
 }
