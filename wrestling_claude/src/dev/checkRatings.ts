@@ -1,4 +1,4 @@
-import { scoreCareer, seasonPoints, type NcaaSeason, CAREER_RECORDS, overallRating, recordAdjustment } from '../sim/ratings';
+import { scoreCareer, seasonPoints, type NcaaSeason, CAREER_RECORDS, overallRating, recordAdjustment, ELIGIBILITY_SEASONS, COLLEGE_RECORDS } from '../sim/ratings';
 const assert = (ok: boolean) => { if (!ok) throw new Error('Rating scoring regression'); };
 const result = (year: number, place: NcaaSeason['place'], outstandingWrestler = false): NcaaSeason => ({year, place, outstandingWrestler, source: 'test'});
 assert([1,2,3,4,5,6,7,8].map(p=>seasonPoints(result(2000,p as NcaaSeason['place']))).join() === '10,9,7,6,5,4,3,2');
@@ -17,3 +17,17 @@ assert(overallRating('Other athlete',scoreCareer([1999,2000,2001,2002].map(y=>re
 assert(overallRating('Cael Sanderson',scoreCareer(CAREER_RECORDS['Cael Sanderson'])) === 99);
 assert(recordAdjustment({wins:75, losses:25, source:'test'}) === 0);
 assert(recordAdjustment({wins:100, losses:0, source:'test'}) === 1);
+
+// Validate the live research data, not just synthetic examples of the formula.
+for (const [name, seasons] of Object.entries(CAREER_RECORDS)) {
+  const eligible = ELIGIBILITY_SEASONS[name] ?? 4;
+  if (seasons.length < eligible) throw new Error(`${name}: incomplete season coverage`);
+  const career = scoreCareer(seasons, eligible);
+  if (career.counted.length !== eligible) throw new Error(`${name}: wrong counted-season total`);
+  for (const season of seasons) {
+    if (!Number.isInteger(season.year) || !/^https:\/\//.test(season.source)) throw new Error(`${name}: missing season evidence`);
+  }
+  const rating = overallRating(name, career, COLLEGE_RECORDS[name]);
+  if (!Number.isFinite(rating) || rating < 0 || rating > 99 || (rating === 99 && !['Dan Gable', 'Cael Sanderson'].includes(name))) throw new Error(`${name}: invalid overall rating`);
+}
+console.log(`${Object.keys(CAREER_RECORDS).length} researched careers have complete counted-season coverage and source links`);

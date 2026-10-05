@@ -433,6 +433,8 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
   const J = F.jaw;
   const C = F.chin;
   const CW = F.chinW;
+  // Soft cheek volume varies independently of the cheekbone/jaw landmarks.
+  const cheekFill = 1 + (0.5 - Math.max(0, Math.min(1, F.hollow))) * 0.45;
   // Eyeball centre (radius 0.0119): the lids and sockets are built round it.
   const E: V3 = [0.032, 1.649, EYE_Z];
   // Skeletal landmarks of the lower face. The jaw is built like a sculptor's
@@ -486,13 +488,13 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
     ...pair(ell('head', [0.0535, 1.651, 0.06], [0.0085, 0.021, 0.0125], 0.014, H, { rot: [0, -35, -8], ...hw })),
     // Malar fat pad: the soft front of the cheek between the eye, the nose wing
     // and the cheekbone, so the cheek is one full plane, never a groove.
-    ...pair(ell('head', [0.034, 1.616 + F.smile * 0.0006, 0.066 + F.smile * 0.0004], [0.018, 0.02, 0.02], 0.022, H, { rot: [0, -25, 0], ...hw })),
+    ...pair(ell('head', [0.034, 1.616 + F.smile * 0.0006, 0.066 + F.smile * 0.0004], [0.018 * cheekFill, 0.02, 0.02 * cheekFill], 0.022, H, { rot: [0, -25, 0], ...hw })),
     // Buccal fill over the masseter: a young athlete's cheek is full between the
     // cheekbone and the jaw, trimmed by the same jaw planes so it never sags.
-    ...pair(ell('head', [0.05 + J * 0.5, 1.598, 0.036], [0.013, 0.026, 0.027], 0.024, H, { ...hw, planes: [massL, bodyL] })),
+    ...pair(ell('head', [0.05 + J * 0.5, 1.598, 0.036], [0.013 * cheekFill, 0.026, 0.027 * cheekFill], 0.024, H, { ...hw, planes: [massL, bodyL] })),
     // Lower cheek beside the mouth (over the buccinator), filled out to the jaw
     // plane so the side of the lower face is flat-to-convex, never a crease.
-    ...pair(ell('head', [0.036 + J * 0.4, 1.587 - L * 0.4, 0.058], [0.017, 0.024, 0.021], 0.02, H, { rot: [0, -20, 0], ...hw, planes: [bodyL] })),
+    ...pair(ell('head', [0.036 + J * 0.4, 1.587 - L * 0.4, 0.058], [0.017 * cheekFill, 0.024, 0.021 * cheekFill], 0.02, H, { rot: [0, -20, 0], ...hw, planes: [bodyL] })),
     // Cheekbones (zygoma body) and the arch back to the ear: the widest point of the face.
     ...pair(ell('head', [0.044 + F.cheek, 1.629, 0.058], [0.015, 0.0165, 0.02], 0.022, H, { rot: [0, -40, 0], ...hw })),
     ...pair(cone('head', [0.057 + F.cheek, 1.633, 0.042], [0.061, 1.636, 0.006], 0.0062, 0.005, 0.014, H, hw)),

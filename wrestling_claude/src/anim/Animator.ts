@@ -102,6 +102,7 @@ export class Animator {
   private feetDesired: Posture = createPosture();
   readonly footwork = new Footwork();
   private footW = 0;
+  private gazeTarget = new Vector3();
   private phase = Math.random() * 10;
   private breath = Math.random() * 6;
   private contacts: ActiveContact[] = [];
@@ -201,6 +202,7 @@ export class Animator {
     }
 
     this.solver.apply(this.display);
+    if (opp && this.character.setGaze) this.character.setGaze(opp.headPos(this.gazeTarget));
   }
 
   /* ----------------------------------------------------------------- mass */

@@ -13,13 +13,13 @@ function moreno(w: Wrestler): Athlete {
   return {
     ...ATHLETES[0], id: w.id, name: 'Michael Moreno', school: 'Iowa State', wordmark: 'IOWA STATE',
     height: w.height, mass: w.build, skin: w.skinTone, hairColor: w.hairColor,
-    hair: 'crop', hairLen: 0.007, hairFlow: [0.2, 0.15, 1], hairSides: 0.88,
-    hairFront: 1.699, smile: 0, brow: [-0.001, 0.02, 1.6, 1.05], eye: w.eyeColor,
+    hair: 'crop', hairLen: 0.009, hairFlow: [0.2, 0.15, 1], hairSides: 0.88,
+    hairFront: 1.705, smile: 0, brow: [-0.001, 0.02, 1.6, 1.05], eye: w.eyeColor,
     stubble: 0.01, primary: '#9e1736', secondary: '#9e1736', piping: '#f5c635',
     shoe: '#17171a', shoeAccent: '#f0eee7', gearShell: '#f0eee7', gearStrap: '#f0eee7',
-    face: {jaw: -0.001, chin: 0.0005, chinW: 0.96, faceLen: -0.001,
-      nose: 0, noseW: 0.0005, brow: 0.0003, cheek: 0.001, hollow: 0.18,
-      lips: 1, cauli: 0, smile: 0, eyeOpen: 0.98},
+    face: {jaw: 0.0015, chin: 0.0005, chinW: 1.16, faceLen: -0.001,
+      nose: -0.004, noseW: 0.0018, brow: -0.0018, cheek: 0.003, hollow: 0.18,
+      lips: 0.95, cauli: 0, smile: 0, eyeOpen: 0.8},
     frame: {neck: 1.02, traps: 1.02, torsoW: 1, torsoD: 0.99, limb: 1,
       delt: 1, hips: 1, head: 1},
   };

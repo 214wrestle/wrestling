@@ -15,6 +15,7 @@ import {
 } from 'three';
 import { BIND_POSE, BONES } from './skeleton';
 import type { BoneName } from './skeleton';
+import type { Vector3 } from 'three';
 import { createBodyMaterial } from './material';
 import type { BodyLook, BodyMaterial } from './material';
 import type { BodyBuffers } from './factory';
@@ -65,6 +66,7 @@ export interface CharacterRig {
   root: Group; bones: Record<BoneName, Bone>; boneList: Bone[]; scale: number;
   motion: WrestlingStyle;
   setExertion(sweat: number, flush: number): void;
+  setGaze?(target: Vector3): void;
   dispose(): void;
 }
 
