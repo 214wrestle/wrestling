@@ -40,6 +40,7 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Tim Krieger": [{"year": 1986, "place": 5, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"}, {"year": 1987, "place": 1, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"}, {"year": 1988, "place": 2, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"}, {"year": 1989, "place": 1, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173", "outstandingWrestler": true}],
   "Jake Varner": [{"year": 2007, "place": 2, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2008, "place": 2, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2009, "place": 1, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2010, "place": 1, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}],
   "Jon Reader": [{"year": 2008, "place": 7, "source": "https://cyclones.com/news/2011/3/25/205123068"}, {"year": 2009, "place": 4, "source": "https://cyclones.com/news/2011/3/25/205123068"}, {"year": 2010, "place": "qualifier", "source": "https://cyclones.com/news/2011/3/25/205123068"}, {"year": 2011, "place": 1, "source": "https://cyclones.com/news/2011/3/25/205123068"}],
   "Zach Roberson": [{"year": 2001, "place": "qualifier", "source": "https://cyclones.com/staff-directory/zach-roberson/332"}, {"year": 2002, "place": 7, "source": "https://cyclones.com/staff-directory/zach-roberson/332"}, {"year": 2003, "place": 4, "source": "https://cyclones.com/staff-directory/zach-roberson/332"}, {"year": 2004, "place": 1, "source": "https://cyclones.com/staff-directory/zach-roberson/332"}],
@@ -124,6 +125,7 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Tim Krieger": {"wins": 116, "losses": 3, "ties": 2, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"},
   "Jake Varner": {"wins": 121, "losses": 10, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"},
   "Jon Reader": {"wins": 124, "losses": 23, "source": "https://cyclones.com/news/2011/3/25/205123068"},
   "Zach Roberson": {"wins": 106, "losses": 35, "source": "https://cyclones.com/staff-directory/zach-roberson/332"},
