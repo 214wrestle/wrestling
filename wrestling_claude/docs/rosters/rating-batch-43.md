@@ -1,0 +1,5 @@
+# Career 43: Nate Carr
+
+Iowa State 149 starter. Four NCAA seasons: 1980 qualifier, 1981–1983 champion. [School record book](https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf), printed pages 7 and 13, explicitly lists titles and his 1980 qualification. [Carr’s Hall of Fame interview](https://nwhof.org/news/five-questions-with-new-board-member-nate-carr) independently confirms he competed as a freshman, lost in the quarterfinals and consolation, and did not become an All-American. This is four-season eligibility, not the three-season Gable-era exception. [West Virginia’s biography](https://sportsintegration.wvu.edu/coaches/nate-carr) supplies 117–20–1. No tournament OW or career falls were inferred. Three-title ceiling 96 remains a maximum, not an automatic rating.
+
+Character reference: Carr describes speed and quickness as his strategy in the same Hall of Fame interview. This provides evidence for future footwork and attack timing; it does not establish measured technique frequencies or justify assigning a signature move without film.

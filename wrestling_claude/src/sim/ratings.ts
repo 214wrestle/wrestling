@@ -40,6 +40,7 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Nate Carr": [{"year": 1980, "place": "qualifier", "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=13"}, {"year": 1981, "place": 1, "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"}, {"year": 1982, "place": 1, "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"}, {"year": 1983, "place": 1, "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"}],
   "Tim Krieger": [{"year": 1986, "place": 5, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"}, {"year": 1987, "place": 1, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"}, {"year": 1988, "place": 2, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"}, {"year": 1989, "place": 1, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173", "outstandingWrestler": true}],
   "Jake Varner": [{"year": 2007, "place": 2, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2008, "place": 2, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2009, "place": 1, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2010, "place": 1, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}],
   "Jon Reader": [{"year": 2008, "place": 7, "source": "https://cyclones.com/news/2011/3/25/205123068"}, {"year": 2009, "place": 4, "source": "https://cyclones.com/news/2011/3/25/205123068"}, {"year": 2010, "place": "qualifier", "source": "https://cyclones.com/news/2011/3/25/205123068"}, {"year": 2011, "place": 1, "source": "https://cyclones.com/news/2011/3/25/205123068"}],
@@ -125,6 +126,7 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Nate Carr": {"wins": 117, "losses": 20, "ties": 1, "source": "https://sportsintegration.wvu.edu/coaches/nate-carr"},
   "Tim Krieger": {"wins": 116, "losses": 3, "ties": 2, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"},
   "Jake Varner": {"wins": 121, "losses": 10, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"},
   "Jon Reader": {"wins": 124, "losses": 23, "source": "https://cyclones.com/news/2011/3/25/205123068"},
