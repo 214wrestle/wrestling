@@ -1897,3 +1897,6 @@ button:focus-visible {
 .roster-select { width: 100%; padding: 10px; margin-bottom: 12px; color: #f3e8cf; background: #18202d; border: 1px solid #596477; border-radius: 5px; font: inherit; }
 .roster-notes { max-height: 160px; overflow: auto; font-size: 12px; color: #c9ced6; }
 .roster-notes p { white-space: pre-line; }
+
+.tile__name-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.tile__rating { display: inline-block; border: 1px solid var(--accent); border-radius: 4px; padding: 0.2em 0.45em; font: 700 0.8rem/1 var(--body); color: var(--ink); white-space: nowrap; }

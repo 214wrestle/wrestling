@@ -31,13 +31,13 @@ function Tile({ w, on, onPick, corner }: { w: Wrestler; on: boolean; onPick: () 
     >
       <span className="tile__flag" />
       <span className="tile__school">{w.school.name}</span>
-      <span className="tile__name">
+      <span className="tile__name-row"><span className="tile__name">
         <span className="tile__first">{w.firstName}</span> {w.lastName}
-      </span>
+      </span><span className="tile__rating" title={w.rating === undefined ? "Historical rating research pending" : "Overall rating"}>{w.rating ?? "Unrated"}</span></span>
       <span className="tile__meta">
         {w.weightClass === 285 ? 'HWT' : `${w.weightClass} lbs`} · {w.legends?.role === 'choice' ? 'Coach’s Choice' : 'Starter'}
       </span>
-      <span className="tile__meta">{w.rating !== undefined ? `OVR ${w.rating} · ` : ''}{w.ncaaCareer ? `NCAA: ${w.ncaaCareer.total} pts · ${w.ncaaCareer.averagePlacementPoints.toFixed(2)} avg · ${w.ncaaCareer.tier}` : 'NCAA career: research pending'}</span>
+      <span className="tile__meta">{w.ncaaCareer ? `NCAA: ${w.ncaaCareer.total} pts · ${w.ncaaCareer.averagePlacementPoints.toFixed(2)} avg · ${w.ncaaCareer.tier}` : 'NCAA career: research pending'}</span>
       {on && corner && <span className={`tile__corner tile__corner--${corner}`}>{corner === 'red' ? 'Red' : 'Green'}</span>}
     </button>
   );
@@ -234,7 +234,7 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
             );
           })}
         </div>
-        <p className="field__note">Prototype appearances and equal ratings are provisional.</p>
+        <p className="field__note">Ratings are provisional. Unrated wrestlers await historical research; appearances remain prototypes.</p>
         {[you, them].filter(w => w.legends?.bioNote).map(w => <p className="field__note" key={w.id}>{w.firstName} {w.lastName}: {w.legends!.bioNote}</p>)}
         {[you, them].filter(w => morenoFamilyNote(w)).map(w => <p className="field__note" key={`family-${w.id}`}>{morenoFamilyNote(w)}</p>)}
         {morenoMatchupNote(you, them) && <p className="field__note">{morenoMatchupNote(you, them)}</p>}
