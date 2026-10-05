@@ -40,6 +40,8 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Kyle Snyder": [{"year": 2015, "place": 2, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210"}, {"year": 2016, "place": 1, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210", "outstandingWrestler": true}, {"year": 2017, "place": 1, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210"}, {"year": 2018, "place": 1, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210"}],
+  "Jordan Burroughs": [{"year": 2007, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/season/2010-11/player/jordan-burroughs"}, {"year": 2008, "place": 3, "source": "https://huskers.com/sports/wrestling/roster/season/2010-11/player/jordan-burroughs"}, {"year": 2009, "place": 1, "source": "https://huskers.com/sports/wrestling/roster/season/2010-11/player/jordan-burroughs"}, {"year": 2011, "place": 1, "source": "https://huskers.com/sports/wrestling/roster/season/2010-11/player/jordan-burroughs"}],
   "Nate Carr": [{"year": 1980, "place": "qualifier", "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=13"}, {"year": 1981, "place": 1, "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"}, {"year": 1982, "place": 1, "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"}, {"year": 1983, "place": 1, "source": "https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"}],
   "Tim Krieger": [{"year": 1986, "place": 5, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"}, {"year": 1987, "place": 1, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"}, {"year": 1988, "place": 2, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"}, {"year": 1989, "place": 1, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173", "outstandingWrestler": true}],
   "Jake Varner": [{"year": 2007, "place": 2, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2008, "place": 2, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2009, "place": 1, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2010, "place": 1, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}],
@@ -126,6 +128,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Kyle Snyder": {"wins": 75, "losses": 5, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210"},
+  "Jordan Burroughs": {"wins": 128, "losses": 20, "source": "https://huskers.com/sports/wrestling/roster/season/2010-11/player/jordan-burroughs"},
   "Nate Carr": {"wins": 117, "losses": 20, "ties": 1, "source": "https://sportsintegration.wvu.edu/coaches/nate-carr"},
   "Tim Krieger": {"wins": 116, "losses": 3, "ties": 2, "source": "https://cyclones.com/sports/2015/3/2/GEN_20140101173"},
   "Jake Varner": {"wins": 121, "losses": 10, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"},
