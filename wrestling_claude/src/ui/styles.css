@@ -138,6 +138,10 @@ button:focus-visible {
   scrollbar-width: none;
 }
 
+.matchup-history {
+  flex-shrink: 0;
+}
+
 .brand__kicker {
   font: 700 0.72rem/1 var(--body);
   letter-spacing: 0.32em;

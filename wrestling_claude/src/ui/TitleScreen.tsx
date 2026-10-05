@@ -166,6 +166,8 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
           </div>
         </section>
 
+        {ncaaMatchupNotes(you, them).map(meeting => <p className="field__note matchup-history" key={`${meeting.year}-${meeting.round}-${meeting.weight}`}><strong>NCAA history:</strong> {historicalMeetingText(meeting)} <a href={meeting.source} target="_blank" rel="noopener noreferrer">View source</a></p>)}
+
         <button type="button" className="cta" onClick={go}>
           <span>Wrestle</span>
           <Key>Enter</Key>
@@ -237,7 +239,6 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
         {[you, them].filter(w => w.legends?.bioNote).map(w => <p className="field__note" key={w.id}>{w.firstName} {w.lastName}: {w.legends!.bioNote}</p>)}
         {[you, them].filter(w => morenoFamilyNote(w)).map(w => <p className="field__note" key={`family-${w.id}`}>{morenoFamilyNote(w)}</p>)}
         {morenoMatchupNote(you, them) && <p className="field__note">{morenoMatchupNote(you, them)}</p>}
-        {ncaaMatchupNotes(you, them).map(meeting => <p className="field__note" key={`${meeting.year}-${meeting.round}-${meeting.weight}`}><strong>NCAA history:</strong> {historicalMeetingText(meeting)} <a href={meeting.source} target="_blank" rel="noopener noreferrer">View bracket</a></p>)}
         <details className="roster-notes"><summary>Locked roster notes and Coach’s Choice</summary>
           <p>{you.school.rosterNotes}</p>
           <p>Choices without assigned weights are preserved here for later placement.</p>

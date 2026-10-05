@@ -11,6 +11,8 @@ export interface HistoricalMeeting {
 }
 /** Verified historical bouts; game roster weights do not rewrite history. */
 export const NCAA_MEETINGS: readonly HistoricalMeeting[] = [
+  {winner:'Jake Varner',loser:'Craig Brester',year:2010,round:'final',weight:197,result:'5–2',source:'https://cyclones.com/news/2010/3/21/204912702'},
+  {winner:'Kyven Gadson',loser:'Kyle Snyder',year:2015,round:'final',weight:197,result:'by fall at 4:24',source:'https://i.turner.ncaa.com/sites/default/files/images/2015/03/22/finalbrackets.pdf'},
   { winner: 'Larry Owings', loser: 'Dan Gable', year: 1970, round: 'final', weight: 142, result: '13–11', source: 'https://nwhof.org/brackets/40#page=11' },
   { winner: 'Kyle Dake', loser: 'David Taylor', year: 2013, round: 'final', weight: 165, result: '5–4', source: 'https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/nwca.sidearmsports.com/documents/2023/11/14/NCAA_Championship_2013.pdf#page=17' },
 ];

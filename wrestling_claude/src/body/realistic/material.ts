@@ -318,7 +318,7 @@ Look bodyLook() {
       float dM = abs(v) - hApt;
       // Upper lash line: dense, thicker toward the outer corner; lower: a hint.
       float wLash = isUp > 0.5 ? mix(0.0007, 0.0014, smoothstep(-0.012, 0.012, u)) : 0.0005;
-      float lash = 1.0 - smoothstep(wLash * 0.4, wLash, dM);
+      float lash = 1.0 - smoothstep(wLash * 0.4, wLash, abs(dM));
       lash *= isUp > 0.5 ? 0.9 : 0.3;
       lash *= smoothstep(-0.0152, -0.011, u) * (1.0 - smoothstep(0.0135, 0.0158, u));
       // The margin's inner wall: a slightly darker, wet skin, never a pink rim.

@@ -16,7 +16,8 @@ declare const process: { argv: string[] };
 const N = Number(process.argv[2] ?? 30);
 const level = (process.argv[3] ?? 'starter') as Difficulty;
 const DT = 1 / 60;
-const ROSTER = process.argv[4] === 'legends' ? LEGENDS_ROSTER : PROTOTYPE_ROSTER;
+const legends = process.argv[4] === 'legends';
+const ROSTER = legends ? LEGENDS_ROSTER : PROTOTYPE_ROSTER;
 
 const moves: Record<string, number> = {};
 const results: Record<string, number> = {};
@@ -29,7 +30,11 @@ let rides = 0;
 for (let m = 0; m < N; m++) {
   const a = ROSTER[m % ROSTER.length];
   let b = ROSTER[(m + 1 + Math.floor(m / ROSTER.length)) % ROSTER.length];
-  if (a.id === b.id) b = ROSTER[(m + 1) % ROSTER.length];
+  if (legends) {
+    const opponents = ROSTER.filter(w => w.weightClass === a.weightClass && w.school.id !== a.school.id);
+    if (!opponents.length) throw new Error(`No same-weight opponent for ${a.id}`);
+    b = opponents[(m + Math.floor(m / ROSTER.length)) % opponents.length];
+  } else if (a.id === b.id) b = ROSTER[(m + 1) % ROSTER.length];
   const ais = [new WrestlerAI(0, level, 2000 + m * 2), new WrestlerAI(1, level, 2001 + m * 2)];
   const sim = new MatchSim(
     [a, b],

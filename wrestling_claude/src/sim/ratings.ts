@@ -40,6 +40,12 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Jake Varner": [{"year": 2007, "place": 2, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2008, "place": 2, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2009, "place": 1, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}, {"year": 2010, "place": 1, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"}],
+  "Jon Reader": [{"year": 2008, "place": 7, "source": "https://cyclones.com/news/2011/3/25/205123068"}, {"year": 2009, "place": 4, "source": "https://cyclones.com/news/2011/3/25/205123068"}, {"year": 2010, "place": "qualifier", "source": "https://cyclones.com/news/2011/3/25/205123068"}, {"year": 2011, "place": 1, "source": "https://cyclones.com/news/2011/3/25/205123068"}],
+  "Zach Roberson": [{"year": 2001, "place": "qualifier", "source": "https://cyclones.com/staff-directory/zach-roberson/332"}, {"year": 2002, "place": 7, "source": "https://cyclones.com/staff-directory/zach-roberson/332"}, {"year": 2003, "place": 4, "source": "https://cyclones.com/staff-directory/zach-roberson/332"}, {"year": 2004, "place": 1, "source": "https://cyclones.com/staff-directory/zach-roberson/332"}],
+  "David Zabriskie": [{"year": 2007, "place": "qualifier", "source": "https://cyclones.com/sports/wrestling/roster/david-zabriskie/2876"}, {"year": 2008, "place": 6, "source": "https://cyclones.com/sports/wrestling/roster/david-zabriskie/2876"}, {"year": 2009, "place": 5, "source": "https://cyclones.com/sports/wrestling/roster/david-zabriskie/2876"}, {"year": 2010, "place": 1, "source": "https://cyclones.com/sports/wrestling/roster/david-zabriskie/2876"}],
+  "Kyven Gadson": [{"year": 2012, "place": 0, "source": "https://cyclones.com/sports/wrestling/roster/kyven-gadson/1279"}, {"year": 2013, "place": 6, "source": "https://cyclones.com/sports/wrestling/roster/kyven-gadson/1279"}, {"year": 2014, "place": 4, "source": "https://cyclones.com/sports/wrestling/roster/kyven-gadson/1279"}, {"year": 2015, "place": 1, "source": "https://cyclones.com/sports/wrestling/roster/kyven-gadson/1279"}],
+
   "Trent Paulson": [{"year": 2004, "place": "qualifier", "source": "https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf#page=14"}, {"year": 2005, "place": 4, "source": "https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf#page=8"}, {"year": 2006, "place": 4, "source": "https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf#page=8"}, {"year": 2007, "place": 1, "source": "https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf#page=8"}],
   "Travis Paulson": [{"year": 2004, "place": 6, "source": "https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf#page=8"}, {"year": 2005, "place": "qualifier", "source": "https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf#page=14"}, {"year": 2006, "place": 6, "source": "https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf#page=8"}, {"year": 2007, "place": 5, "source": "https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf#page=8"}],
 
@@ -118,6 +124,12 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Jake Varner": {"wins": 121, "losses": 10, "source": "https://cyclones.com/honors/hall-of-fame/jake-varner/198?path=general"},
+  "Jon Reader": {"wins": 124, "losses": 23, "source": "https://cyclones.com/news/2011/3/25/205123068"},
+  "Zach Roberson": {"wins": 106, "losses": 35, "source": "https://cyclones.com/staff-directory/zach-roberson/332"},
+  "David Zabriskie": {"wins": 116, "losses": 22, "source": "https://cyclones.com/sports/wrestling/roster/david-zabriskie/2876"},
+  "Kyven Gadson": {"wins": 90, "losses": 11, "source": "https://cyclones.com/sports/wrestling/roster/kyven-gadson/1279"},
+
   'Trent Paulson': {wins:117,losses:20,source:'https://nwhof.org/hall_of_fame/bio_by_name/trent-paulson'},
   'Travis Paulson': {wins:106,losses:32,source:'https://nwhof.org/news/dan-gable-museum-announces-2017-glen-brand-hof-class'},
   "Zain Retherford": {"wins":126,"losses":3,"source":"https://gopsusports.com/news/2018/03/26/wr-zain-wins-the-hodge-again"},

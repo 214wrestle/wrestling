@@ -11,3 +11,7 @@ The official 2015 portrait provides a clearer facial reference: https://dxbhsrqy
 October 5 continuation: shortened the lower face by 7 mm in canonical model coordinates, broadened the jaw/chin and increased cheek fill. Verified the six-view body lab builds with 41,005 head vertices and no browser errors. These are photographic art estimates, not scanned measurements. The face remains below the requested UFC-like likeness, particularly eyes, facial planes and surface detail; keep this workstream active.
 
 Live quick-match verification: Moreno vs Mark Perry reached a fall with 6.6 seconds left in period one; result screen showed takedown, near fall, penalties and riding time. No browser warnings or errors. This checks rendering through a completed bout, not likeness fidelity or tournament pin calibration.
+
+Eyelid correction: bound the procedural lash shading to the absolute distance from the aperture edge. The former signed-distance mask darkened the entire interior side of the edge. This is a shading fix; face geometry, eye motion and likeness remain unfinished.
+
+Post-shader live verification: the current Moreno/Perry quick match completed by fall with 3.5 seconds left in P1. The result screen and scoring log rendered; browser warnings and errors remained empty.

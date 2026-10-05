@@ -32,6 +32,7 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  'Jake Varner': {falls:42,bouts:131,source:'https://cyclones.com/sports/wrestling/roster/jake-varner/2862'},
   'Trent Paulson': {falls:15,bouts:137,source:'https://nwhof.org/hall_of_fame/bio_by_name/trent-paulson'},
   'Jason Nolf': { falls: 60, bouts: 120, source: 'https://gopsusports.com/news/2019/04/1/nolf-and-ogle-named-mccoy-award-winners-crow-garners-walker-award-mchugh-earns-oswald' },
   'Bo Nickal': { falls: 59, bouts: 123, gorriaranYears: [2017], source: 'https://gopsusports.com/news/2019/04/1/bo-nickal-wins-the-hodge' },
