@@ -39,6 +39,12 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Matt McDonough': [
+    { year: 2010, place: 1, source: 'https://hawkeyesports.com/sports/hof/roster/player/matt-mcdonough-hof' },
+    { year: 2011, place: 2, source: 'https://hawkeyesports.com/sports/hof/roster/player/matt-mcdonough-hof' },
+    { year: 2012, place: 1, source: 'https://hawkeyesports.com/sports/hof/roster/player/matt-mcdonough-hof' },
+    { year: 2013, place: 'qualifier', source: 'https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/nwca.sidearmsports.com/documents/2023/11/14/NCAA_Championship_2013.pdf#page=3' },
+  ],
   'Jessman Smith': [{"year":2000,"place":"qualifier","source":"https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/nwca.sidearmsports.com/documents/2023/11/14/NCAA_Championship_2000.pdf#page=23"},{"year":2001,"place":"qualifier","source":"https://gophersports.com/news/2001/3/16/TEN_GOLDEN_GOPHERS_EARN_ALL_AMERICA_HONORS_MINNESOTA_IN_SECOND_AT_NCAAS"},{"year":2002,"place":3,"source":"https://nwhof.org/hall_of_fame/bio/5912"},{"year":2003,"place":4,"source":"https://nwhof.org/hall_of_fame/bio/5912"}],
   'Joe Heskett': [{"year":1999,"place":3,"source":"https://cyclones.com/news/2007/10/3/1255899"},{"year":2000,"place":2,"source":"https://cyclones.com/news/2007/10/3/1255899"},{"year":2001,"place":2,"source":"https://cyclones.com/news/2007/10/3/1255899"},{"year":2002,"place":1,"source":"https://cyclones.com/news/2007/10/3/1255899"}],
   'Nate Gallick': [{"year":2003,"place":0,"source":"https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf#page=14"},{"year":2004,"place":5,"source":"https://nwhof.org/hall_of_fame/bio/16013"},{"year":2005,"place":2,"source":"https://nwhof.org/hall_of_fame/bio/16013"},{"year":2006,"place":1,"source":"https://nwhof.org/hall_of_fame/bio/16013"}],
@@ -104,6 +110,7 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Matt McDonough': { wins: 122, losses: 9, source: 'https://hawkeyesports.com/sports/hof/roster/player/matt-mcdonough-hof' },
   'Joe Heskett': {"wins":143,"losses":9,"source":"https://cyclones.com/news/2007/10/3/1255899"},
   'Nate Gallick': {"wins":106,"losses":23,"source":"https://nwhof.org/hall_of_fame/bio/16013"},
   'David Carr': {"wins":120,"losses":5,"source":"https://cyclones.com/news/2024/3/23/wrestling-david-carr-wins-second-national-title"},

@@ -10,7 +10,7 @@ Dan Gable: 1968 first, 1969 first and Outstanding Wrestler, 1970 second. Placeme
 
 Sources: [NWHOF season results](https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38), [Iowa State eligibility biography](https://cyclones.com/honors/hall-of-fame/dan-gable/56), [Iowa State record book, Individual Awards p.21](https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf).
 
-Twenty-nine careers are populated: the original seven, ten Iowa careers in [the Iowa audit](iowa-rating-audit.md), and twelve more in [the current batch](rating-batch-29.md). Other wrestlers display research pending and retain their prototype gameplay attributes. Missing data is never presented as a verified zero-point career.
+Thirty careers are populated, including Matt McDonough (2010 champion, 2011 runner-up, 2012 champion, 2013 qualifier; 122–9 career record). Iowa’s official Hall of Fame biography verifies the three placements and record; the 2013 NWCA consolation bracket confirms his nonplacing appearance. The previous 29 are: the original seven, ten Iowa careers in [the Iowa audit](iowa-rating-audit.md), and twelve more in [the current batch](rating-batch-29.md). Other wrestlers display research pending and retain their prototype gameplay attributes. Missing data is never presented as a verified zero-point career.
 
 
 Cael Sanderson: four NCAA titles and four Outstanding Wrestler awards, 1999–2002: 44 points, placement average 10.00, college record 159–0, owner-set 99. [ISU Hall of Fame](https://cyclones.com/honors/hall-of-fame/cael-sanderson/176).
