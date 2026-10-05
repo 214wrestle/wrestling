@@ -110,7 +110,7 @@ export class WrestlerAI {
 
     switch (pos.kind) {
       case 'neutral':
-        this.neutral(bout, cmd);
+        this.neutral(dt, bout, cmd);
         break;
       case 'shot':
         break;
@@ -147,7 +147,7 @@ export class WrestlerAI {
 
   /* -------------------------------------------------------------- neutral */
 
-  private neutral(bout: Bout, cmd: Command): void {
+  private neutral(dt: number, bout: Bout, cmd: Command): void {
     const me = bout.athletes[this.side];
     const them = bout.athletes[otherSide(this.side)];
     const dx = them.pos.x - me.pos.x;
@@ -173,11 +173,13 @@ export class WrestlerAI {
       this.pushT = 0.8 + this.rng.next() * 1.2;
     }
     if (dist < 0.85) fwd = this.pushT > 0.5 ? 0.6 : -0.2;
-    const lat = this.circleDir * 0.6;
+    const style = bout.wrestlers[this.side].motion;
+    fwd *= style?.pressure ?? 1;
+    const lat = this.circleDir * 0.6 * (style?.circle ?? 1);
     cmd.moveX = nx * fwd + nz * lat - (me.pos.x / (r || 1)) * inward;
     cmd.moveZ = nz * fwd - nx * lat - (me.pos.z / (r || 1)) * inward;
     // Sink the level when he is close and threatening; decided, not flickered.
-    this.levelT -= 1 / 60;
+    this.levelT -= dt;
     if (this.levelT <= 0) {
       this.levelT = 0.8 + this.rng.next() * 1.2;
       this.lowLevel = dist < 1.3 && this.rng.next() < 0.5 + this.p.patience * 0.3;
@@ -214,7 +216,7 @@ export class WrestlerAI {
       cmd.fight = true;
       return;
     }
-    if (dist < BOUT.tieRange + 0.1 && this.rng.next() < this.p.handfight * 0.25) {
+    if (dist < BOUT.tieRange + 0.1 && this.rng.next() < this.p.handfight * 0.25 * (style?.handActivity ?? 1)) {
       cmd.fight = true;
       return;
     }
@@ -277,8 +279,9 @@ export class WrestlerAI {
         return;
       }
       if (this.decideT > 0) return;
+      const style = bout.wrestlers[this.side].motion;
       // A rider works patiently; the chop is a choice, not a reflex.
-      this.decideT = pos.sub === 'ride' ? 0.55 + this.rng.next() * 0.7 : 0.3 + this.rng.next() * 0.45;
+      this.decideT = (pos.sub === 'ride' ? 0.55 + this.rng.next() * 0.7 : 0.3 + this.rng.next() * 0.45) * (style?.topPatience ?? 1);
       if (pos.sub === 'standing') {
         cmd.sprawl = pos.escape > 0.25 || this.rng.next() < 0.5;
         if (!cmd.sprawl) cmd.fight = true;
@@ -286,7 +289,7 @@ export class WrestlerAI {
       }
       if (pos.sub === 'flat') {
         if (pos.control < 0.35) cmd.sprawl = true;
-        else cmd.shoot = this.rng.next() < 0.6;
+        else cmd.shoot = this.rng.next() < Math.min(0.85, 0.6 * (style?.turnPreference ?? 1));
         if (!cmd.shoot && !cmd.sprawl) cmd.fight = true;
         return;
       }

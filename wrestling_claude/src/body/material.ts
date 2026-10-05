@@ -1,3 +1,4 @@
+import type { AppearanceShape } from '../sim/athleteProfiles';
 import { CanvasTexture, Color, LinearFilter, MeshPhysicalMaterial, SRGBColorSpace } from 'three';
 import type { IUniform } from 'three';
 
@@ -77,6 +78,10 @@ uniform vec3 uBand;
 uniform vec3 uShoe;
 uniform vec3 uShoeAccent;
 uniform float uScale;
+uniform float uFaceWidth;
+uniform float uFaceLength;
+uniform float uJaw;
+uniform float uNose;
 uniform float uPattern;
 uniform float uClothing;
 uniform float uHairStyle;
@@ -121,11 +126,18 @@ Look bodyLook() {
   vec3 p = vBind / uScale;
   vec3 n = normalize(vBindN);
   float part = floor(vPart + 0.5);
+  // Restore the authored face coordinates after athlete-specific deformation.
+  // Keeps lips, brows and hairline attached to the same features as the mesh.
+  if ((part > 0.5 && part < 1.5) || part > 5.5) {
+    p.y = 1.664 + (p.y - 1.664) / uFaceLength;
+    p.x /= uFaceWidth * (p.y < 1.625 ? uJaw : 1.0);
+    if (p.z > 0.1 + uNose) p.z -= uNose;
+  }
   float side = p.x >= 0.0 ? 1.0 : -1.0;
   float ax = abs(p.x);
 
   // Skin, with a little warmth where blood sits close to the surface.
-  float mottle = vnoise(p * 140.0) * 0.05 - 0.025;
+  float mottle = vnoise(p * 140.0) * 0.024 - 0.012;
   vec3 skin = uSkin * (1.0 + mottle);
   float knee = (1.0 - smoothstep(0.0, 0.06, abs(p.y - 0.5))) * step(3.5, part) * step(part, 4.5);
   float cheek = (1.0 - smoothstep(0.0, 0.035, length(vec2(ax - 0.045, p.y - 1.632)))) * step(0.06, p.z) * step(0.5, part) * step(part, 1.5);
@@ -141,7 +153,11 @@ Look bodyLook() {
     // Eyebrows: two soft arcs above the sockets.
     float browY = 1.6935 - (ax - 0.032) * (ax - 0.032) * 6.0;
     float brow = aa(0.0032 - abs(p.y - browY)) * aa(ax - 0.012) * aa(0.056 - ax) * step(0.07, p.z);
-    L.color = mix(L.color, uHair * 0.8, brow * 0.9);
+    L.color = mix(L.color, uHair * 0.8, brow * 0.65);
+    // Subtle socket and nostril occlusion, instead of a painted flat face.
+    float socketShade = exp(-pow((ax - 0.032) / 0.022, 2.0) - pow((p.y - 1.663) / 0.016, 2.0)) * smoothstep(0.07, 0.092, p.z);
+    float nostrilShade = exp(-pow((ax - 0.009) / 0.004, 2.0) - pow((p.y - 1.622) / 0.0035, 2.0)) * smoothstep(0.09, 0.105, p.z);
+    L.color *= 1.0 - socketShade * 0.12 - nostrilShade * 0.28;
     // Lips and the line of the mouth, curving a touch at the corners.
     float lipY = 1.592 + ax * ax * 3.0;
     float lip = aa(0.0058 - abs(p.y - lipY)) * aa(0.02 - ax) * step(0.086, p.z);
@@ -311,7 +327,7 @@ export interface BodyMaterial extends MeshPhysicalMaterial {
   };
 }
 
-export function createBodyMaterial(look: BodyLook): BodyMaterial {
+export function createBodyMaterial(look: BodyLook, shape?: AppearanceShape): BodyMaterial {
   const mat = new MeshPhysicalMaterial({
     color: '#ffffff',
     roughness: 0.5,
@@ -333,6 +349,10 @@ export function createBodyMaterial(look: BodyLook): BodyMaterial {
     uShoe: { value: new Color(look.shoe) },
     uShoeAccent: { value: new Color(look.shoeAccent) },
     uScale: { value: look.scale },
+    uFaceWidth: {value: shape?.faceWidth ?? 1},
+    uFaceLength: {value: shape?.faceLength ?? 1},
+    uJaw: {value: shape?.jaw ?? 1},
+    uNose: {value: shape?.nose ?? 0},
     uPattern: { value: PATTERN_ID[look.pattern] },
     uClothing: { value: look.clothing === 'referee' ? 1 : 0 },
     uHairStyle: { value: HAIR_ID[look.hairStyle] },

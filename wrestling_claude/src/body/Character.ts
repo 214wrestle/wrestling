@@ -96,7 +96,7 @@ export class Character {
     this.root.updateMatrixWorld(true);
     const skeleton = new Skeleton(this.boneList);
 
-    this.material = createBodyMaterial(opts.look);
+    this.material = createBodyMaterial(opts.look, opts.shape);
     for (const geo of [buffers.body, buffers.head, ...buffers.hands]) {
       const mesh = new SkinnedMesh(geo, this.material);
       mesh.castShadow = true;

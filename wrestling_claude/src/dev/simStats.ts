@@ -9,13 +9,14 @@
 import { MatchSim } from '../sim/MatchSim';
 import { WrestlerAI } from '../sim/ai';
 import type { Difficulty } from '../sim/ai';
-import { PROTOTYPE_ROSTER as ROSTER } from '../sim/roster';
+import { PROTOTYPE_ROSTER, ROSTER as LEGENDS_ROSTER } from '../sim/roster';
 
 declare const process: { argv: string[] };
 
 const N = Number(process.argv[2] ?? 30);
 const level = (process.argv[3] ?? 'starter') as Difficulty;
 const DT = 1 / 60;
+const ROSTER = process.argv[4] === 'legends' ? LEGENDS_ROSTER : PROTOTYPE_ROSTER;
 
 const moves: Record<string, number> = {};
 const results: Record<string, number> = {};

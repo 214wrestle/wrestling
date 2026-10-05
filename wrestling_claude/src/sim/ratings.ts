@@ -39,6 +39,26 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Kyle Dake': [2010,2011,2012,2013].map(year=>({year,place:1,outstandingWrestler:year===2013,source:'https://cornellbigred.com/news/2013/3/23/WREST_0323131012.aspx?path=wrest'})),
+  'David Taylor': [
+    {year:2011,place:2,source:'https://gopsusports.com/news/2014/04/01/david-taylor-wins-hodge-trophy-award-for-second-time'},
+    {year:2012,place:1,outstandingWrestler:true,source:'https://gopsusports.com/news/2012/04/1/season-wrap-up-nittany-lion-wrestling-season-ending-notes'},
+    {year:2013,place:2,source:'https://gopsusports.com/news/2014/04/01/david-taylor-wins-hodge-trophy-award-for-second-time'},
+    {year:2014,place:1,outstandingWrestler:true,source:'https://www.psu.edu/news/athletics/story/nittany-lion-wrestlers-win-fourth-consecutive-national-championship'},
+  ],
+  'Tom Brands': [1989,1990,1991,1992].map(year=>({year,place:year===1989?4:1,outstandingWrestler:year===1992,source:'https://nwhof.org/hall_of_fame/bio_by_name/tom-brands'})),
+  'Terry Brands': [
+    {year:1989,place:0,source:'https://nwhof.org/brackets/59'},
+    {year:1990,place:1,source:'https://nwhof.org/hall_of_fame/bio_by_name/terry-brands'},
+    {year:1991,place:2,source:'https://nwhof.org/hall_of_fame/bio_by_name/terry-brands'},
+    {year:1992,place:1,source:'https://nwhof.org/hall_of_fame/bio_by_name/terry-brands'},
+  ],
+  'Michael Moreno': [
+    {year:2012,place:0,source:'https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf'},
+    {year:2013,place:6,source:'https://cyclones.com/news/2013/3/23/206897262'},
+    {year:2014,place:5,source:'https://cyclones.com/news/2014/3/22/209441544'},
+    {year:2015,place:'qualifier',source:'https://cyclones.com/news/2015/4/10/210013592'},
+  ],
   'Cael Sanderson': [1999, 2000, 2001, 2002].map(year => ({year, place: 1, outstandingWrestler: true, source: 'https://cyclones.com/honors/hall-of-fame/cael-sanderson/176'})),
   'Dan Gable': [
     {year: 1968, place: 1, source: gableSource},
@@ -62,6 +82,11 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Kyle Dake': {wins:137,losses:4,source:'https://cornellbigred.com/news/2013/3/23/WREST_0323131012.aspx?path=wrest'},
+  'David Taylor': {wins:134,losses:3,source:'https://gopsusports.com/news/2014/04/01/david-taylor-wins-hodge-trophy-award-for-second-time'},
+  'Tom Brands': {wins:158,losses:7,ties:2,source:'https://hawkeyesports.com/sports/wrestling/roster/season/2024-25/staff/tom-brands'},
+  'Terry Brands': {wins:137,losses:7,source:'https://hof.hawkeyesports.com/inductees/terry-michael-brands/'},
+  'Michael Moreno': {wins:91,losses:37,source:'https://cyclones.com/sports/wrestling/roster/michael-moreno/1333'},
   'Cael Sanderson': {wins: 159, losses: 0, source: 'https://cyclones.com/honors/hall-of-fame/cael-sanderson/176'},
 };
 export function recordAdjustment(record: CollegeRecord): number {

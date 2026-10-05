@@ -60,7 +60,7 @@ export function generateBody(params: BodyParams, quality: MeshQuality = 'high', 
   const { prims } = buildPrims(params);
   const sc = params.scale;
   const hBody = (quality === 'high' ? 0.0072 : 0.0105) * sc;
-  const hFine = (quality === 'high' ? 0.0034 : 0.0055) * sc;
+  const hFine = (quality === 'high' ? 0.0027 : 0.0055) * sc;
   const headCut = 1.515 * sc;
   const overlap = 0.006 * sc;
 

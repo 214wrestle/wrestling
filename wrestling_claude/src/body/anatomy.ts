@@ -136,6 +136,10 @@ function torso(): Spec[] {
       w1: { spine: 0.45, chest: 0.55 },
       muscle: true,
     }),
+    // Low-relief rectus abdominis: definition without oversized muscle plates.
+    ...[1.09, 1.145, 1.2].flatMap(y => pair(ell('spine', [0.034, y, 0.092], [0.032, 0.032, 0.019], 0.016, T, {
+      w: {spine: 0.75, chest: 0.25}, muscle: true,
+    }))),
     ell('chest', [0, 1.255, -0.012], [0.148, 0.155, 0.108], 0.045, T, {
       w0: { spine: 0.65, chest: 0.35 },
       w1: { chest: 1 },
@@ -210,6 +214,9 @@ function neckAndHead(hair: HairStyle, clothing: Clothing): Spec[] {
     ...pair(cone('head', [0.0, 1.693, 0.080], [0.047, 1.692, 0.073], 0.007, 0.006, 0.015, H, { w: { head: 1 } })),
     cone('head', [0, 1.684, 0.092], [0, 1.632, 0.112], 0.008, 0.012, 0.012, H, { w: { head: 1 } }),
     ell('head', [0, 1.627, 0.103], [0.014, 0.009, 0.010], 0.01, H, { w: { head: 1 } }),
+    // Alar wings and shallow nostrils give the nose a visible underside.
+    ...pair(ell('head', [0.011, 1.628, 0.104], [0.007, 0.006, 0.008], 0.004, H, {w:{head:1}})),
+    ...pair(ell('head', [0.009, 1.622, 0.107], [0.003, 0.0024, 0.005], 0.002, H, {sub:true, claim:0})),
     ell('head', [0, 1.592, 0.085], [0.023, 0.009, 0.008], 0.012, H, { w: { head: 1 } }),
     ...pair(ell('head', [0.077, 1.655, -0.006], [0.012, 0.03, 0.02], 0.008, H, { w: { head: 1 } })),
     // Eye sockets, carved, then the lids laid back in over the eyeballs.

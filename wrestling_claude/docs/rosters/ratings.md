@@ -10,9 +10,12 @@ Dan Gable: 1968 first, 1969 first and Outstanding Wrestler, 1970 second. Placeme
 
 Sources: [NWHOF season results](https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38), [Iowa State eligibility biography](https://cyclones.com/honors/hall-of-fame/dan-gable/56), [Iowa State record book, Individual Awards p.21](https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf).
 
-Dan Gable and Cael Sanderson's careers are populated in this first pass. Other wrestlers display research pending and retain their prototype gameplay attributes. Missing data is never presented as a verified zero-point career.
+Seven careers are populated: Dan Gable, Cael Sanderson, Kyle Dake, David Taylor, Tom Brands, Terry Brands and Michael Moreno. Other wrestlers display research pending and retain their prototype gameplay attributes. Missing data is never presented as a verified zero-point career.
 
 
 Cael Sanderson: four NCAA titles and four Outstanding Wrestler awards, 1999–2002: 44 points, placement average 10.00, college record 159–0, owner-set 99. [ISU Hall of Fame](https://cyclones.com/honors/hall-of-fame/cael-sanderson/176).
 
 Verified college win percentage adds a small provisional adjustment: 4 × (win percentage − .75), with ties counted as half wins. 75% is neutral, 100% adds one rating point. Round once after placement scale, bonuses and record adjustment; cap at 98 except the two owner overrides. Raw career wins do not add points, avoiding another fifth-year advantage. Unknown records add no adjustment. Gable's record is pending scope reconciliation: ISU record book lists 100–1, NWHOF 94–1, and ISU biography references an initial 118-win streak. His NCAA finishes are consistent; his explicit 99 does not depend on resolving those record-count definitions.
+
+
+October 5 research batch: David Taylor 2/1/2/1 (2011–14), OW in 2012 and 2014, 134–3, OVR 98; Tom Brands 4/1/1/1 (1989–92), OW 1992, 158–7–2, OVR 97; Terry Brands nonqualifier/1/2/1 (1989–92), 137–7, OVR 91; Michael Moreno nonqualifier/6/5/qualifier (2012–15), 91–37, OVR 72. Season-level citations and college record citations are stored in src/sim/ratings.ts. Kyle Dake: four titles 2010–13, OW 2013, 137–4, OVR 98; [Cornell championship report](https://cornellbigred.com/news/2013/3/23/WREST_0323131012.aspx?path=wrest).

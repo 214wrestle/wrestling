@@ -7,6 +7,7 @@ export interface AppearanceShape {
 export interface WrestlingStyle {
   stanceWidth: number; levelOffset: number; tempo: number; handActivity: number;
   pressure: number; circle: number; attackRate: number;
+  topPatience?: number; turnPreference?: number;
   shots: { double: number; single: number; highCrotch: number };
 }
 export interface AthleteProfile {
@@ -30,13 +31,14 @@ const brandsMotion: WrestlingStyle = {...DEFAULT_MOTION, stanceWidth: 1.05, leve
 export const ATHLETE_PROFILES: Record<string, AthleteProfile> = {
   'Michael Moreno': {
     era: 'Iowa State collegiate, 2013–2015',
-    summary: '165-pound Cyclone; technique tendencies pending match-film review.',
-    appearanceStatus: 'First likeness sample: official portrait and NCAA action photo reviewed. Geometry, height and colours are art estimates; movement uses the baseline until film is reviewed.',
+    summary: 'Patient top control and opportunistic turns; recorded a ride-to-pin against Isaac Jordan in 2015.',
+    appearanceStatus: 'Likeness reconstruction in progress. Official photos guide art estimates; top-control tendencies interpret documented bouts, not measured film frequencies.',
     shape: {torso: 0.97, limbs: 0.97, neck: 1.02, shoulders: 1.01, faceWidth: 0.98, faceLength: 1.01, jaw: 0.96, nose: 0.002},
-    motion: {...DEFAULT_MOTION},
+    motion: {...DEFAULT_MOTION, topPatience: 1.2, turnPreference: 1.15},
     look: {height: 1.77, build: 0.42, skinTone: '#d6ac90', hairColor: '#241d19', hairStyle: 'crop', eyeColor: '#43362d', gear: '#f0eee7'},
     sources: [
       {label: 'Iowa State portrait and collegiate action photos', url: 'https://cyclones.com/sports/wrestling/roster/michael-moreno/1333', kind: 'photo'},
+      {label: '2015 Wisconsin bout: ride and turn to pin',url:'https://cyclones.com/news/2015/2/22/209902298',kind:'bio'},
       {label: 'National Wrestling Hall of Fame collegiate records', url: 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=16086', kind: 'bio'},
     ],
   },
