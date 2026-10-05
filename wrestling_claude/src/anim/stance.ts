@@ -73,7 +73,7 @@ export function stancePose(s: StanceParams, out: LocalPose = createLocal()): Loc
   out[P.SPINE + 2] = s.side * 4 * DEG;
 
   // Head up, eyes on the opponent.
-  out[P.HEAD] = (-30 - deep * 12) * DEG;
+  out[P.HEAD] = (-18 - deep * 12) * DEG;
   out[P.LOOK_W] = 0.85;
 
   // Feet: lead foot forward and pointing in a touch, rear foot back and out,
@@ -110,7 +110,7 @@ export function stancePose(s: StanceParams, out: LocalPose = createLocal()): Loc
 
   // Hands: elbows in, hands out front at chest height; they sag as he tires.
   const handY = hipsY + lerp(0.08, 0.24, s.guard) - s.fatigue * 0.08 - deep * 0.02;
-  const reach = lerp(0.3, 0.5, s.guard) + deep * 0.05 + s.lean * 0.03;
+  const reach = lerp(0.3, 0.39, s.guard) + deep * 0.05 + s.lean * 0.03;
   const leadHand = lead === 1 ? P.HAND_L : P.HAND_R;
   const rearHand = lead === 1 ? P.HAND_R : P.HAND_L;
   out[leadHand] = 0.17 * lead;
@@ -121,10 +121,10 @@ export function stancePose(s: StanceParams, out: LocalPose = createLocal()): Loc
   out[rearHand + 2] = reach - 0.02 + s.lean * 0.04;
 
   // Elbows down, in and slightly back.
-  out[P.ELBOW_L] = 0.4;
+  out[P.ELBOW_L] = 0.28;
   out[P.ELBOW_L + 1] = hipsY - 0.3;
   out[P.ELBOW_L + 2] = 0.12;
-  out[P.ELBOW_R] = -0.4;
+  out[P.ELBOW_R] = -0.28;
   out[P.ELBOW_R + 1] = hipsY - 0.3;
   out[P.ELBOW_R + 2] = 0.12;
 

@@ -171,7 +171,8 @@ function Nameplate({ state }: { state: UiState }) {
           <span>{x.firstName}</span> {x.lastName}
         </span>
         <span className="plate__meta">
-          {x.year} · {x.weightClass} lbs · {x.record.wins}-{x.record.losses}
+          {x.legends ? 'Legends' : x.year} · {x.weightClass === 285 ? 'HWT' : `${x.weightClass} lbs`}
+          {!x.legends && ` · ${x.record.wins}-${x.record.losses}`} 
           {x.seed ? ` · No. ${x.seed} seed` : ''} · {x.hometown}
         </span>
       </div>

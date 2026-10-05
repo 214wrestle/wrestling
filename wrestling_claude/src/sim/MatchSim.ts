@@ -1,3 +1,4 @@
+import { morenoFamilyNote, morenoMatchupNote } from './easterEggs';
 import {
   MAT,
   POINTS,
@@ -114,7 +115,8 @@ export class MatchSim {
       feedback: (side, button, result) => listeners.onFeedback?.(side, button, result),
     };
     this.bout = new Bout(wrestlers, ev, seed);
-    this.coinTossWinner = this.rng.chance(0.5) ? 0 : 1;
+    // Drawn after period one; unused beforehand.
+    this.coinTossWinner = 0;
     this.layoutIntro();
   }
 
@@ -123,6 +125,9 @@ export class MatchSim {
   startIntros(): void {
     this.setPhase('intros', 9.2);
     this.layoutIntro();
+    const [a, b] = this.wrestlers;
+    const family = morenoMatchupNote(a, b) ?? morenoFamilyNote(a) ?? morenoFamilyNote(b);
+    if (family) this.announce({ text: 'Moreno family connection', detail: family, tone: 'info', hold: 7 });
   }
 
   skipIntros(): void {
@@ -143,18 +148,10 @@ export class MatchSim {
         this.tickIntros();
         break;
       case 'handshake':
-        if (this.phaseT >= this.phaseDur) {
-          this.setPhase('coinToss', 1.6);
-          this.announce({
-            text: 'Coin toss',
-            detail: `${this.wrestlers[this.coinTossWinner].lastName} has the choice in the second period`,
-            tone: 'info',
-            hold: 1.8,
-          });
-        }
+        if (this.phaseT >= this.phaseDur) this.beginPeriod(1);
         break;
       case 'coinToss':
-        if (this.phaseT >= this.phaseDur) this.beginPeriod(1);
+        if (this.phaseT >= this.phaseDur) this.requestPeriodChoice();
         break;
       case 'setPosition':
         if (this.phaseT >= this.phaseDur) this.goWrestle();
@@ -288,6 +285,21 @@ export class MatchSim {
       this.finish(this.restart.top, 'ultimate-rideout');
       return;
     }
+    if (this.period === 1) {
+      this.coinTossWinner = this.rng.chance(0.5) ? 0 : 1;
+      this.setPhase('coinToss', 1.6);
+      this.announce({
+        text: 'Coin toss',
+        detail: `${this.wrestlers[this.coinTossWinner].lastName} has the choice in the second period`,
+        tone: 'info',
+        hold: 1.8,
+      });
+      return;
+    }
+    this.requestPeriodChoice();
+  }
+
+  private requestPeriodChoice(): void {
     const next = this.period + 1;
     const chooser: Side = next === 2 ? this.coinTossWinner : otherSide(this.coinTossWinner);
     this.lastChoiceBy = chooser;
@@ -381,7 +393,9 @@ export class MatchSim {
     for (const a of this.bout.athletes) {
       const backing = dist > 1.7 && a.drive <= 0.05;
       const fleeing = Math.hypot(a.pos.x, a.pos.z) > MAT.circleRadius - 0.9 && a.drive < -0.3;
-      a.stallTimer = backing || fleeing ? a.stallTimer + dt * (fleeing ? 1.6 : 1) : Math.max(0, a.stallTimer - dt * 1.6);
+      const cmd = commands[a.side];
+      const passive = dist <= 1.7 && a.act === 'stance' && Math.hypot(cmd.moveX, cmd.moveZ) < 0.1 && !cmd.shoot && !cmd.fight;
+      a.stallTimer = backing || fleeing || passive ? a.stallTimer + dt * (fleeing ? 1.6 : passive ? 0.35 : 1) : Math.max(0, a.stallTimer - dt * 1.6);
       if (!a.stallWarned && a.stallTimer >= STALL_WARNING_SECONDS) {
         a.stallWarned = true;
         this.announce({ text: 'Stalling — warning', detail: this.wrestlers[a.side].lastName, tone: 'warn', hold: 1.4 });

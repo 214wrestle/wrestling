@@ -1,3 +1,5 @@
+import type { AppearanceShape, WrestlingStyle } from '../sim/athleteProfiles';
+import { DEFAULT_MOTION } from '../sim/athleteProfiles';
 import {
   Bone,
   CanvasTexture,
@@ -25,6 +27,8 @@ import type { BodyBuffers } from './factory';
 
 export interface CharacterOptions {
   look: BodyLook;
+  shape?: AppearanceShape;
+  motion?: WrestlingStyle;
   /** Headgear colours, or null for the official. */
   gear: { shell: string; strap: string } | null;
 }
@@ -58,6 +62,7 @@ function eyeTexture(iris: string): CanvasTexture {
 
 export class Character {
   readonly root = new Group();
+  readonly motion: WrestlingStyle;
   readonly bones = {} as Record<BoneName, Bone>;
   readonly boneList: Bone[] = [];
   readonly material: BodyMaterial;
@@ -67,6 +72,7 @@ export class Character {
   readonly eyes: Mesh[] = [];
 
   constructor(buffers: BodyBuffers, opts: CharacterOptions) {
+    this.motion = opts.motion ?? DEFAULT_MOTION;
     this.scale = opts.look.scale;
     const s = this.scale;
 
@@ -117,6 +123,7 @@ export class Character {
       const gear = new Mesh(buffers.headgear, gearMat);
       gear.castShadow = true;
       gear.receiveShadow = true;
+      gear.scale.set(opts.shape?.faceWidth ?? 1, opts.shape?.faceLength ?? 1, 1);
       this.bones.head.add(gear);
       this.meshes.push(gear);
     }
@@ -131,7 +138,7 @@ export class Character {
     const eyeGeo = new SphereGeometry(0.0118 * s, 20, 14);
     for (const side of [1, -1]) {
       const eye = new Mesh(eyeGeo, eyeMat);
-      eye.position.set(0.032 * side * s, (1.664 - 1.575) * s, (0.0875 + 0.005) * s);
+      eye.position.set(0.032 * side * s * (opts.shape?.faceWidth ?? 1), (1.664 - 1.575) * s, (0.0875 + 0.005) * s);
       this.bones.head.add(eye);
       this.eyes.push(eye);
     }

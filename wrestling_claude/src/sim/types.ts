@@ -1,3 +1,4 @@
+import type { AthleteProfile, WrestlingStyle, AppearanceShape } from './athleteProfiles';
 import type { WinType } from './rules';
 
 export type Side = 0 | 1;
@@ -17,6 +18,8 @@ export type HairStyle = 'buzz' | 'crop' | 'curls' | 'bald';
 export interface School {
   id: string;
   name: string;
+  coach?: string;
+  rosterNotes?: string;
   /** Short wordmark printed across the chest. */
   mark: string;
   nickname: string;
@@ -34,6 +37,11 @@ export interface School {
 
 export interface Wrestler {
   id: string;
+  profile?: AthleteProfile;
+  motion?: WrestlingStyle;
+  appearance?: AppearanceShape;
+  headgearColor?: string;
+  legends?: { role: 'starter' | 'choice'; source: string; bioNote?: string };
   firstName: string;
   lastName: string;
   school: School;

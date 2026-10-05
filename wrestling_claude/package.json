@@ -9,7 +9,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "sim:stats": "esbuild src/dev/simStats.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/sim-stats.mjs --log-level=warning && node node_modules/.cache/sim-stats.mjs"
+    "sim:stats": "esbuild src/dev/simStats.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/sim-stats.mjs --log-level=warning && node node_modules/.cache/sim-stats.mjs",
+    "check:flow": "esbuild src/dev/checkPeriodFlow.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-period-flow.mjs --log-level=warning && node node_modules/.cache/check-period-flow.mjs",
+    "check:roster": "esbuild src/dev/checkRoster.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-roster.mjs --log-level=warning && node node_modules/.cache/check-roster.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",

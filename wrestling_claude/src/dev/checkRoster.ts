@@ -1,0 +1,49 @@
+import { morenoFamilyNote, morenoMatchupNote } from '../sim/easterEggs';
+import { ROSTER, LEGENDS_TEAMS, LEGENDS_WEIGHTS, byId, DEFAULT_MATCHUP } from '../sim/roster';
+const check = (ok: boolean, label: string) => { if (!ok) throw new Error(label); };
+check(LEGENDS_TEAMS.length === 26, '26 teams');
+check(ROSTER.filter(w => w.legends?.role === 'starter').length === 312, '312 assigned starters');
+check(new Set(ROSTER.map(w => w.id)).size === ROSTER.length, 'unique selectable identities');
+for (const team of LEGENDS_TEAMS) {
+  for (const weight of LEGENDS_WEIGHTS) {
+    const starters = ROSTER.filter(w => w.school.id === team.id && w.weightClass === weight && w.legends?.role === 'starter');
+    check(starters.length === 1, `${team.team}: one starter at ${weight}`);
+    const source = team.starters.find(e => (e.weight === 'HWT' ? 285 : Number(e.weight)) === weight)!;
+    check(`${starters[0].firstName} ${starters[0].lastName}` === source.name, 'locked name preserved');
+  }
+}
+check(byId(DEFAULT_MATCHUP[0]).weightClass === byId(DEFAULT_MATCHUP[1]).weightClass, 'matched default weight');
+check(!ROSTER.some(w => w.lastName === 'Samson'), 'Hud Samson absent');
+check(byId('penn-state-190-starter-quentin-wright').legends?.bioNote?.includes('184 and 197') === true, 'Wright career note');
+check(ROSTER.filter(w => w.firstName === 'Dylan' && w.lastName === 'Ness').every(w => w.weightClass === 157), 'Ness locked weights');
+console.log(`${LEGENDS_TEAMS.length} teams, 312 assigned starters, ${ROSTER.length - 312} assigned Coach’s Choice slots verified`);
+
+check(ROSTER.every(w => w.firstName.trim().length > 0 && w.lastName.trim().length > 0), 'all entries have first and last names');
+for (const [name, weight] of [['Trent', 157], ['Travis', 165]] as const) {
+ const w = ROSTER.find(w => w.school.id === 'iowa-state' && w.firstName === name && w.lastName === 'Paulson');
+ check(w?.weightClass === weight && !!w.legends?.bioNote?.includes('Lewis Central'), `${name} Paulson slot and twin Easter egg`);
+}
+
+const weightsByName = new Map<string, Set<number>>();
+for (const w of ROSTER) { const name = `${w.firstName} ${w.lastName}`; const weights = weightsByName.get(name) ?? new Set<number>(); weights.add(w.weightClass); weightsByName.set(name, weights); }
+check([...weightsByName.values()].every(weights => weights.size === 1), 'each wrestler has only one weight');
+
+for (const [name, weight] of [['Jeff McGinness', 141], ['Mark Perry', 165]] as const) {
+ check(ROSTER.some(w => `${w.firstName} ${w.lastName}` === name && w.school.id === 'iowa' && w.weightClass === weight && w.legends?.role === 'starter'), `${name} approved starter`);
+}
+
+for (const [name, weight, role] of [['Ed Banach', 174, 'starter'], ['Chris Campbell', 174, 'choice'], ['Jessman Smith', 184, 'starter'], ['Sammy Brooks', 184, 'choice']] as const) {
+ check(ROSTER.some(w => `${w.firstName} ${w.lastName}` === name && w.school.id === 'iowa' && w.weightClass === weight && w.legends?.role === role), `${name} approved Iowa placement`);
+}
+
+for (const [school, name, weight] of [['virginia-tech', 'Bo Bassett', 141], ['northern-iowa', 'Israel "Izzy" Moreno', 174]] as const) {
+ const entries = ROSTER.filter(w => `${w.firstName} ${w.lastName}` === name);
+ check(entries.length === 1 && entries[0].school.id === school && entries[0].weightClass === weight && entries[0].legends?.role === 'choice', `${name} unique approved choice`);
+}
+
+const izzy = ROSTER.find(w => w.school.id === 'northern-iowa' && w.firstName === 'Israel')!;
+for (const name of ['Mike Moreno Sr.', 'Michael Moreno', 'Gabe Moreno']) {
+ const cyclone = ROSTER.find(w => w.school.id === 'iowa-state' && `${w.firstName} ${w.lastName}` === name)!;
+ check(!!morenoFamilyNote(izzy) && !!morenoFamilyNote(cyclone), `${name} family notes both ways`);
+ check(!!morenoMatchupNote(izzy, cyclone) && morenoMatchupNote(izzy, cyclone) === morenoMatchupNote(cyclone, izzy), 'family matchup independent of corner');
+}

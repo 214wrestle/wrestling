@@ -1,6 +1,7 @@
+import { morenoFamilyNote, morenoMatchupNote } from '../sim/easterEggs';
 import { useEffect, useState } from 'react';
 import type { Difficulty } from '../sim/ai';
-import { MEET, ROSTER, byId } from '../sim/roster';
+import { MEET, ROSTER, LEGENDS_TEAMS, LEGENDS_WEIGHTS, byId } from '../sim/roster';
 import type { Wrestler } from '../sim/types';
 import type { GameApi, UiState } from '../game/store';
 import { Key } from './glyphs';
@@ -19,11 +20,6 @@ const ATTRS: Array<[keyof Wrestler['attributes'], string]> = [
   ['defense', 'Defense'],
 ];
 
-const feetInches = (m: number) => {
-  const inches = Math.round(m / 0.0254);
-  return `${Math.floor(inches / 12)}′${inches % 12}″`;
-};
-
 function Tile({ w, on, onPick, corner }: { w: Wrestler; on: boolean; onPick: () => void; corner?: 'red' | 'green' }) {
   return (
     <button
@@ -39,8 +35,7 @@ function Tile({ w, on, onPick, corner }: { w: Wrestler; on: boolean; onPick: () 
         <span className="tile__first">{w.firstName}</span> {w.lastName}
       </span>
       <span className="tile__meta">
-        {w.year} · {w.record.wins}-{w.record.losses}
-        {w.seed ? ` · #${w.seed}` : ''}
+        {w.weightClass === 285 ? 'HWT' : `${w.weightClass} lbs`} · {w.legends?.role === 'choice' ? 'Coach’s Choice' : 'Starter'}
       </span>
       {on && corner && <span className={`tile__corner tile__corner--${corner}`}>{corner === 'red' ? 'Red' : 'Green'}</span>}
     </button>
@@ -57,9 +52,22 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
     api.preview([pick, opponent]);
   }, [api, pick, opponent]);
 
+  const weight = byId(pick).weightClass;
+  const [yourTeam, setYourTeam] = useState(byId(pick).school.id);
+  const [theirTeam, setTheirTeam] = useState(byId(opponent).school.id);
+  const pool = (team: string, at = weight) => ROSTER.filter(w => w.school.id === team && w.weightClass === at);
   const choosePick = (id: string) => {
     setPick(id);
-    if (id === opponent) setOpponent(ROSTER.find((w) => w.id !== id)!.id);
+    if (id === opponent) {
+      const replacement = ROSTER.find(w => w.weightClass === weight && w.id !== id)!;
+      setOpponent(replacement.id); setTheirTeam(replacement.school.id);
+    }
+  };
+  const changeWeight = (at: number) => {
+    const a = pool(yourTeam, at)[0];
+    const b = pool(theirTeam, at).find(w => w.id !== a.id)
+      ?? ROSTER.find(w => w.weightClass === at && w.id !== a.id)!;
+    setPick(a.id); setOpponent(b.id); setTheirTeam(b.school.id);
   };
 
   const go = () => api.start({ humanSide: 0, difficulty, matchup: [pick, opponent], quick });
@@ -90,18 +98,37 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
         </header>
 
         <section className="field">
+          <h2>Weight class</h2>
+          <select aria-label="Weight class" className="roster-select" value={weight} onChange={e => changeWeight(Number(e.target.value))}>
+            {LEGENDS_WEIGHTS.map(w => <option key={w} value={w}>{w === 285 ? 'HWT' : `${w} lbs`}</option>)}
+          </select>
+          <h2>Your team</h2>
+          <select aria-label="Your team" className="roster-select" value={yourTeam} onChange={e => {
+            setYourTeam(e.target.value); choosePick(pool(e.target.value)[0].id);
+          }}>
+            {LEGENDS_TEAMS.map(t => <option key={t.id} value={t.id}>{t.team}</option>)}
+          </select>
+          <p className="field__note">{LEGENDS_TEAMS.find(t => t.id === yourTeam)?.staff.join(' · ')}</p>
           <h2>Your wrestler</h2>
           <div className="tiles">
-            {ROSTER.map((w) => (
+            {pool(yourTeam).map((w) => (
               <Tile key={w.id} w={w} on={pick === w.id} onPick={() => choosePick(w.id)} corner="red" />
             ))}
           </div>
         </section>
 
         <section className="field">
+          <h2>Opponent team</h2>
+          <select aria-label="Opponent team" className="roster-select" value={theirTeam} onChange={e => {
+            setTheirTeam(e.target.value);
+            setOpponent(pool(e.target.value).find(w => w.id !== pick)?.id ?? pool(e.target.value)[0].id);
+          }}>
+            {LEGENDS_TEAMS.filter(t => pool(t.id).some(w => w.id !== pick)).map(t => <option key={t.id} value={t.id}>{t.team}</option>)}
+          </select>
+          <p className="field__note">{LEGENDS_TEAMS.find(t => t.id === theirTeam)?.staff.join(' · ')}</p>
           <h2>Opponent</h2>
           <div className="tiles tiles--three">
-            {ROSTER.filter((w) => w.id !== pick).map((w) => (
+            {pool(theirTeam).filter((w) => w.id !== pick).map((w) => (
               <Tile key={w.id} w={w} on={opponent === w.id} onPick={() => setOpponent(w.id)} corner="green" />
             ))}
           </div>
@@ -174,18 +201,18 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
           <div className="tape__side" style={{ ['--school' as string]: you.school.primary }}>
             <span className="tape__corner tape__corner--red" />
             <span className="tape__school">{you.school.name}</span>
-            <span className="tape__name">{you.lastName}</span>
+            <span className="tape__name">{you.firstName} {you.lastName}</span>
             <span className="tape__meta">
-              {you.year} · {feetInches(you.height)} · {you.record.wins}-{you.record.losses}
+              {you.weightClass === 285 ? 'HWT' : `${you.weightClass} lbs`} · Legends
             </span>
           </div>
           <div className="tape__vs">vs</div>
           <div className="tape__side tape__side--right" style={{ ['--school' as string]: them.school.primary }}>
             <span className="tape__corner tape__corner--green" />
             <span className="tape__school">{them.school.name}</span>
-            <span className="tape__name">{them.lastName}</span>
+            <span className="tape__name">{them.firstName} {them.lastName}</span>
             <span className="tape__meta">
-              {them.year} · {feetInches(them.height)} · {them.record.wins}-{them.record.losses}
+              {them.weightClass === 285 ? 'HWT' : `${them.weightClass} lbs`} · Legends
             </span>
           </div>
         </div>
@@ -206,6 +233,15 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
             );
           })}
         </div>
+        <p className="field__note">Prototype appearances and equal ratings are provisional.</p>
+        {[you, them].filter(w => w.legends?.bioNote).map(w => <p className="field__note" key={w.id}>{w.firstName} {w.lastName}: {w.legends!.bioNote}</p>)}
+        {[you, them].filter(w => morenoFamilyNote(w)).map(w => <p className="field__note" key={`family-${w.id}`}>{morenoFamilyNote(w)}</p>)}
+        {morenoMatchupNote(you, them) && <p className="field__note">{morenoMatchupNote(you, them)}</p>}
+        <details className="roster-notes"><summary>Locked roster notes and Coach’s Choice</summary>
+          <p>{you.school.rosterNotes}</p>
+          <p>Choices without assigned weights are preserved here for later placement.</p>
+        </details>
+        {[you, them].map(w => w.profile && <details className="roster-notes" key={`refs-${w.id}`}><summary>{w.firstName} {w.lastName}: appearance and film references</summary><p>{w.profile.era} · {w.profile.appearanceStatus}</p><p>{w.profile.summary}</p><ul>{w.profile.sources.map(ref => <li key={ref.url}><a href={ref.url} target="_blank" rel="noopener noreferrer">{ref.label}</a> ({ref.kind})</li>)}</ul></details>)}
         <div className="tape__styles">
           <span>“{you.style}”</span>
           <span>“{them.style}”</span>

@@ -249,9 +249,8 @@ button:focus-visible {
   font: 700 1.25rem/1.05 var(--display);
   font-stretch: 85%;
   text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .tiles--three .tile__name {
@@ -264,7 +263,7 @@ button:focus-visible {
 }
 
 .tiles--three .tile__first {
-  display: none;
+  display: inline;
 }
 
 .tile__meta {
@@ -1894,3 +1893,7 @@ button:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+.roster-select { width: 100%; padding: 10px; margin-bottom: 12px; color: #f3e8cf; background: #18202d; border: 1px solid #596477; border-radius: 5px; font: inherit; }
+.roster-notes { max-height: 160px; overflow: auto; font-size: 12px; color: #c9ced6; }
+.roster-notes p { white-space: pre-line; }

@@ -1,3 +1,4 @@
+import { DEFAULT_MATCHUP } from '../sim/roster';
 import type { Difficulty } from '../sim/ai';
 import type { Device } from '../engine/Input';
 import type {
@@ -137,7 +138,7 @@ export const initialState: UiState = {
   fps: 0,
   touchControls: false,
   device: 'keyboard',
-  matchup: ['reyes', 'vandyke'],
+  matchup: [...DEFAULT_MATCHUP],
 };
 
 export class UiStore {

@@ -1,0 +1,2543 @@
+{
+  "version": "1.1",
+  "locked": true,
+  "teams": [
+    {
+      "team": "PENN STATE",
+      "staff": [
+        "Head Coach: Cael Sanderson"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Jeff Prescott",
+          "source": "118 — Jeff Prescott"
+        },
+        {
+          "weight": "125",
+          "name": "Luke Lilledahl",
+          "source": "125 — Luke Lilledahl"
+        },
+        {
+          "weight": "133",
+          "name": "Cary Kolat",
+          "source": "133 — Cary Kolat"
+        },
+        {
+          "weight": "141",
+          "name": "Nick Lee",
+          "source": "141 — Nick Lee"
+        },
+        {
+          "weight": "149",
+          "name": "Zain Retherford",
+          "source": "149 — Zain Retherford"
+        },
+        {
+          "weight": "157",
+          "name": "David Taylor",
+          "source": "157 — David Taylor"
+        },
+        {
+          "weight": "165",
+          "name": "Mitchell Mesenbrink",
+          "source": "165 — Mitchell Mesenbrink"
+        },
+        {
+          "weight": "174",
+          "name": "Carter Starocci",
+          "source": "174 — Carter Starocci"
+        },
+        {
+          "weight": "184",
+          "name": "Ed Ruth",
+          "source": "184 — Ed Ruth"
+        },
+        {
+          "weight": "190",
+          "name": "Quentin Wright",
+          "source": "190 — Quentin Wright"
+        },
+        {
+          "weight": "197",
+          "name": "Aaron Brooks",
+          "source": "197 — Aaron Brooks"
+        },
+        {
+          "weight": "HWT",
+          "name": "Kerry McCoy",
+          "source": "HWT — Kerry McCoy"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\n118 — Carl DeStefanis\n125 — Sanshiro Abe\n133 — Roman Bravo-Young\n141 — John Hughes\n157 — Jason Nolf\n165 — Vincenzo Joseph\n184 — Bo Nickal\n197 — Josh Barr\nHWT — Greg Kerkvliet\n\nIMPORTANT:\nQuentin Wright is LOCKED as the 190 starter.\nHis real career accomplishments at both 184 and 197 should remain in his bio.\nHud Samson has been REMOVED entirely.",
+      "id": "penn-state",
+      "choices": [
+        {
+          "name": "Carl DeStefanis",
+          "weight": "118",
+          "source": "118 — Carl DeStefanis"
+        },
+        {
+          "name": "Sanshiro Abe",
+          "weight": "125",
+          "source": "125 — Sanshiro Abe"
+        },
+        {
+          "name": "Roman Bravo-Young",
+          "weight": "133",
+          "source": "133 — Roman Bravo-Young"
+        },
+        {
+          "name": "John Hughes",
+          "weight": "141",
+          "source": "141 — John Hughes"
+        },
+        {
+          "name": "Jason Nolf",
+          "weight": "157",
+          "source": "157 — Jason Nolf"
+        },
+        {
+          "name": "Vincenzo Joseph",
+          "weight": "165",
+          "source": "165 — Vincenzo Joseph"
+        },
+        {
+          "name": "Bo Nickal",
+          "weight": "184",
+          "source": "184 — Bo Nickal"
+        },
+        {
+          "name": "Josh Barr",
+          "weight": "197",
+          "source": "197 — Josh Barr"
+        },
+        {
+          "name": "Greg Kerkvliet",
+          "weight": "HWT",
+          "source": "HWT — Greg Kerkvliet"
+        }
+      ]
+    },
+    {
+      "team": "IOWA",
+      "staff": [
+        "Head Coach: Dan Gable"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Barry Davis",
+          "source": "118 — Barry Davis"
+        },
+        {
+          "weight": "125",
+          "name": "Spencer Lee",
+          "source": "125 — Spencer Lee"
+        },
+        {
+          "weight": "133",
+          "name": "Tom Brands",
+          "source": "133 — Tom Brands"
+        },
+        {
+          "name": "Jeff McGinness",
+          "weight": "141",
+          "source": "141 — Jeff McGinness [owner-approved revision]"
+        },
+        {
+          "name": "Lincoln McIlravy",
+          "weight": "149",
+          "source": "149 — Lincoln McIlravy [owner revision]"
+        },
+        {
+          "weight": "157",
+          "name": "Jim Zalesky",
+          "source": "157 — Jim Zalesky [owner revision; historical 158]"
+        },
+        {
+          "name": "Mark Perry",
+          "weight": "165",
+          "source": "165 — Mark Perry [owner-approved revision]"
+        },
+        {
+          "weight": "174",
+          "name": "Ed Banach",
+          "source": "174 — Ed Banach"
+        },
+        {
+          "name": "Jessman Smith",
+          "weight": "184",
+          "source": "184 — Jessman Smith [owner-approved starter]"
+        },
+        {
+          "weight": "190",
+          "name": "Duane Goldman",
+          "source": "190 — Duane Goldman"
+        },
+        {
+          "weight": "197",
+          "name": "Stephen Buchanan II",
+          "source": "197 — Stephen Buchanan II"
+        },
+        {
+          "weight": "HWT",
+          "name": "Lou Banach",
+          "source": "HWT — Lou Banach"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nJessie Whitmer — 118\nTerry Brands — 125\nMatt McDonough — 125\nMark Ironside — 133\nJeff McGinness — 141\nLincoln McIlravy — 149 option\nJoe Williams — 157 option\nMark Reiland — 165\nJay Borschel — 174\nLee Fullhart — 190\nSteve Mocco — HWT\nMichael Mocco — HWT [special eligibility exception]\nEric Jurgens\n\nOwner revision: Lincoln McIlravy — 149 starter; Joe Williams — 157 starter. Terry Steiner — 149 choice; Jim Zalesky — 157 choice. Iowa 141 starter: Jeff McGinness; 165 starter: Mark Perry.\nOwner revision: Jim Zalesky starter (historical 158, mapped to Legends 157); Joe Williams backup at 157.\nApproved final placements: Jeff McGinness — 141 starter; Mark Perry — 165 starter. Mark Reiland remains 165 Coach’s Choice.\nOwner additions: T.J. Williams — 157 Coach’s Choice; Jessman Smith — 184 Coach’s Choice.\nApproved revision: Chris Campbell — 174 Coach’s Choice behind Ed Banach (historical NCAA titles at 177); Jessman Smith — 184 starter; Sammy Brooks — 184 Coach’s Choice.",
+      "id": "iowa",
+      "choices": [
+        {
+          "name": "Jessie Whitmer",
+          "weight": "118",
+          "source": "Jessie Whitmer — 118"
+        },
+        {
+          "name": "Terry Brands",
+          "weight": "125",
+          "source": "Terry Brands — 125"
+        },
+        {
+          "name": "Matt McDonough",
+          "weight": "125",
+          "source": "Matt McDonough — 125"
+        },
+        {
+          "name": "Mark Ironside",
+          "weight": "133",
+          "source": "Mark Ironside — 133"
+        },
+        {
+          "name": "Mark Reiland",
+          "weight": "165",
+          "source": "Mark Reiland — 165"
+        },
+        {
+          "name": "Jay Borschel",
+          "weight": "174",
+          "source": "Jay Borschel — 174"
+        },
+        {
+          "name": "Lee Fullhart",
+          "weight": "190",
+          "source": "Lee Fullhart — 190"
+        },
+        {
+          "name": "Steve Mocco",
+          "weight": "HWT",
+          "source": "Steve Mocco — HWT"
+        },
+        {
+          "name": "Michael Mocco",
+          "weight": "HWT",
+          "source": "Michael Mocco — HWT [special eligibility exception]"
+        },
+        {
+          "weight": "149",
+          "name": "Terry Steiner",
+          "source": "149 — Terry Steiner [owner revision: Coach’s Choice]"
+        },
+        {
+          "name": "Joe Williams",
+          "weight": "157",
+          "source": "Joe Williams — 157 [owner revision: backup]"
+        },
+        {
+          "name": "T.J. Williams",
+          "weight": "157",
+          "source": "T.J. Williams — 157 [owner addition]"
+        },
+        {
+          "weight": "184",
+          "name": "Sammy Brooks",
+          "source": "Sammy Brooks — 184 [owner-approved backup]"
+        },
+        {
+          "name": "Chris Campbell",
+          "weight": "174",
+          "source": "Chris Campbell — 174 [owner-approved backup to Ed Banach; historical NCAA titles at 177]"
+        }
+      ]
+    },
+    {
+      "team": "NEBRASKA",
+      "staff": [
+        "Head Coach: Mark Manning"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "John Buxton",
+          "source": "118 — John Buxton"
+        },
+        {
+          "weight": "125",
+          "name": "Jason Kelber",
+          "source": "125 — Jason Kelber"
+        },
+        {
+          "weight": "133",
+          "name": "Gil Sanchez",
+          "source": "133 — Gil Sanchez"
+        },
+        {
+          "weight": "141",
+          "name": "Brock Hardy",
+          "source": "141 — Brock Hardy"
+        },
+        {
+          "weight": "149",
+          "name": "Ridge Lovett",
+          "source": "149 — Ridge Lovett"
+        },
+        {
+          "weight": "157",
+          "name": "Antrell Taylor",
+          "source": "157 — Antrell Taylor"
+        },
+        {
+          "weight": "165",
+          "name": "Jordan Burroughs",
+          "source": "165 — Jordan Burroughs"
+        },
+        {
+          "weight": "174",
+          "name": "Jim Scherr",
+          "source": "174 — Jim Scherr"
+        },
+        {
+          "weight": "184",
+          "name": "TJ Dudley",
+          "source": "184 — TJ Dudley"
+        },
+        {
+          "weight": "190",
+          "name": "Bill Scherr",
+          "source": "190 — Bill Scherr"
+        },
+        {
+          "weight": "197",
+          "name": "Brad Vering",
+          "source": "197 — Brad Vering"
+        },
+        {
+          "weight": "HWT",
+          "name": "Tolly Thompson",
+          "source": "HWT — Tolly Thompson"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nBrad Canoyer — 118\nJason Powell — 125\nPaul Donahoe — 125\nMike Nissen — 125\nTony Purler — 125\nAl Freeman — 141\nBryan Snyder — 157\nCorey Olson — 174\nMikey Labriola — 174\nCraig Brester — 197\nGary Albright — HWT",
+      "id": "nebraska",
+      "choices": [
+        {
+          "name": "Brad Canoyer",
+          "weight": "118",
+          "source": "Brad Canoyer — 118"
+        },
+        {
+          "name": "Jason Powell",
+          "weight": "125",
+          "source": "Jason Powell — 125"
+        },
+        {
+          "name": "Paul Donahoe",
+          "weight": "125",
+          "source": "Paul Donahoe — 125"
+        },
+        {
+          "name": "Mike Nissen",
+          "weight": "125",
+          "source": "Mike Nissen — 125"
+        },
+        {
+          "name": "Tony Purler",
+          "weight": "125",
+          "source": "Tony Purler — 125"
+        },
+        {
+          "name": "Al Freeman",
+          "weight": "141",
+          "source": "Al Freeman — 141"
+        },
+        {
+          "name": "Bryan Snyder",
+          "weight": "157",
+          "source": "Bryan Snyder — 157"
+        },
+        {
+          "name": "Corey Olson",
+          "weight": "174",
+          "source": "Corey Olson — 174"
+        },
+        {
+          "name": "Mikey Labriola",
+          "weight": "174",
+          "source": "Mikey Labriola — 174"
+        },
+        {
+          "name": "Craig Brester",
+          "weight": "197",
+          "source": "Craig Brester — 197"
+        },
+        {
+          "name": "Gary Albright",
+          "weight": "HWT",
+          "source": "Gary Albright — HWT"
+        }
+      ]
+    },
+    {
+      "team": "IOWA STATE",
+      "staff": [
+        "Head Coach: Harold Nichols"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Eric Akin",
+          "source": "118 — Eric Akin"
+        },
+        {
+          "weight": "125",
+          "name": "Bill Kelly",
+          "source": "125 — Bill Kelly"
+        },
+        {
+          "weight": "133",
+          "name": "Jim Gibbons",
+          "source": "133 — Jim Gibbons"
+        },
+        {
+          "weight": "141",
+          "name": "Nate Gallick",
+          "source": "141 — Nate Gallick"
+        },
+        {
+          "weight": "149",
+          "name": "Nate Carr",
+          "source": "149 — Nate Carr"
+        },
+        {
+          "weight": "157",
+          "name": "David Carr",
+          "source": "157 — David Carr"
+        },
+        {
+          "weight": "165",
+          "name": "Joe Heskett",
+          "source": "165 — Joe Heskett"
+        },
+        {
+          "weight": "174",
+          "name": "Jon Reader",
+          "source": "174 — Jon Reader"
+        },
+        {
+          "weight": "184",
+          "name": "Cael Sanderson",
+          "source": "184 — Cael Sanderson"
+        },
+        {
+          "weight": "190",
+          "name": "Eric Voelker",
+          "source": "190 — Eric Voelker"
+        },
+        {
+          "weight": "197",
+          "name": "Jake Varner",
+          "source": "197 — Jake Varner"
+        },
+        {
+          "weight": "HWT",
+          "name": "Chris Taylor",
+          "source": "HWT — Chris Taylor"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nZach Roberson — 133\nMike Moreno Sr. — 133\nAaron Holker — 141\nShawn Rustad — 141\nGabe Moreno — 149\nTim Krieger — 149\nCarl Adams — 157\nMichael Moreno — 165\nKyven Gadson — 197\nDavid Zabriskie — HWT\n\nSpecial:\nMoreno family connections with UNI's Israel \"Izzy\" Moreno trigger\nspecial Iowa State–UNI commentary.\n\nOwner additions: Trent Paulson — 157; Travis Paulson — 165.\nEaster egg: Identical twins Trent and Travis Paulson grew up wrestling at Council Bluffs Lewis Central High School.\nOwner-confirmed family detail: Israel “Izzy” Moreno is Michael and Gabe Moreno’s cousin, Mike Moreno Sr.’s nephew, and Rick and Rebekah’s son.",
+      "id": "iowa-state",
+      "choices": [
+        {
+          "name": "Zach Roberson",
+          "weight": "133",
+          "source": "Zach Roberson — 133"
+        },
+        {
+          "name": "Mike Moreno Sr.",
+          "weight": "133",
+          "source": "Mike Moreno Sr. — 133"
+        },
+        {
+          "name": "Aaron Holker",
+          "weight": "141",
+          "source": "Aaron Holker — 141"
+        },
+        {
+          "name": "Shawn Rustad",
+          "weight": "141",
+          "source": "Shawn Rustad — 141"
+        },
+        {
+          "name": "Gabe Moreno",
+          "weight": "149",
+          "source": "Gabe Moreno — 149"
+        },
+        {
+          "name": "Tim Krieger",
+          "weight": "149",
+          "source": "Tim Krieger — 149"
+        },
+        {
+          "name": "Carl Adams",
+          "weight": "157",
+          "source": "Carl Adams — 157"
+        },
+        {
+          "name": "Michael Moreno",
+          "weight": "165",
+          "source": "Michael Moreno — 165"
+        },
+        {
+          "name": "Kyven Gadson",
+          "weight": "197",
+          "source": "Kyven Gadson — 197"
+        },
+        {
+          "name": "David Zabriskie",
+          "weight": "HWT",
+          "source": "David Zabriskie — HWT"
+        },
+        {
+          "name": "Trent Paulson",
+          "weight": "157",
+          "source": "Trent Paulson — 157 [owner addition]"
+        },
+        {
+          "name": "Travis Paulson",
+          "weight": "165",
+          "source": "Travis Paulson — 165 [owner addition]"
+        }
+      ]
+    },
+    {
+      "team": "MINNESOTA",
+      "staff": [
+        "Head Coach: J Robinson"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Mike McArthur",
+          "source": "118 — Mike McArthur"
+        },
+        {
+          "weight": "125",
+          "name": "Zach Sanders",
+          "source": "125 — Zach Sanders"
+        },
+        {
+          "weight": "133",
+          "name": "Jayson Ness",
+          "source": "133 — Jayson Ness"
+        },
+        {
+          "weight": "141",
+          "name": "Jason Davids",
+          "source": "141 — Jason Davids"
+        },
+        {
+          "weight": "149",
+          "name": "Dustin Schlatter",
+          "source": "149 — Dustin Schlatter"
+        },
+        {
+          "weight": "157",
+          "name": "Luke Becker",
+          "source": "157 — Luke Becker"
+        },
+        {
+          "weight": "165",
+          "name": "Jacob Volkmann",
+          "source": "165 — Jacob Volkmann"
+        },
+        {
+          "weight": "174",
+          "name": "Marty Morgan",
+          "source": "174 — Marty Morgan"
+        },
+        {
+          "weight": "184",
+          "name": "Brandon Eggum",
+          "source": "184 — Brandon Eggum"
+        },
+        {
+          "weight": "190",
+          "name": "Tim Hartung",
+          "source": "190 — Tim Hartung"
+        },
+        {
+          "weight": "197",
+          "name": "Damion Hahn",
+          "source": "197 — Damion Hahn"
+        },
+        {
+          "weight": "HWT",
+          "name": "Gable Steveson",
+          "source": "HWT — Gable Steveson"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nDylan Ness — 149/157 ONLY\nEvan Johnson — 190\nEvan Bernstein — 190\nCole Konrad — HWT\nBrock Lesnar — HWT\nOwner revision: Dylan Ness is eligible only at 157.",
+      "id": "minnesota",
+      "choices": [
+        {
+          "name": "Dylan Ness",
+          "weight": "157",
+          "source": "Dylan Ness — 149/157 ONLY"
+        },
+        {
+          "name": "Evan Johnson",
+          "weight": "190",
+          "source": "Evan Johnson — 190"
+        },
+        {
+          "name": "Evan Bernstein",
+          "weight": "190",
+          "source": "Evan Bernstein — 190"
+        },
+        {
+          "name": "Cole Konrad",
+          "weight": "HWT",
+          "source": "Cole Konrad — HWT"
+        },
+        {
+          "name": "Brock Lesnar",
+          "weight": "HWT",
+          "source": "Brock Lesnar — HWT"
+        }
+      ]
+    },
+    {
+      "team": "OKLAHOMA STATE",
+      "staff": [
+        "Head Coach: John Smith"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Teague Moore",
+          "source": "118 — Teague Moore"
+        },
+        {
+          "weight": "125",
+          "name": "Eric Guerrero",
+          "source": "125 — Eric Guerrero"
+        },
+        {
+          "weight": "133",
+          "name": "John Smith",
+          "source": "133 — John Smith"
+        },
+        {
+          "weight": "141",
+          "name": "Alan Fried",
+          "source": "141 — Alan Fried"
+        },
+        {
+          "weight": "149",
+          "name": "Jordan Oliver",
+          "source": "149 — Jordan Oliver"
+        },
+        {
+          "weight": "157",
+          "name": "Pat Smith",
+          "source": "157 — Pat Smith"
+        },
+        {
+          "weight": "165",
+          "name": "Alex Dieringer",
+          "source": "165 — Alex Dieringer"
+        },
+        {
+          "weight": "174",
+          "name": "Chris Pendleton",
+          "source": "174 — Chris Pendleton"
+        },
+        {
+          "weight": "184",
+          "name": "Jake Rosholt",
+          "source": "184 — Jake Rosholt"
+        },
+        {
+          "weight": "190",
+          "name": "J.J. McGrew",
+          "source": "190 — J.J. McGrew"
+        },
+        {
+          "weight": "197",
+          "name": "Mark Muñoz",
+          "source": "197 — Mark Muñoz"
+        },
+        {
+          "weight": "HWT",
+          "name": "Steve Mocco",
+          "source": "HWT — Steve Mocco"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nJoe McDaniel — 118\nKendall Cross — 125\nYojiro Uetake — 125\nJohnny Thompson — 133\nLee Roy Smith — 141\nDean Heil — 141\nSteve Barrett — 141\nKenny Monday — 149\nZack Esposito — 149\nMike Sheets — 165\nMark Branch — 165\nJohny Hendricks — 165\nChris Barnes — 174\nChris Perry — 174\nDustin Plott — 184\nEric Wais — 190\nAJ Ferrari — 197\nJimmy Jackson — HWT\nWyatt Hendrickson — HWT\nDreshaun Ross — HWT [special eligibility exception]",
+      "id": "oklahoma-state",
+      "choices": [
+        {
+          "name": "Joe McDaniel",
+          "weight": "118",
+          "source": "Joe McDaniel — 118"
+        },
+        {
+          "name": "Kendall Cross",
+          "weight": "125",
+          "source": "Kendall Cross — 125"
+        },
+        {
+          "name": "Yojiro Uetake",
+          "weight": "125",
+          "source": "Yojiro Uetake — 125"
+        },
+        {
+          "name": "Johnny Thompson",
+          "weight": "133",
+          "source": "Johnny Thompson — 133"
+        },
+        {
+          "name": "Lee Roy Smith",
+          "weight": "141",
+          "source": "Lee Roy Smith — 141"
+        },
+        {
+          "name": "Dean Heil",
+          "weight": "141",
+          "source": "Dean Heil — 141"
+        },
+        {
+          "name": "Steve Barrett",
+          "weight": "141",
+          "source": "Steve Barrett — 141"
+        },
+        {
+          "name": "Kenny Monday",
+          "weight": "149",
+          "source": "Kenny Monday — 149"
+        },
+        {
+          "name": "Zack Esposito",
+          "weight": "149",
+          "source": "Zack Esposito — 149"
+        },
+        {
+          "name": "Mike Sheets",
+          "weight": "165",
+          "source": "Mike Sheets — 165"
+        },
+        {
+          "name": "Mark Branch",
+          "weight": "165",
+          "source": "Mark Branch — 165"
+        },
+        {
+          "name": "Johny Hendricks",
+          "weight": "165",
+          "source": "Johny Hendricks — 165"
+        },
+        {
+          "name": "Chris Barnes",
+          "weight": "174",
+          "source": "Chris Barnes — 174"
+        },
+        {
+          "name": "Chris Perry",
+          "weight": "174",
+          "source": "Chris Perry — 174"
+        },
+        {
+          "name": "Dustin Plott",
+          "weight": "184",
+          "source": "Dustin Plott — 184"
+        },
+        {
+          "name": "Eric Wais",
+          "weight": "190",
+          "source": "Eric Wais — 190"
+        },
+        {
+          "name": "AJ Ferrari",
+          "weight": "197",
+          "source": "AJ Ferrari — 197"
+        },
+        {
+          "name": "Jimmy Jackson",
+          "weight": "HWT",
+          "source": "Jimmy Jackson — HWT"
+        },
+        {
+          "name": "Wyatt Hendrickson",
+          "weight": "HWT",
+          "source": "Wyatt Hendrickson — HWT"
+        },
+        {
+          "name": "Dreshaun Ross",
+          "weight": "HWT",
+          "source": "Dreshaun Ross — HWT [special eligibility exception]"
+        }
+      ]
+    },
+    {
+      "team": "OKLAHOMA",
+      "staff": [
+        "Head Coach: Jack Spates"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Shawn Garel",
+          "source": "118 — Shawn Garel"
+        },
+        {
+          "weight": "125",
+          "name": "Sam Hazewinkel",
+          "source": "125 — Sam Hazewinkel"
+        },
+        {
+          "weight": "133",
+          "name": "Cody Brewer",
+          "source": "133 — Cody Brewer"
+        },
+        {
+          "weight": "141",
+          "name": "Teyon Ware",
+          "source": "141 — Teyon Ware"
+        },
+        {
+          "weight": "149",
+          "name": "Jared Frayer",
+          "source": "149 — Jared Frayer"
+        },
+        {
+          "weight": "157",
+          "name": "Mike Grant",
+          "source": "157 — Mike Grant"
+        },
+        {
+          "weight": "165",
+          "name": "Dave Schultz",
+          "source": "165 — Dave Schultz"
+        },
+        {
+          "weight": "174",
+          "name": "Mark Schultz",
+          "source": "174 — Mark Schultz"
+        },
+        {
+          "weight": "184",
+          "name": "Melvin Douglas",
+          "source": "184 — Melvin Douglas"
+        },
+        {
+          "weight": "190",
+          "name": "John Kading",
+          "source": "190 — John Kading"
+        },
+        {
+          "weight": "197",
+          "name": "Dan Chaid",
+          "source": "197 — Dan Chaid"
+        },
+        {
+          "weight": "HWT",
+          "name": "Steve \"Dr. Death\" Williams",
+          "source": "HWT — Steve \"Dr. Death\" Williams"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nDavid Kjeldgaard — 157\nLeonce Crump — HWT",
+      "id": "oklahoma",
+      "choices": [
+        {
+          "name": "David Kjeldgaard",
+          "weight": "157",
+          "source": "David Kjeldgaard — 157"
+        },
+        {
+          "name": "Leonce Crump",
+          "weight": "HWT",
+          "source": "Leonce Crump — HWT"
+        }
+      ]
+    },
+    {
+      "team": "OHIO STATE",
+      "staff": [
+        "Head Coach: Tom Ryan"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Frank Romano",
+          "source": "118 — Frank Romano"
+        },
+        {
+          "weight": "125",
+          "name": "Nathan Tomasello",
+          "source": "125 — Nathan Tomasello"
+        },
+        {
+          "weight": "133",
+          "name": "Logan Stieber",
+          "source": "133 — Logan Stieber"
+        },
+        {
+          "weight": "141",
+          "name": "J Jaggers",
+          "source": "141 — J Jaggers"
+        },
+        {
+          "weight": "149",
+          "name": "Lance Palmer",
+          "source": "149 — Lance Palmer"
+        },
+        {
+          "weight": "157",
+          "name": "Jude Skove",
+          "source": "157 — Jude Skove"
+        },
+        {
+          "weight": "165",
+          "name": "Dave Reinbolt",
+          "source": "165 — Dave Reinbolt"
+        },
+        {
+          "weight": "174",
+          "name": "Kevin Randleman",
+          "source": "174 — Kevin Randleman"
+        },
+        {
+          "weight": "184",
+          "name": "Myles Martin",
+          "source": "184 — Myles Martin"
+        },
+        {
+          "weight": "190",
+          "name": "Mark Coleman",
+          "source": "190 — Mark Coleman"
+        },
+        {
+          "weight": "197",
+          "name": "Kyle Snyder",
+          "source": "197 — Kyle Snyder"
+        },
+        {
+          "weight": "HWT",
+          "name": "Tommy Rowlands",
+          "source": "HWT — Tommy Rowlands"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nReece Humphrey\nJoey McKenna\nMicah Jordan\nBo Jordan\nMike Pucillo — 184\nRex Holman — 190",
+      "id": "ohio-state",
+      "choices": [
+        {
+          "name": "Mike Pucillo",
+          "weight": "184",
+          "source": "Mike Pucillo — 184"
+        },
+        {
+          "name": "Rex Holman",
+          "weight": "190",
+          "source": "Rex Holman — 190"
+        }
+      ]
+    },
+    {
+      "team": "MICHIGAN",
+      "staff": [
+        "Head Coach: Sean Bormet"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Joe McFarland",
+          "source": "118 — Joe McFarland"
+        },
+        {
+          "weight": "125",
+          "name": "Nick Suriano",
+          "source": "125 — Nick Suriano"
+        },
+        {
+          "weight": "133",
+          "name": "Stevan Micic",
+          "source": "133 — Stevan Micic"
+        },
+        {
+          "weight": "141",
+          "name": "Kellen Russell",
+          "source": "141 — Kellen Russell"
+        },
+        {
+          "weight": "149",
+          "name": "Jarrett Hubbard",
+          "source": "149 — Jarrett Hubbard"
+        },
+        {
+          "weight": "157",
+          "name": "Ryan Bertin",
+          "source": "157 — Ryan Bertin"
+        },
+        {
+          "weight": "165",
+          "name": "Mark Churella",
+          "source": "165 — Mark Churella"
+        },
+        {
+          "weight": "174",
+          "name": "Steve Luke",
+          "source": "174 — Steve Luke"
+        },
+        {
+          "weight": "184",
+          "name": "Myles Amine",
+          "source": "184 — Myles Amine"
+        },
+        {
+          "weight": "190",
+          "name": "Jack Barden",
+          "source": "190 — Jack Barden"
+        },
+        {
+          "weight": "197",
+          "name": "Jacob Cardenas",
+          "source": "197 — Jacob Cardenas"
+        },
+        {
+          "weight": "HWT",
+          "name": "Mason Parris",
+          "source": "HWT — Mason Parris"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nAndy Hrovat — 184\nDomenic Abounader — 184\nAdam Coon — HWT",
+      "id": "michigan",
+      "choices": [
+        {
+          "name": "Andy Hrovat",
+          "weight": "184",
+          "source": "Andy Hrovat — 184"
+        },
+        {
+          "name": "Domenic Abounader",
+          "weight": "184",
+          "source": "Domenic Abounader — 184"
+        },
+        {
+          "name": "Adam Coon",
+          "weight": "HWT",
+          "source": "Adam Coon — HWT"
+        }
+      ]
+    },
+    {
+      "team": "MICHIGAN STATE",
+      "staff": [
+        "Head Coach: Grady Peninger"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Greg Johnson",
+          "source": "118 — Greg Johnson"
+        },
+        {
+          "weight": "125",
+          "name": "Pat Milkovich",
+          "source": "125 — Pat Milkovich"
+        },
+        {
+          "weight": "133",
+          "name": "Nick Simmons",
+          "source": "133 — Nick Simmons"
+        },
+        {
+          "weight": "141",
+          "name": "Tom Milkovich",
+          "source": "141 — Tom Milkovich"
+        },
+        {
+          "weight": "149",
+          "name": "Dale Carr",
+          "source": "149 — Dale Carr"
+        },
+        {
+          "weight": "157",
+          "name": "Dan Wirnsberger",
+          "source": "157 — Dan Wirnsberger"
+        },
+        {
+          "weight": "165",
+          "name": "Gerry Malecek",
+          "source": "165 — Gerry Malecek"
+        },
+        {
+          "weight": "174",
+          "name": "Mike Bradley",
+          "source": "174 — Mike Bradley"
+        },
+        {
+          "weight": "184",
+          "name": "Cameron Caffey",
+          "source": "184 — Cameron Caffey"
+        },
+        {
+          "weight": "190",
+          "name": "Brian Picklo",
+          "source": "190 — Brian Picklo"
+        },
+        {
+          "weight": "197",
+          "name": "Nick Muzashvili",
+          "source": "197 — Nick Muzashvili"
+        },
+        {
+          "weight": "HWT",
+          "name": "Jeff Smith",
+          "source": "HWT — Jeff Smith"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nFranklin Gomez — 133\nGray Maynard — 157\nJoel Morissette — 165\nDave Mariola — 174\nJack Zindel — 190\nEmilio Collins — 190\nDon Whipp — HWT\nBen Lewis — HWT\nMike McClure — HWT\n\nSpecial:\nNick Simmons gets elite top-wrestling/pinning tendencies and signature spladle.",
+      "id": "michigan-state",
+      "choices": [
+        {
+          "name": "Franklin Gomez",
+          "weight": "133",
+          "source": "Franklin Gomez — 133"
+        },
+        {
+          "name": "Gray Maynard",
+          "weight": "157",
+          "source": "Gray Maynard — 157"
+        },
+        {
+          "name": "Joel Morissette",
+          "weight": "165",
+          "source": "Joel Morissette — 165"
+        },
+        {
+          "name": "Dave Mariola",
+          "weight": "174",
+          "source": "Dave Mariola — 174"
+        },
+        {
+          "name": "Jack Zindel",
+          "weight": "190",
+          "source": "Jack Zindel — 190"
+        },
+        {
+          "name": "Emilio Collins",
+          "weight": "190",
+          "source": "Emilio Collins — 190"
+        },
+        {
+          "name": "Don Whipp",
+          "weight": "HWT",
+          "source": "Don Whipp — HWT"
+        },
+        {
+          "name": "Ben Lewis",
+          "weight": "HWT",
+          "source": "Ben Lewis — HWT"
+        },
+        {
+          "name": "Mike McClure",
+          "weight": "HWT",
+          "source": "Mike McClure — HWT"
+        }
+      ]
+    },
+    {
+      "team": "WISCONSIN",
+      "staff": [
+        "Head Coach: Barry Davis"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Jim Haines",
+          "source": "118 — Jim Haines"
+        },
+        {
+          "weight": "125",
+          "name": "Jack Reinwand",
+          "source": "125 — Jack Reinwand"
+        },
+        {
+          "weight": "133",
+          "name": "Seth Gross",
+          "source": "133 — Seth Gross"
+        },
+        {
+          "weight": "141",
+          "name": "Rick Lawinger",
+          "source": "141 — Rick Lawinger"
+        },
+        {
+          "weight": "149",
+          "name": "Andy Rein",
+          "source": "149 — Andy Rein"
+        },
+        {
+          "weight": "157",
+          "name": "Lee Kemp",
+          "source": "157 — Lee Kemp"
+        },
+        {
+          "weight": "165",
+          "name": "Donny Pritzlaff",
+          "source": "165 — Donny Pritzlaff"
+        },
+        {
+          "weight": "174",
+          "name": "Andrew Howe",
+          "source": "174 — Andrew Howe"
+        },
+        {
+          "weight": "184",
+          "name": "Travis Rutt",
+          "source": "184 — Travis Rutt"
+        },
+        {
+          "weight": "190",
+          "name": "Ron Jeidy",
+          "source": "190 — Ron Jeidy"
+        },
+        {
+          "weight": "197",
+          "name": "Trevor Brandvold",
+          "source": "197 — Trevor Brandvold"
+        },
+        {
+          "weight": "HWT",
+          "name": "Jeff Walter",
+          "source": "HWT — Jeff Walter"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nBob Konovsky\nConnor Medbery — HWT\nRoger Pillath — HWT\nTrent Hillger — HWT",
+      "id": "wisconsin",
+      "choices": [
+        {
+          "name": "Connor Medbery",
+          "weight": "HWT",
+          "source": "Connor Medbery — HWT"
+        },
+        {
+          "name": "Roger Pillath",
+          "weight": "HWT",
+          "source": "Roger Pillath — HWT"
+        },
+        {
+          "name": "Trent Hillger",
+          "weight": "HWT",
+          "source": "Trent Hillger — HWT"
+        }
+      ]
+    },
+    {
+      "team": "ARIZONA STATE",
+      "staff": [
+        "Head Coach: Bobby Douglas"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Zeke Jones",
+          "source": "118 — Zeke Jones"
+        },
+        {
+          "weight": "125",
+          "name": "Anthony Robles",
+          "source": "125 — Anthony Robles"
+        },
+        {
+          "weight": "133",
+          "name": "Shawn Charles",
+          "source": "133 — Shawn Charles"
+        },
+        {
+          "weight": "141",
+          "name": "Steve St. John",
+          "source": "141 — Steve St. John"
+        },
+        {
+          "weight": "149",
+          "name": "Eric Larkin",
+          "source": "149 — Eric Larkin"
+        },
+        {
+          "weight": "157",
+          "name": "Bubba Jenkins",
+          "source": "157 — Bubba Jenkins"
+        },
+        {
+          "weight": "165",
+          "name": "Markus Mollica",
+          "source": "165 — Markus Mollica"
+        },
+        {
+          "weight": "174",
+          "name": "Zahid Valencia",
+          "source": "174 — Zahid Valencia"
+        },
+        {
+          "weight": "184",
+          "name": "Aaron Simpson",
+          "source": "184 — Aaron Simpson"
+        },
+        {
+          "weight": "190",
+          "name": "Mike Davies",
+          "source": "190 — Mike Davies"
+        },
+        {
+          "weight": "197",
+          "name": "Ryan Bader",
+          "source": "197 — Ryan Bader"
+        },
+        {
+          "weight": "HWT",
+          "name": "Cain Velasquez",
+          "source": "HWT — Cain Velasquez"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nRichard Figueroa — 125\nRay Miller — 165\nSteve Blackford — 165\nBlake Stauffer — 184\nKordell Norfleet — 197\nCurley Culp — HWT\nCohlton Schultz — HWT\n\nSpecial:\nRyan Bader and Cain Velasquez receive MMA-specific commentary/Easter eggs.",
+      "id": "arizona-state",
+      "choices": [
+        {
+          "name": "Richard Figueroa",
+          "weight": "125",
+          "source": "Richard Figueroa — 125"
+        },
+        {
+          "name": "Ray Miller",
+          "weight": "165",
+          "source": "Ray Miller — 165"
+        },
+        {
+          "name": "Steve Blackford",
+          "weight": "165",
+          "source": "Steve Blackford — 165"
+        },
+        {
+          "name": "Blake Stauffer",
+          "weight": "184",
+          "source": "Blake Stauffer — 184"
+        },
+        {
+          "name": "Kordell Norfleet",
+          "weight": "197",
+          "source": "Kordell Norfleet — 197"
+        },
+        {
+          "name": "Curley Culp",
+          "weight": "HWT",
+          "source": "Curley Culp — HWT"
+        },
+        {
+          "name": "Cohlton Schultz",
+          "weight": "HWT",
+          "source": "Cohlton Schultz — HWT"
+        }
+      ]
+    },
+    {
+      "team": "OREGON STATE",
+      "staff": [
+        "Head Coach: Dale Thomas"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Tom Phillips",
+          "source": "118 — Tom Phillips"
+        },
+        {
+          "weight": "125",
+          "name": "Babak Mohammadi",
+          "source": "125 — Babak Mohammadi"
+        },
+        {
+          "weight": "133",
+          "name": "Roger Weigel",
+          "source": "133 — Roger Weigel"
+        },
+        {
+          "weight": "141",
+          "name": "Dan Hicks",
+          "source": "141 — Dan Hicks"
+        },
+        {
+          "weight": "149",
+          "name": "Dick Knorr",
+          "source": "149 — Dick Knorr"
+        },
+        {
+          "weight": "157",
+          "name": "Mike R. Jones",
+          "source": "157 — Mike R. Jones"
+        },
+        {
+          "weight": "165",
+          "name": "Don Conway",
+          "source": "165 — Don Conway"
+        },
+        {
+          "weight": "174",
+          "name": "Les Gutches",
+          "source": "174 — Les Gutches"
+        },
+        {
+          "weight": "184",
+          "name": "Trey Munoz",
+          "source": "184 — Trey Munoz"
+        },
+        {
+          "weight": "190",
+          "name": "Greg Strobel",
+          "source": "190 — Greg Strobel"
+        },
+        {
+          "weight": "197",
+          "name": "Taylor Meeks",
+          "source": "197 — Taylor Meeks"
+        },
+        {
+          "weight": "HWT",
+          "name": "Jess Lewis",
+          "source": "HWT — Jess Lewis"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nJason Cooley — HWT\nLarry Bielenberg — HWT\nHoward Harris — HWT\n\nSpecial:\nJason Cooley rare referee/commentary line:\n\"Ooh, check out the tats.\"",
+      "id": "oregon-state",
+      "choices": [
+        {
+          "name": "Jason Cooley",
+          "weight": "HWT",
+          "source": "Jason Cooley — HWT"
+        },
+        {
+          "name": "Larry Bielenberg",
+          "weight": "HWT",
+          "source": "Larry Bielenberg — HWT"
+        },
+        {
+          "name": "Howard Harris",
+          "weight": "HWT",
+          "source": "Howard Harris — HWT"
+        }
+      ]
+    },
+    {
+      "team": "ILLINOIS",
+      "staff": [
+        "Head Coach: Mark Johnson"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Joe Puerta",
+          "source": "118 — Joe Puerta"
+        },
+        {
+          "weight": "125",
+          "name": "Jesse Delgado",
+          "source": "125 — Jesse Delgado"
+        },
+        {
+          "weight": "133",
+          "name": "Zane Richards",
+          "source": "133 — Zane Richards"
+        },
+        {
+          "weight": "141",
+          "name": "Carl Perry",
+          "source": "141 — Carl Perry"
+        },
+        {
+          "weight": "149",
+          "name": "Adam Tirapelle",
+          "source": "149 — Adam Tirapelle"
+        },
+        {
+          "weight": "157",
+          "name": "Isaiah Martinez",
+          "source": "157 — Isaiah Martinez"
+        },
+        {
+          "weight": "165",
+          "name": "Matt Lackey",
+          "source": "165 — Matt Lackey"
+        },
+        {
+          "weight": "174",
+          "name": "Pete Friedl",
+          "source": "174 — Pete Friedl"
+        },
+        {
+          "weight": "184",
+          "name": "John Dergo",
+          "source": "184 — John Dergo"
+        },
+        {
+          "weight": "190",
+          "name": "Charles Gottfried",
+          "source": "190 — Charles Gottfried"
+        },
+        {
+          "weight": "197",
+          "name": "Pat Quirk",
+          "source": "197 — Pat Quirk"
+        },
+        {
+          "weight": "HWT",
+          "name": "Bob Norman",
+          "source": "HWT — Bob Norman"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nKarl Roesler — 190",
+      "id": "illinois",
+      "choices": [
+        {
+          "name": "Karl Roesler",
+          "weight": "190",
+          "source": "Karl Roesler — 190"
+        }
+      ]
+    },
+    {
+      "team": "CORNELL",
+      "staff": [
+        "Head Coach: Rob Koll"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Robert Mathers",
+          "source": "118 — Robert Mathers"
+        },
+        {
+          "weight": "125",
+          "name": "Troy Nickerson",
+          "source": "125 — Troy Nickerson"
+        },
+        {
+          "weight": "133",
+          "name": "Vito Arujau",
+          "source": "133 — Vito Arujau"
+        },
+        {
+          "weight": "141",
+          "name": "Yianni Diakomihalis",
+          "source": "141 — Yianni Diakomihalis"
+        },
+        {
+          "weight": "149",
+          "name": "Dustin Manotti",
+          "source": "149 — Dustin Manotti"
+        },
+        {
+          "weight": "157",
+          "name": "Jordan Leen",
+          "source": "157 — Jordan Leen"
+        },
+        {
+          "weight": "165",
+          "name": "Kyle Dake",
+          "source": "165 — Kyle Dake"
+        },
+        {
+          "weight": "174",
+          "name": "Mack Lewnes",
+          "source": "174 — Mack Lewnes"
+        },
+        {
+          "weight": "184",
+          "name": "Gabe Dean",
+          "source": "184 — Gabe Dean"
+        },
+        {
+          "weight": "190",
+          "name": "Mike Wittenberg",
+          "source": "190 — Mike Wittenberg"
+        },
+        {
+          "weight": "197",
+          "name": "Cam Simaz",
+          "source": "197 — Cam Simaz"
+        },
+        {
+          "weight": "HWT",
+          "name": "Zach Hammond",
+          "source": "HWT — Zach Hammond"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nDave Auble — 125\nNahshon Garrett\nDylan Palacio — 157",
+      "id": "cornell",
+      "choices": [
+        {
+          "name": "Dave Auble",
+          "weight": "125",
+          "source": "Dave Auble — 125"
+        },
+        {
+          "name": "Dylan Palacio",
+          "weight": "157",
+          "source": "Dylan Palacio — 157"
+        }
+      ]
+    },
+    {
+      "team": "INDIANA",
+      "staff": [
+        "Head Coach: Charlie McDaniel"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Willard Duffy",
+          "source": "118 — Willard Duffy"
+        },
+        {
+          "weight": "125",
+          "name": "Angel Escobedo",
+          "source": "125 — Angel Escobedo"
+        },
+        {
+          "weight": "133",
+          "name": "Joe Roman",
+          "source": "133 — Joe Roman"
+        },
+        {
+          "weight": "141",
+          "name": "Roger Chandler",
+          "source": "141 — Roger Chandler"
+        },
+        {
+          "weight": "149",
+          "name": "Brian Dolph",
+          "source": "149 — Brian Dolph"
+        },
+        {
+          "weight": "157",
+          "name": "Brandon Becker",
+          "source": "157 — Brandon Becker"
+        },
+        {
+          "weight": "165",
+          "name": "Taylor Walsh",
+          "source": "165 — Taylor Walsh"
+        },
+        {
+          "weight": "174",
+          "name": "Nate Jackson",
+          "source": "174 — Nate Jackson"
+        },
+        {
+          "weight": "184",
+          "name": "DJ Washington",
+          "source": "184 — DJ Washington"
+        },
+        {
+          "weight": "190",
+          "name": "Robert Jones",
+          "source": "190 — Robert Jones"
+        },
+        {
+          "weight": "197",
+          "name": "Matt Powless",
+          "source": "197 — Matt Powless"
+        },
+        {
+          "weight": "HWT",
+          "name": "Charlie McDaniel",
+          "source": "HWT — Charlie McDaniel"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nJoe Dubuque — 125\n\nSpecial:\nTaylor Walsh gets elite pinning tendencies and signature/high-danger headlock.",
+      "id": "indiana",
+      "choices": [
+        {
+          "name": "Joe Dubuque",
+          "weight": "125",
+          "source": "Joe Dubuque — 125"
+        }
+      ]
+    },
+    {
+      "team": "NORTH CAROLINA",
+      "staff": [
+        "Head Coach: Coleman Scott"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Doug Wyland",
+          "source": "118 — Doug Wyland"
+        },
+        {
+          "weight": "125",
+          "name": "Dave Cooke",
+          "source": "125 — Dave Cooke"
+        },
+        {
+          "weight": "133",
+          "name": "T.J. Jaworsky",
+          "source": "133 — T.J. Jaworsky"
+        },
+        {
+          "weight": "141",
+          "name": "Lenny Bernstein",
+          "source": "141 — Lenny Bernstein"
+        },
+        {
+          "weight": "149",
+          "name": "Austin O'Connor",
+          "source": "149 — Austin O'Connor"
+        },
+        {
+          "weight": "157",
+          "name": "Rob Koll",
+          "source": "157 — Rob Koll"
+        },
+        {
+          "weight": "165",
+          "name": "Ethan Ramos",
+          "source": "165 — Ethan Ramos"
+        },
+        {
+          "weight": "174",
+          "name": "Shane Camera",
+          "source": "174 — Shane Camera"
+        },
+        {
+          "weight": "184",
+          "name": "Gavin Kane",
+          "source": "184 — Gavin Kane"
+        },
+        {
+          "weight": "190",
+          "name": "Bob Shriner",
+          "source": "190 — Bob Shriner"
+        },
+        {
+          "weight": "197",
+          "name": "David Dashiell",
+          "source": "197 — David Dashiell"
+        },
+        {
+          "weight": "HWT",
+          "name": "Justin Harty",
+          "source": "HWT — Justin Harty"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nAl Palacio — 118\nBob Monaghan — 118\nLachlan McNeil — 149\nChip Ness — 184",
+      "id": "north-carolina",
+      "choices": [
+        {
+          "name": "Al Palacio",
+          "weight": "118",
+          "source": "Al Palacio — 118"
+        },
+        {
+          "name": "Bob Monaghan",
+          "weight": "118",
+          "source": "Bob Monaghan — 118"
+        },
+        {
+          "name": "Lachlan McNeil",
+          "weight": "149",
+          "source": "Lachlan McNeil — 149"
+        },
+        {
+          "name": "Chip Ness",
+          "weight": "184",
+          "source": "Chip Ness — 184"
+        }
+      ]
+    },
+    {
+      "team": "NORTHERN IOWA",
+      "staff": [
+        "Head Coach: Doug Schwab"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Cecil Mott",
+          "source": "118 — Cecil Mott"
+        },
+        {
+          "weight": "125",
+          "name": "Gerald Leeman",
+          "source": "125 — Gerald Leeman"
+        },
+        {
+          "weight": "133",
+          "name": "Joe Colon",
+          "source": "133 — Joe Colon"
+        },
+        {
+          "weight": "141",
+          "name": "Bill Koll",
+          "source": "141 — Bill Koll"
+        },
+        {
+          "weight": "149",
+          "name": "Tony Davis",
+          "source": "149 — Tony Davis"
+        },
+        {
+          "weight": "157",
+          "name": "Bill Weick",
+          "source": "157 — Bill Weick"
+        },
+        {
+          "weight": "165",
+          "name": "Bill Smith",
+          "source": "165 — Bill Smith"
+        },
+        {
+          "weight": "174",
+          "name": "Taylor Lujan",
+          "source": "174 — Taylor Lujan"
+        },
+        {
+          "weight": "184",
+          "name": "Parker Keckeisen",
+          "source": "184 — Parker Keckeisen"
+        },
+        {
+          "weight": "190",
+          "name": "Kirk Myers",
+          "source": "190 — Kirk Myers"
+        },
+        {
+          "weight": "197",
+          "name": "Jacob Holschlag",
+          "source": "197 — Jacob Holschlag"
+        },
+        {
+          "weight": "HWT",
+          "name": "Mike McCready",
+          "source": "HWT — Mike McCready"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nDylan Long — 141\nDrew Foster — 184\nAshton Honnold — HWT [special eligibility exception]\n\nSpecial:\nIsrael \"Izzy\" Moreno receives detailed profile and Moreno-family Iowa State\nEaster eggs.\nOwner addition: Israel \"Izzy\" Moreno — 174 Coach’s Choice.\nOwner-confirmed family detail: Israel “Izzy” Moreno is Michael and Gabe Moreno’s cousin, Mike Moreno Sr.’s nephew, and Rick and Rebekah’s son.",
+      "id": "northern-iowa",
+      "choices": [
+        {
+          "name": "Dylan Long",
+          "weight": "141",
+          "source": "Dylan Long — 141"
+        },
+        {
+          "name": "Drew Foster",
+          "weight": "184",
+          "source": "Drew Foster — 184"
+        },
+        {
+          "name": "Ashton Honnold",
+          "weight": "HWT",
+          "source": "Ashton Honnold — HWT [special eligibility exception]"
+        },
+        {
+          "name": "Israel \"Izzy\" Moreno",
+          "weight": "174",
+          "source": "Israel \"Izzy\" Moreno — 174 [owner-approved Coach’s Choice]"
+        }
+      ]
+    },
+    {
+      "team": "LEHIGH",
+      "staff": [
+        "Head Coach: Greg Strobel"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Johnny Engel",
+          "source": "118 — Johnny Engel"
+        },
+        {
+          "weight": "125",
+          "name": "Darian Cruz",
+          "source": "125 — Darian Cruz"
+        },
+        {
+          "weight": "133",
+          "name": "Mike Frick",
+          "source": "133 — Mike Frick"
+        },
+        {
+          "weight": "141",
+          "name": "Darryl Burley",
+          "source": "141 — Darryl Burley"
+        },
+        {
+          "weight": "149",
+          "name": "Ed Eichelberger",
+          "source": "149 — Ed Eichelberger"
+        },
+        {
+          "weight": "157",
+          "name": "Kirk Pendleton",
+          "source": "157 — Kirk Pendleton"
+        },
+        {
+          "weight": "165",
+          "name": "Troy Letters",
+          "source": "165 — Troy Letters"
+        },
+        {
+          "weight": "174",
+          "name": "Mark Lieberman",
+          "source": "174 — Mark Lieberman"
+        },
+        {
+          "weight": "184",
+          "name": "Rob Rohn",
+          "source": "184 — Rob Rohn"
+        },
+        {
+          "weight": "190",
+          "name": "Matt Ruppel",
+          "source": "190 — Matt Ruppel"
+        },
+        {
+          "weight": "197",
+          "name": "Jon Trenge",
+          "source": "197 — Jon Trenge"
+        },
+        {
+          "weight": "HWT",
+          "name": "Zach Rey",
+          "source": "HWT — Zach Rey"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nBobby Weaver — 118/125\nYoshi Nakamura — 157\nMike Fickell — 197\nMike Brown\nMike Dorizas — HWT\nOwner revision: Bobby Weaver is eligible only at 125.",
+      "id": "lehigh",
+      "choices": [
+        {
+          "name": "Bobby Weaver",
+          "weight": "125",
+          "source": "Bobby Weaver — 118/125"
+        },
+        {
+          "name": "Yoshi Nakamura",
+          "weight": "157",
+          "source": "Yoshi Nakamura — 157"
+        },
+        {
+          "name": "Mike Fickell",
+          "weight": "197",
+          "source": "Mike Fickell — 197"
+        },
+        {
+          "name": "Mike Dorizas",
+          "weight": "HWT",
+          "source": "Mike Dorizas — HWT"
+        }
+      ]
+    },
+    {
+      "team": "VIRGINIA TECH",
+      "staff": [
+        "Head Coach: Tony Robie"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Neil Fink",
+          "source": "118 — Neil Fink"
+        },
+        {
+          "weight": "125",
+          "name": "Joey Dance",
+          "source": "125 — Joey Dance"
+        },
+        {
+          "weight": "133",
+          "name": "Korbin Myers",
+          "source": "133 — Korbin Myers"
+        },
+        {
+          "weight": "141",
+          "name": "Devin Carter",
+          "source": "141 — Devin Carter"
+        },
+        {
+          "weight": "149",
+          "name": "Caleb Henson",
+          "source": "149 — Caleb Henson"
+        },
+        {
+          "weight": "157",
+          "name": "Nick Brascetta",
+          "source": "157 — Nick Brascetta"
+        },
+        {
+          "weight": "165",
+          "name": "Mekhi Lewis",
+          "source": "165 — Mekhi Lewis"
+        },
+        {
+          "weight": "174",
+          "name": "David McFadden",
+          "source": "174 — David McFadden"
+        },
+        {
+          "weight": "184",
+          "name": "Zack Zavatsky",
+          "source": "184 — Zack Zavatsky"
+        },
+        {
+          "weight": "190",
+          "name": "Mark Miller",
+          "source": "190 — Mark Miller"
+        },
+        {
+          "weight": "197",
+          "name": "Jared Haught",
+          "source": "197 — Jared Haught"
+        },
+        {
+          "weight": "HWT",
+          "name": "Ty Walz",
+          "source": "HWT — Ty Walz"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nZach Epperly — 174\nBo Bassett — 141 [owner-approved freshman eligibility exception]",
+      "id": "virginia-tech",
+      "choices": [
+        {
+          "name": "Zach Epperly",
+          "weight": "174",
+          "source": "Zach Epperly — 174"
+        },
+        {
+          "name": "Bo Bassett",
+          "weight": "141",
+          "source": "Bo Bassett — 141 [owner-approved freshman eligibility exception]"
+        }
+      ]
+    },
+    {
+      "team": "WEST VIRGINIA",
+      "staff": [
+        "Head Coach: Craig Turnbull"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Robert Perry",
+          "source": "118 — Robert Perry"
+        },
+        {
+          "weight": "125",
+          "name": "Zeke Moisey",
+          "source": "125 — Zeke Moisey"
+        },
+        {
+          "weight": "133",
+          "name": "Brandon Lauer",
+          "source": "133 — Brandon Lauer"
+        },
+        {
+          "weight": "141",
+          "name": "Scott Collins",
+          "source": "141 — Scott Collins"
+        },
+        {
+          "weight": "149",
+          "name": "Mike Mason",
+          "source": "149 — Mike Mason"
+        },
+        {
+          "weight": "157",
+          "name": "Ty Watters",
+          "source": "157 — Ty Watters"
+        },
+        {
+          "weight": "165",
+          "name": "Peyton Hall",
+          "source": "165 — Peyton Hall"
+        },
+        {
+          "weight": "174",
+          "name": "Dean Morrison",
+          "source": "174 — Dean Morrison"
+        },
+        {
+          "weight": "184",
+          "name": "Greg Jones",
+          "source": "184 — Greg Jones"
+        },
+        {
+          "weight": "190",
+          "name": "Dominick Black",
+          "source": "190 — Dominick Black"
+        },
+        {
+          "weight": "197",
+          "name": "Noah Adams",
+          "source": "197 — Noah Adams"
+        },
+        {
+          "weight": "HWT",
+          "name": "Michael Wolfgram",
+          "source": "HWT — Michael Wolfgram"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nVertus Jones — 184",
+      "id": "west-virginia",
+      "choices": [
+        {
+          "name": "Vertus Jones",
+          "weight": "184",
+          "source": "Vertus Jones — 184"
+        }
+      ]
+    },
+    {
+      "team": "MISSOURI",
+      "staff": [
+        "Head Coach: Brian Smith"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Sam Henson",
+          "source": "118 — Sam Henson"
+        },
+        {
+          "weight": "125",
+          "name": "Alan Waters",
+          "source": "125 — Alan Waters"
+        },
+        {
+          "weight": "133",
+          "name": "Tyler McCormick",
+          "source": "133 — Tyler McCormick"
+        },
+        {
+          "weight": "141",
+          "name": "Jaydin Eierman",
+          "source": "141 — Jaydin Eierman"
+        },
+        {
+          "weight": "149",
+          "name": "Drake Houdashelt",
+          "source": "149 — Drake Houdashelt"
+        },
+        {
+          "weight": "157",
+          "name": "Michael Chandler",
+          "source": "157 — Michael Chandler"
+        },
+        {
+          "weight": "165",
+          "name": "Keegan O'Toole",
+          "source": "165 — Keegan O'Toole"
+        },
+        {
+          "weight": "174",
+          "name": "Ben Askren",
+          "source": "174 — Ben Askren"
+        },
+        {
+          "weight": "184",
+          "name": "Max Askren",
+          "source": "184 — Max Askren"
+        },
+        {
+          "weight": "190",
+          "name": "Mark Cody",
+          "source": "190 — Mark Cody"
+        },
+        {
+          "weight": "197",
+          "name": "J'den Cox",
+          "source": "197 — J'den Cox"
+        },
+        {
+          "weight": "HWT",
+          "name": "Mark Ellis",
+          "source": "HWT — Mark Ellis"
+        }
+      ],
+      "notesAndChoices": "Special:\nMichael Chandler receives MMA-specific commentary/Easter eggs.",
+      "id": "missouri",
+      "choices": []
+    },
+    {
+      "team": "NC STATE",
+      "staff": [
+        "Head Coach: Pat Popolizio"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Jim Zenz",
+          "source": "118 — Jim Zenz"
+        },
+        {
+          "weight": "125",
+          "name": "Vincent Robinson",
+          "source": "125 — Vincent Robinson"
+        },
+        {
+          "weight": "133",
+          "name": "Tariq Wilson",
+          "source": "133 — Tariq Wilson"
+        },
+        {
+          "weight": "141",
+          "name": "Kevin Jack",
+          "source": "141 — Kevin Jack"
+        },
+        {
+          "weight": "149",
+          "name": "Darrion Caldwell",
+          "source": "149 — Darrion Caldwell"
+        },
+        {
+          "weight": "157",
+          "name": "Hayden Hidlay",
+          "source": "157 — Hayden Hidlay"
+        },
+        {
+          "weight": "165",
+          "name": "Matt Reiss",
+          "source": "165 — Matt Reiss"
+        },
+        {
+          "weight": "174",
+          "name": "Matty Singleton",
+          "source": "174 — Matty Singleton"
+        },
+        {
+          "weight": "184",
+          "name": "Trent Hidlay",
+          "source": "184 — Trent Hidlay"
+        },
+        {
+          "weight": "190",
+          "name": "Dan Madson",
+          "source": "190 — Dan Madson"
+        },
+        {
+          "weight": "197",
+          "name": "Isaac Trumble",
+          "source": "197 — Isaac Trumble"
+        },
+        {
+          "weight": "HWT",
+          "name": "Nick Gwiazdowski",
+          "source": "HWT — Nick Gwiazdowski"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nKai Orine — 133\nDaniel Bullard — 174\n\nSpecial:\nDarrion Caldwell retains his signature headlock/spladle gameplay and\n2009 Metcalf NCAA-final Easter egg.",
+      "id": "nc-state",
+      "choices": [
+        {
+          "name": "Kai Orine",
+          "weight": "133",
+          "source": "Kai Orine — 133"
+        },
+        {
+          "name": "Daniel Bullard",
+          "weight": "174",
+          "source": "Daniel Bullard — 174"
+        }
+      ]
+    },
+    {
+      "team": "PENN",
+      "staff": [
+        "Head Coach: Roger Reina"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Sam Gerson",
+          "source": "118 — Sam Gerson"
+        },
+        {
+          "weight": "125",
+          "name": "Mason Lenhard",
+          "source": "125 — Mason Lenhard"
+        },
+        {
+          "weight": "133",
+          "name": "Matt Valenti",
+          "source": "133 — Matt Valenti"
+        },
+        {
+          "weight": "141",
+          "name": "CJ Composto",
+          "source": "141 — CJ Composto"
+        },
+        {
+          "weight": "149",
+          "name": "Cross Wasilewski",
+          "source": "149 — Cross Wasilewski"
+        },
+        {
+          "weight": "157",
+          "name": "Brett Matter",
+          "source": "157 — Brett Matter"
+        },
+        {
+          "weight": "165",
+          "name": "Brandon Slay",
+          "source": "165 — Brandon Slay"
+        },
+        {
+          "weight": "174",
+          "name": "Richard DiBatista",
+          "source": "174 — Richard DiBatista"
+        },
+        {
+          "weight": "184",
+          "name": "Lorenzo Thomas",
+          "source": "184 — Lorenzo Thomas"
+        },
+        {
+          "weight": "190",
+          "name": "Dave Pottruck",
+          "source": "190 — Dave Pottruck"
+        },
+        {
+          "weight": "197",
+          "name": "Andrei Rodzianko",
+          "source": "197 — Andrei Rodzianko"
+        },
+        {
+          "weight": "HWT",
+          "name": "Matt Feast",
+          "source": "HWT — Matt Feast"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nRyan Miller — 125\nAnthony Artalona — 149\nYoshi Nakamura — 157\nMike Fickell — 197\nMike Dorizas — HWT\n\nSpecial:\nBrandon Slay presentation prominently recognizes his 2000 Olympic gold medal.",
+      "id": "penn",
+      "choices": [
+        {
+          "name": "Ryan Miller",
+          "weight": "125",
+          "source": "Ryan Miller — 125"
+        },
+        {
+          "name": "Anthony Artalona",
+          "weight": "149",
+          "source": "Anthony Artalona — 149"
+        },
+        {
+          "name": "Yoshi Nakamura",
+          "weight": "157",
+          "source": "Yoshi Nakamura — 157"
+        },
+        {
+          "name": "Mike Fickell",
+          "weight": "197",
+          "source": "Mike Fickell — 197"
+        },
+        {
+          "name": "Mike Dorizas",
+          "weight": "HWT",
+          "source": "Mike Dorizas — HWT"
+        }
+      ]
+    },
+    {
+      "team": "NORTHERN COLORADO",
+      "staff": [
+        "Head Coach: Troy Nickerson",
+        "Assistant Coaches: Michael Moreno, Earl Hall"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Greg Alexander",
+          "source": "118 — Greg Alexander"
+        },
+        {
+          "weight": "125",
+          "name": "Stevo Poulin",
+          "source": "125 — Stevo Poulin"
+        },
+        {
+          "weight": "133",
+          "name": "Mike Pantoya",
+          "source": "133 — Mike Pantoya"
+        },
+        {
+          "weight": "141",
+          "name": "Andrew Alirez",
+          "source": "141 — Andrew Alirez"
+        },
+        {
+          "weight": "149",
+          "name": "Bob Smith",
+          "source": "149 — Bob Smith"
+        },
+        {
+          "weight": "157",
+          "name": "Justin Gaethje",
+          "source": "157 — Justin Gaethje"
+        },
+        {
+          "weight": "165",
+          "name": "T.J. Deaguero",
+          "source": "165 — T.J. Deaguero"
+        },
+        {
+          "weight": "174",
+          "name": "Mike Leberknight",
+          "source": "174 — Mike Leberknight"
+        },
+        {
+          "weight": "184",
+          "name": "Alan Clothier",
+          "source": "184 — Alan Clothier"
+        },
+        {
+          "weight": "190",
+          "name": "Len Lordino",
+          "source": "190 — Len Lordino"
+        },
+        {
+          "weight": "197",
+          "name": "Jason McMillan",
+          "source": "197 — Jason McMillan"
+        },
+        {
+          "weight": "HWT",
+          "name": "Walt Golt",
+          "source": "HWT — Walt Golt"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\nScott Hewit — 157\nDon Govoni — 157\nAdditional historically deserving UNC depth as developed.\n\nSpecial:\nStevo Poulin — commentary recognizing viral youth-wrestling fame.\nJustin Gaethje — UFC/MMA-specific presentation and commentary.",
+      "id": "northern-colorado",
+      "choices": [
+        {
+          "name": "Scott Hewit",
+          "weight": "157",
+          "source": "Scott Hewit — 157"
+        },
+        {
+          "name": "Don Govoni",
+          "weight": "157",
+          "source": "Don Govoni — 157"
+        }
+      ]
+    },
+    {
+      "team": "COLLEGE WRESTLING ICONS",
+      "staff": [
+        "Co-Head Coaches: Myron Roderick and Bobby Douglas"
+      ],
+      "starters": [
+        {
+          "weight": "118",
+          "name": "Gene Mills",
+          "source": "118 — Gene Mills — Syracuse"
+        },
+        {
+          "weight": "125",
+          "name": "Stephen Abas",
+          "source": "125 — Stephen Abas — Fresno State"
+        },
+        {
+          "weight": "133",
+          "name": "Don Rohn",
+          "source": "133 — Don Rohn — Clarion"
+        },
+        {
+          "weight": "141",
+          "name": "Larry Owings",
+          "source": "141 — Larry Owings — Washington"
+        },
+        {
+          "weight": "149",
+          "name": "Wade Schalles",
+          "source": "149 — Wade Schalles — Clarion"
+        },
+        {
+          "weight": "157",
+          "name": "Matt Gentry",
+          "source": "157 — Matt Gentry — Stanford"
+        },
+        {
+          "weight": "165",
+          "name": "Kevin Jackson",
+          "source": "165 — Kevin Jackson — LSU"
+        },
+        {
+          "weight": "174",
+          "name": "Josh Koscheck",
+          "source": "174 — Josh Koscheck — Edinboro"
+        },
+        {
+          "weight": "184",
+          "name": "Jake Herbert",
+          "source": "184 — Jake Herbert — Northwestern"
+        },
+        {
+          "weight": "190",
+          "name": "Mark Kerr",
+          "source": "190 — Mark Kerr — Syracuse"
+        },
+        {
+          "weight": "197",
+          "name": "Josh Glenn",
+          "source": "197 — Josh Glenn — American"
+        },
+        {
+          "weight": "HWT",
+          "name": "Carleton Haselrig",
+          "source": "HWT — Carleton Haselrig — Pitt-Johnstown"
+        }
+      ],
+      "notesAndChoices": "Coach's Choice:\n118 — Gray Simons — Lock Haven\n118 — Rick Sanders — Portland State\n165 — Chance Marsteller — Lock Haven\nHWT — Stephen Neal — Cal State Bakersfield\nHWT — Kurt Angle — Clarion\n\nIcons philosophy:\nReserve this roster and Coach's Choice pool for historically significant\nwrestlers from discontinued programs, smaller programs, or schools without\na full playable Legends team.",
+      "id": "college-wrestling-icons",
+      "choices": [
+        {
+          "name": "Gray Simons",
+          "weight": "118",
+          "source": "118 — Gray Simons — Lock Haven"
+        },
+        {
+          "name": "Rick Sanders",
+          "weight": "118",
+          "source": "118 — Rick Sanders — Portland State"
+        },
+        {
+          "name": "Chance Marsteller",
+          "weight": "165",
+          "source": "165 — Chance Marsteller — Lock Haven"
+        },
+        {
+          "name": "Stephen Neal",
+          "weight": "HWT",
+          "source": "HWT — Stephen Neal — Cal State Bakersfield"
+        },
+        {
+          "name": "Kurt Angle",
+          "weight": "HWT",
+          "source": "HWT — Kurt Angle — Clarion"
+        }
+      ]
+    }
+  ]
+}

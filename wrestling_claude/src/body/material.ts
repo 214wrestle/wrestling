@@ -131,7 +131,7 @@ Look bodyLook() {
   float cheek = (1.0 - smoothstep(0.0, 0.035, length(vec2(ax - 0.045, p.y - 1.632)))) * step(0.06, p.z) * step(0.5, part) * step(part, 1.5);
   vec3 flushTint = vec3(0.86, 0.38, 0.32);
   skin = mix(skin, skin * flushTint * 1.35, clamp(knee * 0.2 + cheek * (0.12 + uFlush * 0.3), 0.0, 0.5));
-  Look L = Look(skin, 0.56 - uSweat * 0.14, 0.03 + uSweat * 0.5, skin * 0.22);
+  Look L = Look(skin, 0.66 - uSweat * 0.12, 0.02 + uSweat * 0.2, skin * 0.09);
 
   bool isHead = part > 0.5 && part < 1.5;
   bool isHairVolume = part > 5.5;
@@ -140,7 +140,7 @@ Look bodyLook() {
   if (isHead || isHairVolume) {
     // Eyebrows: two soft arcs above the sockets.
     float browY = 1.6935 - (ax - 0.032) * (ax - 0.032) * 6.0;
-    float brow = aa(0.0065 - abs(p.y - browY)) * aa(ax - 0.012) * aa(0.056 - ax) * step(0.07, p.z);
+    float brow = aa(0.0032 - abs(p.y - browY)) * aa(ax - 0.012) * aa(0.056 - ax) * step(0.07, p.z);
     L.color = mix(L.color, uHair * 0.8, brow * 0.9);
     // Lips and the line of the mouth, curving a touch at the corners.
     float lipY = 1.592 + ax * ax * 3.0;

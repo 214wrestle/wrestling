@@ -535,6 +535,7 @@ export class Bout {
 
   private startShot(a: Athlete, o: Athlete, dist: number): void {
     const wa = this.wrestlers[a.side].attributes;
+    const alreadySprawling = o.act === 'sprawl';
     a.stats.shotsAttempted += 1;
     this.spend(a, 0.08);
 
@@ -581,7 +582,7 @@ export class Bout {
       frame,
       quality: q,
       dist,
-      sprawlAt: o.act === 'sprawl' ? 0 : -1,
+      sprawlAt: alreadySprawling ? 0 : -1,
       stuffRoll: this.rng.next(),
     };
     this.ev.move?.(MOVES[shot === 'double' ? 'shotDouble' : 'shotSingle'], a.side);
@@ -788,23 +789,23 @@ export class Bout {
     const fwdA = ca.moveX * sn + ca.moveZ * c;
 
     const driving = ca.shoot || fwdA > 0.3;
-    let rate = driving ? (0.38 + wa.strength * 0.3 + wa.quickness * 0.12) * (0.55 + 0.45 * A.stamina) : -0.14;
-    if (cd.sprawl) rate -= 0.14;
-    // Scrambles do not stay even for long: whoever is winning keeps winning.
-    rate += (s.progress - 0.5) * 0.8;
+    let rate = driving ? (0.10 + wa.strength * 0.12 + wa.quickness * 0.05) * (0.55 + 0.45 * A.stamina) : -0.14;
+    if (cd.sprawl) rate -= 0.12;
+    // A defended grip can remain contested instead of automatically snowballing.
+    rate += (s.progress - 0.5) * 0.12;
     s.progress += rate * dt;
     if (this.take(D, 'sprawl')) {
-      s.progress -= 0.12 * (0.7 + wd.defense * 0.6) * (0.6 + 0.4 * D.stamina);
+      s.progress -= 0.035 * (0.7 + wd.defense * 0.6) * (0.6 + 0.4 * D.stamina);
       this.spend(D, 0.02);
       this.ev.feedback?.(D.side, 'sprawl', 'ok');
     }
     if (this.take(D, 'fight')) {
-      s.progress -= (s.shot === 'single' ? 0.11 : 0.06) * (0.7 + wd.strength * 0.6);
+      s.progress -= (s.shot === 'single' ? 0.035 : 0.025) * (0.7 + wd.strength * 0.6);
       this.spend(D, 0.02);
       this.ev.feedback?.(D.side, 'fight', 'ok');
     }
     if (this.take(A, 'shoot')) {
-      s.progress += 0.05;
+      s.progress += 0.025;
       this.ev.feedback?.(A.side, 'shoot', 'ok');
     }
     if (driving) this.spend(A, dt * 0.05);
@@ -825,7 +826,7 @@ export class Bout {
       this.startMove('sprawlOut', s.A, s.frame, s.mirror);
       return;
     }
-    if (s.t > 4.5) this.stalemate();
+    if (s.t > 8) this.stalemate();
     this.placeHold();
   }
 

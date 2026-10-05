@@ -1,3 +1,4 @@
+import type { AppearanceShape } from '../sim/athleteProfiles';
 import { BIND_POSE, BONES, BONE_INDEX, MIRROR, restPositions } from './skeleton';
 import type { BoneName } from './skeleton';
 import { m3Apply, m3FromEuler, m3Identity, m3Mul } from './math';
@@ -24,6 +25,7 @@ export interface BodyParams {
   mass: number;
   hair: HairStyle;
   clothing: Clothing;
+  shape?: AppearanceShape;
 }
 
 type Weights = Partial<Record<BoneName, number>>;
@@ -204,11 +206,11 @@ function neckAndHead(hair: HairStyle, clothing: Clothing): Spec[] {
     ell('head', [0, 1.628, 0.034], [0.063, 0.074, 0.07], 0.025, H, { w: { head: 1 } }),
     ...pair(cone('head', [0.047, 1.59, 0.006], [0.02, 1.55, 0.073], 0.019, 0.018, 0.026, H, { w: { head: 1 } })),
     ell('head', [0, 1.548, 0.082], [0.024, 0.02, 0.018], 0.02, H, { w: { head: 1 } }),
-    ...pair(ell('head', [0.047, 1.641, 0.069], [0.02, 0.014, 0.018], 0.015, H, { w: { head: 1 } })),
-    ...pair(cone('head', [0.0, 1.693, 0.088], [0.047, 1.692, 0.078], 0.013, 0.012, 0.015, H, { w: { head: 1 } })),
+    ...pair(ell('head', [0.047, 1.641, 0.064], [0.02, 0.014, 0.013], 0.015, H, { w: { head: 1 } })),
+    ...pair(cone('head', [0.0, 1.693, 0.080], [0.047, 1.692, 0.073], 0.007, 0.006, 0.015, H, { w: { head: 1 } })),
     cone('head', [0, 1.684, 0.092], [0, 1.632, 0.112], 0.008, 0.012, 0.012, H, { w: { head: 1 } }),
-    ell('head', [0, 1.627, 0.106], [0.017, 0.01, 0.012], 0.01, H, { w: { head: 1 } }),
-    ell('head', [0, 1.592, 0.092], [0.023, 0.01, 0.012], 0.012, H, { w: { head: 1 } }),
+    ell('head', [0, 1.627, 0.103], [0.014, 0.009, 0.010], 0.01, H, { w: { head: 1 } }),
+    ell('head', [0, 1.592, 0.085], [0.023, 0.009, 0.008], 0.012, H, { w: { head: 1 } }),
     ...pair(ell('head', [0.077, 1.655, -0.006], [0.012, 0.03, 0.02], 0.008, H, { w: { head: 1 } })),
     // Eye sockets, carved, then the lids laid back in over the eyeballs.
     ...pair(ell('head', [0.032, 1.664, 0.1], [0.017, 0.012, 0.016], 0.008, H, { sub: true, claim: 0 })),
@@ -417,7 +419,19 @@ export function bindPose(scale: number): BindPose {
 function toPrim(s: Spec, params: BodyParams, bind: BindPose): Prim {
   const p = new Prim();
   const sc = params.scale;
-  const girth = s.muscle ? 0.9 + params.mass * 0.2 : 0.97 + params.mass * 0.06;
+  const shape = params.shape;
+  const regional = s.part === Part.Arm || s.part === Part.Leg ? (shape?.limbs ?? 1)
+    : s.bone === 'neck' ? (shape?.neck ?? 1)
+    : s.bone.startsWith('shoulder') ? (shape?.shoulders ?? 1)
+    : s.part === Part.Torso ? (shape?.torso ?? 1) : 1;
+  const girth = (s.muscle ? 0.78 + params.mass * 0.26 : 0.94 + params.mass * 0.1) * regional;
+  // Rebuild the face in rest space so sockets, hair, chin and nose vary together.
+  const face = s.part === Part.Head || s.part === Part.Hair;
+  const facePoint = (v: V3): V3 => face ? [
+    v[0] * (shape?.faceWidth ?? 1) * (v[1] < 1.625 ? (shape?.jaw ?? 1) : 1),
+    1.664 + (v[1] - 1.664) * (shape?.faceLength ?? 1),
+    v[2] + (v[2] > 0.1 ? (shape?.nose ?? 0) : 0),
+  ] : v;
   const cloth =
     params.clothing === 'referee'
       ? s.part === Part.Leg
@@ -431,13 +445,14 @@ function toPrim(s: Spec, params: BodyParams, bind: BindPose): Prim {
   const bp = bind.pos[s.bone];
   const br = bind.rot[s.bone];
   const xf = (v: V3): V3 => {
+    v = facePoint(v);
     const local: V3 = [v[0] * sc - restOrigin[0], v[1] * sc - restOrigin[1], v[2] * sc - restOrigin[2]];
     const w = m3Apply(br, local);
     return [bp[0] + w[0], bp[1] + w[1], bp[2] + w[2]];
   };
 
   p.kind = s.kind;
-  p.k = s.k * sc;
+  p.k = s.k * sc * (s.muscle ? 0.7 : 0.85);
   p.sub = !!s.sub;
   p.part = s.part;
   p.claim = s.claim ?? 1;
@@ -459,8 +474,8 @@ function toPrim(s: Spec, params: BodyParams, bind: BindPose): Prim {
     [p.cx, p.cy, p.cz] = c;
     const r = s.r!;
     const g = s.kind === Kind.Ellipsoid ? girth : 1;
-    p.rx = r[0] * sc * g + cloth;
-    p.ry = r[1] * sc * (s.kind === Kind.Ellipsoid ? Math.sqrt(g) : 1) + cloth;
+    p.rx = r[0] * sc * g * (face ? (shape?.faceWidth ?? 1) * (s.c![1] < 1.625 ? (shape?.jaw ?? 1) : 1) : 1) + cloth;
+    p.ry = r[1] * sc * (s.kind === Kind.Ellipsoid ? Math.sqrt(g) : 1) * (face ? (shape?.faceLength ?? 1) : 1) + cloth;
     p.rz = r[2] * sc * g + cloth;
     p.round = (s.round ?? 0) * sc;
     const local = s.rot ? m3FromEuler(s.rot[0], s.rot[1], s.rot[2]) : m3Identity();

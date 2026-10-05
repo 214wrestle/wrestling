@@ -9,7 +9,7 @@
 import { MatchSim } from '../sim/MatchSim';
 import { WrestlerAI } from '../sim/ai';
 import type { Difficulty } from '../sim/ai';
-import { ROSTER } from '../sim/roster';
+import { PROTOTYPE_ROSTER as ROSTER } from '../sim/roster';
 
 declare const process: { argv: string[] };
 
@@ -27,9 +27,9 @@ let rides = 0;
 
 for (let m = 0; m < N; m++) {
   const a = ROSTER[m % ROSTER.length];
-  const b = ROSTER[(m + 1 + Math.floor(m / ROSTER.length)) % ROSTER.length];
-  if (a.id === b.id) continue;
-  const ais = [new WrestlerAI(0, level), new WrestlerAI(1, level)];
+  let b = ROSTER[(m + 1 + Math.floor(m / ROSTER.length)) % ROSTER.length];
+  if (a.id === b.id) b = ROSTER[(m + 1) % ROSTER.length];
+  const ais = [new WrestlerAI(0, level, 2000 + m * 2), new WrestlerAI(1, level, 2001 + m * 2)];
   const sim = new MatchSim(
     [a, b],
     {

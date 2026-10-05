@@ -21,7 +21,8 @@ npm run sim:stats -- 40 starter   # AI-vs-AI balance report, no rendering
 
 Title screen (pick your wrestler, opponent, difficulty and match length, with the two
 athletes squaring off behind a tale of the tape) → walk-out and introductions → handshake
-→ coin toss → three periods under NCAA rules, with the position choice between them →
+→ first period → coin toss and second-period position choice → remaining periods, with
+the other wrestler choosing before period three →
 sudden victory, tiebreakers and the ultimate ride-out if it is still tied → the official
 raises the winner's hand → a scorecard with stats and the scoring log.
 
@@ -160,6 +161,17 @@ Desktop is the main target: 60 fps at 1440×810 in a headless Chromium, no conso
 across full matches. Phones get a lower mesh resolution, touch controls and a compact
 layout; they have been checked at phone size in a browser, not yet on a physical device.
 
-Teams and wrestlers in the game are fictional. The art-direction mockups in
+The playable selection uses the locked College Wrestling Legends v1.1 roster: 26 teams,
+312 default starter slots, plus Coach’s Choice entries with explicitly assigned weights.
+Team and weight selectors keep opponents in the same class. Choices without assigned
+weights and all special notes are preserved in the roster notes without guessing a slot.
+The verbatim source is `docs/rosters/master-roster-v1.1.txt`; the runtime catalog is
+`src/sim/legends-roster.json`. Appearances, uniforms and equal gameplay ratings are
+provisional; displayed names and slots are locked, but these are not athlete likenesses
+or verified historical profiles. No fictional records are displayed for Legends.
+Signature moves and commentary hooks are retained as notes pending implementation.
+
+The original four fictional profiles remain only as deterministic balance-check fixtures.
+The art-direction mockups in
 [docs/style-mockups](docs/style-mockups/) use two real wrestlers, Kyle Dake and David Taylor,
 by the owner's choice.

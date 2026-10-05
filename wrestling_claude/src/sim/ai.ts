@@ -1,5 +1,5 @@
 import type { Bout } from './bout';
-import { BOUT } from './bout';
+import { BOUT, Rng } from './bout';
 import { otherSide } from './types';
 import type { Command, Side } from './types';
 
@@ -39,6 +39,7 @@ const empty = (): Command => ({ moveX: 0, moveZ: 0, shoot: false, fight: false, 
  */
 export class WrestlerAI {
   private p: Profile;
+  private rng: Rng;
   private sprawlIn = -1;
   private switchIn = -1;
   private lastCommit = 0;
@@ -56,8 +57,10 @@ export class WrestlerAI {
   constructor(
     private side: Side,
     difficulty: Difficulty = 'starter',
+    seed = 1701 + side,
   ) {
     this.p = PROFILES[difficulty];
+    this.rng = new Rng(seed);
   }
 
   setDifficulty(d: Difficulty): void {
@@ -66,8 +69,8 @@ export class WrestlerAI {
 
   /** Called when the bout tells this side a shot is coming. */
   onTell(what: 'shot' | 'snap' | 'switch' | 'standup'): void {
-    if (what === 'shot' && Math.random() < this.p.sprawlSkill) {
-      this.sprawlIn = this.p.reaction * (0.75 + Math.random() * 0.55);
+    if (what === 'shot' && this.rng.next() < this.p.sprawlSkill) {
+      this.sprawlIn = this.p.reaction * (0.75 + this.rng.next() * 0.55);
     }
   }
 
@@ -82,7 +85,7 @@ export class WrestlerAI {
     if (key !== this.lastPos) {
       this.lastPos = key;
       // A human beat to read the new position before acting on it.
-      this.decideT = this.p.reaction * 1.6 + Math.random() * 0.3;
+      this.decideT = this.p.reaction * 1.6 + this.rng.next() * 0.3;
       this.mashT = this.p.reaction;
     }
     this.decideT -= dt;
@@ -138,7 +141,7 @@ export class WrestlerAI {
 
   private mashBeat(): boolean {
     if (this.mashT > 0) return false;
-    this.mashT = (1 / this.p.mash) * (0.7 + Math.random() * 0.6);
+    this.mashT = (1 / this.p.mash) * (0.7 + this.rng.next() * 0.6);
     return true;
   }
 
@@ -154,10 +157,10 @@ export class WrestlerAI {
     const nz = dz / dist;
 
     if (this.circleT <= 0) {
-      this.circleT = 0.7 + Math.random() * 1.6;
-      this.circleDir = Math.random() < 0.5 ? -1 : 1;
+      this.circleT = 0.7 + this.rng.next() * 1.6;
+      this.circleDir = this.rng.next() < 0.5 ? -1 : 1;
       const tired = me.stamina < 0.3;
-      this.wantDist = tired ? 1.5 : 0.85 + Math.random() * 0.4;
+      this.wantDist = tired ? 1.5 : 0.85 + this.rng.next() * 0.4;
     }
     // Stay off the edge.
     const r = Math.hypot(me.pos.x, me.pos.z);
@@ -167,7 +170,7 @@ export class WrestlerAI {
     let fwd = Math.max(-1, Math.min(1, (dist - this.wantDist) * 2.2));
     // In a tie-up: lean on him, or pull back to bait the snap.
     if (dist < 0.85 && this.pushT <= 0) {
-      this.pushT = 0.8 + Math.random() * 1.2;
+      this.pushT = 0.8 + this.rng.next() * 1.2;
     }
     if (dist < 0.85) fwd = this.pushT > 0.5 ? 0.6 : -0.2;
     const lat = this.circleDir * 0.6;
@@ -176,18 +179,18 @@ export class WrestlerAI {
     // Sink the level when he is close and threatening; decided, not flickered.
     this.levelT -= 1 / 60;
     if (this.levelT <= 0) {
-      this.levelT = 0.8 + Math.random() * 1.2;
-      this.lowLevel = dist < 1.3 && Math.random() < 0.5 + this.p.patience * 0.3;
+      this.levelT = 0.8 + this.rng.next() * 1.2;
+      this.lowLevel = dist < 1.3 && this.rng.next() < 0.5 + this.p.patience * 0.3;
     }
     cmd.level = this.lowLevel && dist < 1.4;
 
     // Bite on a fake now and then.
-    if (them.act === 'fake' && them.actT < 0.05 && Math.random() < this.p.gullible) {
+    if (them.act === 'fake' && them.actT < 0.05 && this.rng.next() < this.p.gullible) {
       this.sprawlIn = this.p.reaction * 0.8;
     }
 
     if (me.act !== 'stance' || me.cooldown > 0 || this.decideT > 0) return;
-    this.decideT = 0.12 + Math.random() * 0.22;
+    this.decideT = 1.4 + this.rng.next() * 1.4;
 
     // A look at the legs: how good would a shot be right now?
     const opening =
@@ -199,23 +202,23 @@ export class WrestlerAI {
     const inRange = dist > 0.62 && dist < 1.25;
     const tired = me.stamina < 0.22;
 
-    if (inRange && !tired && opening > 0.2 + this.p.patience * 0.8 && Math.random() < this.p.aggression * 0.5) {
+    if (inRange && !tired && opening > 0.2 + this.p.patience * 0.8 && this.rng.next() < this.p.aggression * 0.22 * (bout.wrestlers[this.side].motion?.attackRate ?? 1)) {
       cmd.shoot = true;
       return;
     }
-    if (inRange && !tired && Math.random() < this.p.aggression * 0.04 * (1 - this.p.patience)) {
+    if (inRange && !tired && this.rng.next() < this.p.aggression * 0.04 * (1 - this.p.patience)) {
       cmd.shoot = true;
       return;
     }
-    if (me.hand >= 0.62 && (them.lean > 0.15 || them.level > 0.55) && Math.random() < 0.55) {
+    if (me.hand >= 0.62 && (them.lean > 0.15 || them.level > 0.55) && this.rng.next() < 0.55) {
       cmd.fight = true;
       return;
     }
-    if (dist < BOUT.tieRange + 0.1 && Math.random() < this.p.handfight * 0.25) {
+    if (dist < BOUT.tieRange + 0.1 && this.rng.next() < this.p.handfight * 0.25) {
       cmd.fight = true;
       return;
     }
-    if (dist > 1.3 && dist < 1.7 && Math.random() < 0.06) cmd.shoot = true; // fake
+    if (dist > 1.3 && dist < 1.7 && this.rng.next() < 0.06) cmd.shoot = true; // fake
   }
 
   /* -------------------------------------------------------------- legs */
@@ -231,7 +234,7 @@ export class WrestlerAI {
       return;
     }
     if (this.mashBeat()) {
-      if (Math.random() < 0.75) cmd.sprawl = true;
+      if (this.rng.next() < 0.75) cmd.sprawl = true;
       else cmd.fight = true;
     }
   }
@@ -241,14 +244,14 @@ export class WrestlerAI {
   private fhl(_bout: Bout, cmd: Command, top: boolean, recover: number): void {
     if (top) {
       if (this.decideT <= 0) {
-        this.decideT = 0.35 + Math.random() * 0.5;
-        if (recover > 0.55 || Math.random() < 0.35) cmd.fight = true;
+        this.decideT = 0.9 + this.rng.next() * 0.8;
+        if (recover > 0.55 || this.rng.next() < 0.35) cmd.fight = true;
         else cmd.shoot = true;
       }
       return;
     }
     if (this.mashBeat()) {
-      if (Math.random() < 0.6) cmd.fight = true;
+      if (this.rng.next() < 0.6) cmd.fight = true;
       else cmd.sprawl = true;
     }
   }
@@ -263,7 +266,7 @@ export class WrestlerAI {
       // Drive gently into him while riding.
       const fx = Math.sin(pos.frame.yaw);
       const fz = Math.cos(pos.frame.yaw);
-      if (pos.sub === 'ride' && Math.random() < 0.6) {
+      if (pos.sub === 'ride' && this.rng.next() < 0.6) {
         cmd.moveX = fx * 0.4;
         cmd.moveZ = fz * 0.4;
       }
@@ -275,15 +278,15 @@ export class WrestlerAI {
       }
       if (this.decideT > 0) return;
       // A rider works patiently; the chop is a choice, not a reflex.
-      this.decideT = pos.sub === 'ride' ? 0.55 + Math.random() * 0.7 : 0.3 + Math.random() * 0.45;
+      this.decideT = pos.sub === 'ride' ? 0.55 + this.rng.next() * 0.7 : 0.3 + this.rng.next() * 0.45;
       if (pos.sub === 'standing') {
-        cmd.sprawl = pos.escape > 0.25 || Math.random() < 0.5;
+        cmd.sprawl = pos.escape > 0.25 || this.rng.next() < 0.5;
         if (!cmd.sprawl) cmd.fight = true;
         return;
       }
       if (pos.sub === 'flat') {
         if (pos.control < 0.35) cmd.sprawl = true;
-        else cmd.shoot = Math.random() < 0.6;
+        else cmd.shoot = this.rng.next() < 0.6;
         if (!cmd.shoot && !cmd.sprawl) cmd.fight = true;
         return;
       }
@@ -291,9 +294,9 @@ export class WrestlerAI {
       // quick second one, before he can rebuild the base the first one cost him.
       if (pos.base < 0.32) cmd.shoot = true;
       else if (me.stamina < 0.2 || pos.control < 0.45) cmd.sprawl = true;
-      else if (Math.random() < 0.5) {
+      else if (this.rng.next() < 0.5) {
         cmd.fight = true;
-        if (pos.base < 0.75) this.decideT = 0.22 + Math.random() * 0.12;
+        if (pos.base < 0.75) this.decideT = 0.22 + this.rng.next() * 0.12;
       } else cmd.sprawl = true;
       return;
     }
@@ -314,15 +317,15 @@ export class WrestlerAI {
     // delay, rather than fishing for it; otherwise build a base and stand.
     const lunge = pos.commit >= 0.4 && pos.commit > this.lastCommit + 0.2;
     this.lastCommit = pos.commit;
-    if (lunge && this.switchIn < 0 && Math.random() < this.p.switchRead * 0.18) {
-      this.switchIn = this.p.reaction * (0.7 + Math.random() * 0.5);
+    if (lunge && this.switchIn < 0 && this.rng.next() < this.p.switchRead * 0.18) {
+      this.switchIn = this.p.reaction * (0.7 + this.rng.next() * 0.5);
       return;
     }
     if (this.switchIn >= 0 || this.decideT > 0) return;
-    this.decideT = 0.35 + Math.random() * 0.5;
+    this.decideT = 0.35 + this.rng.next() * 0.5;
     // Build the base first; stand when he has loosened up.
     if (pos.base < 0.6) cmd.sprawl = true;
-    else if (Math.random() < 0.35 + (1 - pos.control) * 0.5) cmd.shoot = true;
+    else if (this.rng.next() < 0.35 + (1 - pos.control) * 0.5) cmd.shoot = true;
     else cmd.sprawl = true;
   }
 }

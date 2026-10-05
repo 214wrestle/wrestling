@@ -1,3 +1,4 @@
+import { ROSTER } from '../sim/roster';
 import {
   ACESFilmicToneMapping,
   Color,
@@ -89,25 +90,26 @@ export function startLab(host: HTMLElement): void {
   let views: View[] = [];
 
   if (mode === 'body') {
+    const athlete = ROSTER.find(w => w.id === params.get('athlete'));
     const who = params.get('who') ?? 'a';
     const clothing = params.get('clothing') === 'referee' ? 'referee' : 'singlet';
-    const hair = (params.get('hair') ?? 'crop') as BodyParams['hair'];
+    const hair = (params.get('hair') ?? athlete?.hairStyle ?? 'crop') as BodyParams['hair'];
     const quality = params.get('quality') === 'low' ? 'low' : 'high';
-    const mass = Number(params.get('mass') ?? 0.5);
-    const scale = Number(params.get('height') ?? 1.76) / 1.76;
-    const bp: BodyParams = { scale, mass, hair, clothing };
+    const mass = Number(params.get('mass') ?? athlete?.build ?? 0.5);
+    const scale = Number(params.get('height') ?? athlete?.height ?? 1.76) / 1.76;
+    const bp: BodyParams = { scale, mass, hair, clothing, shape: athlete?.appearance };
     const t0 = performance.now();
     const buffers = buildBodyNow(bp, quality, clothing !== 'referee');
     const t1 = performance.now();
     const look: BodyLook = {
-      skin: params.get('skin') ?? (who === 'b' ? '#e0b48f' : '#9c6b4a'),
-      hair: '#17110d',
+      skin: params.get('skin') ?? athlete?.skinTone ?? (who === 'b' ? '#e0b48f' : '#9c6b4a'),
+      hair: athlete?.hairColor ?? '#17110d',
       hairStyle: hair,
-      primary: params.get('primary') ?? '#9d1b2c',
-      secondary: params.get('secondary') ?? '#f2e6c9',
+      primary: params.get('primary') ?? athlete?.school.primary ?? '#9d1b2c',
+      secondary: params.get('secondary') ?? athlete?.school.secondary ?? '#f2e6c9',
       accent: '#ffcd4a',
-      pattern: (params.get('pattern') ?? 'panel') as BodyLook['pattern'],
-      wordmark: params.get('mark') ?? 'Carver',
+      pattern: (params.get('pattern') ?? athlete?.school.pattern ?? 'panel') as BodyLook['pattern'],
+      wordmark: params.get('mark') ?? athlete?.school.mark ?? 'Carver',
       band: '#c8261f',
       shoe: '#17181d',
       shoeAccent: params.get('primary') ?? '#9d1b2c',
@@ -117,7 +119,8 @@ export function startLab(host: HTMLElement): void {
     };
     const ch = new Character(buffers, {
       look,
-      gear: clothing === 'referee' ? null : { shell: '#1d1f26', strap: '#1d1f26' },
+      shape: athlete?.appearance, motion: athlete?.motion,
+      gear: clothing === 'referee' ? null : { shell: athlete?.headgearColor ?? '#1d1f26', strap: athlete?.headgearColor ?? '#1d1f26' },
     });
     scene.add(ch.root);
 

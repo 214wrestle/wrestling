@@ -19,7 +19,7 @@ import { Scoreboard } from '../arena/scoreboard';
 import { MatchSim } from '../sim/MatchSim';
 import { WrestlerAI } from '../sim/ai';
 import type { Difficulty } from '../sim/ai';
-import { byId, OFFICIAL, SCHOOLS } from '../sim/roster';
+import { byId, OFFICIAL, DEFAULT_MATCHUP } from '../sim/roster';
 import { NO_COMMAND, otherSide } from '../sim/types';
 import type { Command, MatchPhase, School, Side, StartPosition, Wrestler } from '../sim/types';
 import { requestBody } from '../body/factory';
@@ -163,14 +163,16 @@ export class Game implements GameApi {
     this.quality = coarse && small ? 'low' : 'high';
     this.renderer = new Renderer(canvas, this.quality === 'low' ? 'medium' : 'high');
     this.input = new Input();
-    this.gym = createGym(SCHOOLS.carver, SCHOOLS.lakeridge);
+    const home = byId(DEFAULT_MATCHUP[0]).school;
+    const away = byId(DEFAULT_MATCHUP[1]).school;
+    this.gym = createGym(home, away);
     this.renderer.scene.add(this.gym.group);
     createLighting(this.renderer.scene);
-    this.scoreboard = new Scoreboard(SCHOOLS.carver, SCHOOLS.lakeridge);
+    this.scoreboard = new Scoreboard(home, away);
     this.scoreboard.group.position.set(0, 8.1, 0);
     this.renderer.scene.add(this.scoreboard.group);
     this.renderer.scene.add(this.confetti.points);
-    this.setMat(SCHOOLS.carver);
+    this.setMat(home);
 
     this.resizeObserver = new ResizeObserver(() => this.renderer.resize());
     if (canvas.parentElement) this.resizeObserver.observe(canvas.parentElement);
@@ -211,11 +213,12 @@ export class Game implements GameApi {
     const scale = w.height / 1.76;
     const referee = w.id === OFFICIAL.id;
     const buffers = await requestBody(
-      { scale, mass: w.build, hair: w.hairStyle, clothing: referee ? 'referee' : 'singlet' },
+      { scale, mass: w.build, hair: w.hairStyle, shape: w.appearance, clothing: referee ? 'referee' : 'singlet' },
       this.quality,
       !referee,
     );
     return new Character(buffers, {
+      shape: w.appearance, motion: w.motion,
       look: {
         skin: w.skinTone,
         hair: w.hairColor,
@@ -232,7 +235,7 @@ export class Game implements GameApi {
         eye: w.eyeColor,
         scale,
       },
-      gear: referee ? null : { shell: w.school.gear, strap: w.school.gear },
+      gear: referee ? null : { shell: w.headgearColor ?? w.school.gear, strap: w.headgearColor ?? w.school.gear },
     });
   }
 

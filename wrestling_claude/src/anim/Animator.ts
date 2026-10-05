@@ -111,6 +111,7 @@ export class Animator {
   private lastMode = '';
   private halfLife = 0.08;
   private time = 0;
+  private frameDt = 1 / 60;
   /** Hand-fight jitter seeds. */
   private seed = Math.random() * 100;
   /** Skip the blend on the next update (cuts, tools). */
@@ -139,6 +140,7 @@ export class Animator {
 
   update(dt: number, view: AnimView, opp: Animator | null): void {
     this.time += dt;
+    this.frameDt = dt;
     this.contacts = [];
     const modeKey = view.mode + (view.mode === 'paired' ? view.clip : view.mode === 'solo' ? view.clip : '');
     const changed = modeKey !== this.lastMode;
@@ -191,7 +193,7 @@ export class Animator {
       if (!wasPlanted || !this.footwork.isPrimed) this.footwork.reset(this.display);
       const vx = 'vx' in view ? view.vx : 0;
       const vz = 'vz' in view ? view.vz : 0;
-      this.footwork.update(dt, this.feetDesired, vx, vz, view.mode === 'walk' ? 0.9 : 1.15);
+      this.footwork.update(dt, this.feetDesired, vx, vz, view.mode === 'walk' ? 0.9 : 1.05 * this.character.motion.tempo);
       this.footwork.apply(this.display, this.footW);
       this.display[P.HIPS + 1] += this.footwork.bounce * this.footW;
     } else if (this.footW < 0.01) {
@@ -293,14 +295,17 @@ export class Animator {
     // Velocity in the body frame: lateral motion shifts the weight.
     const lateral = v.vx * c - v.vz * sn;
     const forward = v.vx * sn + v.vz * c;
-    this.breath += (1 / 60) * (2.1 + v.exertion * 2.4 + (1 - v.stamina) * 2);
-    s.level = v.relaxed ? 0.95 : v.level;
+    this.breath += Math.min(0.05, this.frameDt) * (2.1 + v.exertion * 2.4 + (1 - v.stamina) * 2);
+    s.level = v.relaxed ? 0.95 : Math.max(0.1, Math.min(0.8, v.level + this.character.motion.levelOffset));
     s.lead = v.lead;
     s.lean = Math.max(-1, Math.min(1, v.lean + forward * 0.08));
-    s.side = Math.max(-1, Math.min(1, lateral * 0.35));
+    const settle = v.relaxed || v.act !== 'stance' ? 0 : 1;
+    const rhythm = this.time * 1.7 * this.character.motion.tempo + this.seed;
+    s.side = Math.max(-1, Math.min(1, lateral * 0.35 + Math.sin(rhythm) * 0.12 * settle));
+    s.level += Math.sin(rhythm * 0.71) * 0.013 * settle;
     s.phase = this.breath;
     s.fatigue = 1 - v.stamina;
-    s.width = v.relaxed ? 0.75 : 1;
+    s.width = v.relaxed ? 0.75 : this.character.motion.stanceWidth;
     s.guard = v.relaxed ? 0 : 1;
     stancePose(s, this.local);
 
@@ -378,8 +383,8 @@ export class Animator {
     const close = opp ? this.distanceTo(opp, v.x, v.z) : 9;
     const engaged = !v.relaxed && close < 1.4;
     if (engaged && v.act === 'stance') {
-      const t = this.time + this.seed;
-      const amp = 0.035 + (close < 1.1 ? 0.02 : 0);
+      const t = this.time * this.character.motion.tempo + this.seed;
+      const amp = (0.016 + (close < 1.1 ? 0.012 : 0)) * this.character.motion.handActivity;
       lp[P.HAND_L] += Math.sin(t * 5.3) * amp * 0.6;
       lp[P.HAND_L + 1] += Math.sin(t * 6.7 + 1) * amp;
       lp[P.HAND_L + 2] += Math.sin(t * 4.1 + 2) * amp * 1.4;
@@ -415,7 +420,7 @@ export class Animator {
       const myLead: 'L' | 'R' = v.lead === 1 ? 'L' : 'R';
       const myRear: 'L' | 'R' = myLead === 'L' ? 'R' : 'L';
       const opposite = (h: 'L' | 'R'): 'L' | 'R' => (h === 'L' ? 'R' : 'L');
-      const t = this.time + this.seed;
+      const t = this.time * this.character.motion.tempo + this.seed;
       if (v.hand >= 0.62) {
         this.contacts.push({ hand: myLead, on: 'neck', at: [0, 0.045, -0.07], weight: 1 });
         this.contacts.push({ hand: myRear, on: `forearm${opposite(myRear)}` as BoneName, at: [0, -0.1, 0.02], weight: 0.9 });
