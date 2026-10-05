@@ -1,4 +1,4 @@
-import { morenoFamilyNote, morenoMatchupNote } from '../sim/easterEggs';
+import { morenoFamilyNote, morenoMatchupNote, smithPerryFamilyNote } from '../sim/easterEggs';
 import { ROSTER, LEGENDS_TEAMS, LEGENDS_WEIGHTS, byId, DEFAULT_MATCHUP } from '../sim/roster';
 const check = (ok: boolean, label: string) => { if (!ok) throw new Error(label); };
 check(LEGENDS_TEAMS.length === 26, '26 teams');
@@ -51,3 +51,9 @@ for (const name of ['Mike Moreno Sr.', 'Michael Moreno', 'Gabe Moreno']) {
 }
 
 check(ROSTER.filter(w=>w.rating===99).map(w=>`${w.firstName} ${w.lastName}`).sort().join('|') === 'Cael Sanderson|Dan Gable', 'Only Gable and Sanderson 99');
+
+for (const name of ['John Smith', 'Pat Smith', 'Mark Perry']) {
+ const w = ROSTER.find(w => `${w.firstName} ${w.lastName}` === name)!;
+ check(!!w && !!smithPerryFamilyNote(w), `${name} reciprocal Smith–Perry family note`);
+}
+check(!smithPerryFamilyNote(ROSTER.find(w => w.firstName === 'Jessman')!), 'Unrelated Smith surname does not trigger family note');

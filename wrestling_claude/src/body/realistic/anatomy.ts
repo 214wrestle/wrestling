@@ -491,7 +491,7 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
     ...pair(ell('head', [0.034, 1.616 + F.smile * 0.0006, 0.066 + F.smile * 0.0004], [0.018 * cheekFill, 0.02, 0.02 * cheekFill], 0.022, H, { rot: [0, -25, 0], ...hw })),
     // Buccal fill over the masseter: a young athlete's cheek is full between the
     // cheekbone and the jaw, trimmed by the same jaw planes so it never sags.
-    ...pair(ell('head', [0.05 + J * 0.5, 1.598, 0.036], [0.013 * cheekFill, 0.026, 0.027 * cheekFill], 0.024, H, { ...hw, planes: [massL, bodyL] })),
+    ...pair(ell('head', [0.047 + J * 0.5, 1.601, 0.048], [0.018 * cheekFill, 0.028, 0.031 * cheekFill], 0.024, H, { ...hw, planes: [massL, bodyL] })),
     // Lower cheek beside the mouth (over the buccinator), filled out to the jaw
     // plane so the side of the lower face is flat-to-convex, never a crease.
     ...pair(ell('head', [0.036 + J * 0.4, 1.587 - L * 0.4, 0.058], [0.017 * cheekFill, 0.024, 0.021 * cheekFill], 0.02, H, { rot: [0, -20, 0], ...hw, planes: [bodyL] })),

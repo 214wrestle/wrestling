@@ -1,4 +1,4 @@
-import { morenoFamilyNote, morenoMatchupNote } from './easterEggs';
+import { wrestlerFamilyNote, morenoMatchupNote } from './easterEggs';
 import {
   MAT,
   POINTS,
@@ -126,8 +126,8 @@ export class MatchSim {
     this.setPhase('intros', 9.2);
     this.layoutIntro();
     const [a, b] = this.wrestlers;
-    const family = morenoMatchupNote(a, b) ?? morenoFamilyNote(a) ?? morenoFamilyNote(b);
-    if (family) this.announce({ text: 'Moreno family connection', detail: family, tone: 'info', hold: 7 });
+    const family = morenoMatchupNote(a, b) ?? wrestlerFamilyNote(a) ?? wrestlerFamilyNote(b);
+    if (family) this.announce({ text: 'Wrestling family connection', detail: family, tone: 'info', hold: 7 });
   }
 
   skipIntros(): void {

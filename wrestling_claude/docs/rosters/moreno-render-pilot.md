@@ -15,3 +15,7 @@ Live quick-match verification: Moreno vs Mark Perry reached a fall with 6.6 seco
 Eyelid correction: bound the procedural lash shading to the absolute distance from the aperture edge. The former signed-distance mask darkened the entire interior side of the edge. This is a shading fix; face geometry, eye motion and likeness remain unfinished.
 
 Post-shader live verification: the current Moreno/Perry quick match completed by fall with 3.5 seconds left in P1. The result screen and scoring log rendered; browser warnings and errors remained empty.
+
+Cheek-volume refinement: moved the buccal volume forward and widened its support across the cheek-to-jaw transition. The prior face retained a hollow lateral contour even with the hollow parameter at zero. Body-lab rebuild: 60,035 total vertices, 41,055 head vertices; the six views show a softer transition. This is an art estimate and modest contour improvement, not proof of recognizable likeness. Typecheck, paired clip checks and full-site build pass.
+
+Completed browser quick bout after cheek refinement: Moreno/Perry fall at 0:12 left in P1, 0–7, no warnings or errors. This validates the animated model through a result screen, not likeness or scoring calibration.

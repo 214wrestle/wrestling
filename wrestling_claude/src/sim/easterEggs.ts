@@ -42,3 +42,17 @@ export function morenoMatchupNote(a: Wrestler, b: Wrestler): string | undefined 
     return 'Moreno family ties cross the Iowa State–UNI rivalry: Iowa State and UNI meet on the mat, with cousins Izzy, Michael and Gabe connected beyond their singlets. Izzy is Mike Moreno Sr.’s nephew.';
   }
 }
+
+/** Owner-confirmed Smith–Perry family relationship; exact athletes, not surname matching. */
+export function smithPerryFamilyNote(w: Wrestler): string | undefined {
+  const name = `${w.firstName} ${w.lastName}`;
+  if (name === 'Mark Perry' && w.school.id === 'iowa') {
+    return 'Family across the rivalry: Iowa’s Mark Perry is the nephew of Oklahoma State brothers John and Pat Smith.';
+  }
+  if (w.school.id === 'oklahoma-state' && (name === 'John Smith' || name === 'Pat Smith')) {
+    return 'Smith–Perry family connection: John and Pat Smith are brothers, and both are uncles of Iowa’s Mark Perry.';
+  }
+}
+export function wrestlerFamilyNote(w: Wrestler): string | undefined {
+  return smithPerryFamilyNote(w) ?? morenoFamilyNote(w);
+}
