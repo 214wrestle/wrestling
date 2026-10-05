@@ -32,6 +32,8 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  "Alex Dieringer": {falls:45,bouts:137,source:"https://d1yllc564ye8is.cloudfront.net/sports/2015/3/17/GEN_2014010114"},
+  "Jordan Oliver": {falls:54,bouts:133,source:"https://okstate.com/news/2015/11/9/WREST_1109152432"},
   "Pat Smith": {falls:30,bouts:128,source:"https://nwhof.org/hall_of_fame/bio/1498"},
   'Jake Varner': {falls:42,bouts:131,source:'https://cyclones.com/sports/wrestling/roster/jake-varner/2862'},
   'Trent Paulson': {falls:15,bouts:137,source:'https://nwhof.org/hall_of_fame/bio_by_name/trent-paulson'},

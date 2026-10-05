@@ -40,6 +40,11 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Johny Hendricks": [{"year": 2004, "place": 5, "source": "https://okstate.com/news/2006/10/30/Johny_Hendricks"}, {"year": 2005, "place": 1, "source": "https://okstate.com/news/2006/10/30/Johny_Hendricks"}, {"year": 2006, "place": 1, "source": "https://okstate.com/news/2006/10/30/Johny_Hendricks"}, {"year": 2007, "place": 2, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"}],
+  "Chris Perry": [{"year": 2011, "place": "qualifier", "source": "https://okstate.com/sports/wrestling/roster/chris-perry/1728"}, {"year": 2012, "place": 3, "source": "https://okstate.com/sports/wrestling/roster/chris-perry/1728"}, {"year": 2013, "place": 1, "source": "https://okstate.com/sports/wrestling/roster/chris-perry/1728"}, {"year": 2014, "place": 1, "source": "https://okstate.com/sports/wrestling/roster/chris-perry/1728"}],
+
+  "Alex Dieringer": [{"year": 2013, "place": 3, "source": "https://okstate.com/sports/wrestling/roster/alex-dieringer/3042"}, {"year": 2014, "place": 1, "source": "https://okstate.com/sports/wrestling/roster/alex-dieringer/3042"}, {"year": 2015, "place": 1, "source": "https://okstate.com/sports/wrestling/roster/alex-dieringer/3042"}, {"year": 2016, "place": 1, "source": "https://okstate.com/sports/wrestling/roster/alex-dieringer/3042"}],
+  "Jordan Oliver": [{"year": 2010, "place": 4, "source": "https://okstate.com/sports/wrestling/roster/jordan-oliver/1763"}, {"year": 2011, "place": 1, "source": "https://okstate.com/sports/wrestling/roster/jordan-oliver/1763"}, {"year": 2012, "place": 2, "source": "https://okstate.com/sports/wrestling/roster/jordan-oliver/1763"}, {"year": 2013, "place": 1, "source": "https://okstate.com/news/2013/4/2/cowboy_wrestling_season_in_review"}],
   "John Smith": [{"year": 1984, "place": "qualifier", "source": "https://nwhof.org/brackets/54#page=5"}, {"year": 1985, "place": 2, "source": "https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/nwca.sidearmsports.com/documents/2023/11/14/NCAA_Championship_1985.pdf#page=1"}, {"year": 1987, "place": 1, "outstandingWrestler": true, "source": "https://okstate.com/news/2015/10/22/WREST_1022154158"}, {"year": 1988, "place": 1, "source": "https://okstate.com/news/2003/11/5/Hall_of_Honor"}],
   "Pat Smith": [{"year": 1990, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/1498"}, {"year": 1991, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/1498"}, {"year": 1992, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/1498"}, {"year": 1994, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/1498", "outstandingWrestler": true}],
   "Kyle Snyder": [{"year": 2015, "place": 2, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210"}, {"year": 2016, "place": 1, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210", "outstandingWrestler": true}, {"year": 2017, "place": 1, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210"}, {"year": 2018, "place": 1, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/kyle-snyder/2210"}],
@@ -130,6 +135,11 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Johny Hendricks": {"wins": 126, "losses": 13, "source": "https://okstate.com/news/2013/11/14/Former_Cowboy_Johny_Hendricks_Fights_for_UFC_Welterweight_Belt"},
+  "Chris Perry": {"wins": 122, "losses": 11, "source": "https://okstate.com/sports/wrestling/roster/coaches/chris-perry/2318"},
+
+  "Alex Dieringer": {"wins": 133, "losses": 4, "source": "https://okstate.com/sports/wrestling/roster/alex-dieringer/3042"},
+  "Jordan Oliver": {"wins": 127, "losses": 6, "source": "https://okstate.com/news/2015/11/9/WREST_1109152432"},
   // Prefer OSU’s 2024 official record table; older records report 154–7–2.
   "John Smith": {"wins": 152, "losses": 8, "ties": 2, "source": "https://okstate.com/documents/download/2024/3/19/OkState_NCAA_Notes.pdf#page=4"},
   "Pat Smith": {"wins": 121, "losses": 5, "ties": 2, "source": "https://nwhof.org/hall_of_fame/bio/1498"},
