@@ -40,6 +40,14 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Roger Pillath': [{year:1962,place:2,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1962.pdf'},{year:1963,place:0,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1963.pdf'},{year:1964,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1964.pdf'}],
+  'Jeff Walter': [{year:1992,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1992.pdf'},{year:1994,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1994.pdf'},{year:1995,place:4,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1995.pdf'},{year:1996,place:1,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1996.pdf'}],
+  'Ron Jeidy': [{year:1974,place:0,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1974.pdf'},{year:1976,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1976.pdf'},{year:1977,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1977.pdf'},{year:1978,place:1,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1978.pdf'}],
+  'Jack Reinwand': [{year:1973,place:0,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1973.pdf'},{year:1975,place:4,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1975.pdf'},{year:1976,place:1,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1976.pdf'}],
+  'Jim Haines': [{year:1973,place:0,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1973.pdf'},{year:1974,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1974.pdf'},{year:1975,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1975.pdf'},{year:1977,place:1,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1977.pdf'}],
+  'Rick Lawinger': [{year:1971,place:0,source:'https://uwbadgers.com/news/2016/8/26/general-2016-hall-of-fame-rick-lawinger'},{year:1972,place:'qualifier',source:'https://uwbadgers.com/news/2016/8/26/general-2016-hall-of-fame-rick-lawinger'},{year:1973,place:2,source:'https://uwbadgers.com/news/2016/8/26/general-2016-hall-of-fame-rick-lawinger'},{year:1974,place:1,source:'https://uwbadgers.com/news/2016/8/26/general-2016-hall-of-fame-rick-lawinger'}],
+  'Andy Rein': [{year:1977,place:0,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1977.pdf'},{year:1978,place:2,source:'https://nwhof.org/hall_of_fame/bio/5960'},{year:1979,place:6,source:'https://nwhof.org/hall_of_fame/bio/5960'},{year:1980,place:1,source:'https://nwhof.org/hall_of_fame/bio/5960'}],
+  'Travis Rutt': [{year:2009,place:0,source:'https://soonersports.com/sports/wrestling/roster/travis-rutt/660'},{year:2010,place:'qualifier',source:'https://soonersports.com/sports/wrestling/roster/travis-rutt/660'},{year:2011,place:7,source:'https://soonersports.com/sports/wrestling/roster/travis-rutt/660'},{year:2014,place:'qualifier',source:'https://soonersports.com/sports/wrestling/roster/travis-rutt/660'}],
   'Trevor Brandvold': [{year:2007,place:'qualifier',source:'https://uwbadgers.com/staff-directory/Trevor-Brandvold/430'},{year:2008,place:'qualifier',source:'https://uwbadgers.com/staff-directory/Trevor-Brandvold/430'},{year:2010,place:6,source:'https://uwbadgers.com/staff-directory/Trevor-Brandvold/430'},{year:2011,place:4,source:'https://uwbadgers.com/staff-directory/Trevor-Brandvold/430'}],
   'Trent Hillger': [{year:2019,place:8,source:'https://uwbadgers.com/sports/wrestling/roster/trent-hillger/11280'},{year:2021,place:6,source:'https://uwbadgers.com/sports/wrestling/roster/trent-hillger/11280'},{year:2022,place:'qualifier',source:'https://uwbadgers.com/sports/wrestling/roster/trent-hillger/11280'},{year:2023,place:8,source:'https://uwbadgers.com/sports/wrestling/roster/trent-hillger/11280'}],
   'Connor Medbery': [{year:2013,place:'qualifier',source:'https://uwbadgers.com/sports/wrestling/roster/connor-medbery/4273'},{year:2014,place:'qualifier',source:'https://uwbadgers.com/sports/wrestling/roster/connor-medbery/4273'},{year:2015,place:4,source:'https://uwbadgers.com/sports/wrestling/roster/connor-medbery/4273'},{year:2017,place:2,source:'https://uwbadgers.com/sports/wrestling/roster/connor-medbery/4273'}],
@@ -301,7 +309,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Seth Gross': 3, 'Jack Barden': 3, 'Dave Schultz': 3, 'Jeff Smith': 2, 'Ben Lewis': 3, 'Jack Zindel': 3, 'Mike Bradley': 3, 'Gerry Malecek': 3, 'Dale Carr': 3, 'Greg Johnson': 3, 'Kollin Moore': 3, 'Frank Romano': 3, 'Dave Reinbolt': 3, 'Brock Lesnar': 2, 'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Roger Pillath': 3, 'Jack Reinwand': 3, 'Seth Gross': 3, 'Jack Barden': 3, 'Dave Schultz': 3, 'Jeff Smith': 2, 'Ben Lewis': 3, 'Jack Zindel': 3, 'Mike Bradley': 3, 'Gerry Malecek': 3, 'Dale Carr': 3, 'Greg Johnson': 3, 'Kollin Moore': 3, 'Frank Romano': 3, 'Dave Reinbolt': 3, 'Brock Lesnar': 2, 'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -315,6 +323,14 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Roger Pillath': {wins:35,losses:5,ties:1,source:'https://www.wiwrestlinghofhonorees.org/alpha/p/pillath-roger/'},
+  'Jeff Walter': {wins:98,losses:43,ties:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6343'},
+  'Ron Jeidy': {wins:99,losses:30,ties:3,source:'https://uwbadgers.com/honors/uw-athletic-hall-of-fame/ron-jeidy/274'},
+  'Jack Reinwand': {wins:91,losses:21,ties:1,source:'https://uwbadgers.com/news/2013/8/26/Hall_of_Fame_Class_of_2013_Jack_Reinwand'},
+  'Jim Haines': {wins:92,losses:25,ties:4,source:'https://uwbadgers.com/news/2012/8/27/Hall_of_Fame_Class_of_2012_Jim_Haines'},
+  'Rick Lawinger': {wins:130,losses:17,ties:1,source:'https://uwbadgers.com/honors/uw-athletic-hall-of-fame/rick-lawinger/129'},
+  'Andy Rein': {wins:119,losses:13,ties:1,source:'https://nwhof.org/hall_of_fame/bio/5960'},
+  'Travis Rutt': {wins:85,losses:39,source:'https://soonersports.com/sports/wrestling/roster/travis-rutt/660'},
   'Trevor Brandvold': {wins:82,losses:31,source:'https://uwbadgers.com/staff-directory/Trevor-Brandvold/430'},
   'Trent Hillger': {wins:96,losses:41,source:'https://uwbadgers.com/sports/wrestling/roster/trent-hillger/11280'},
   'Connor Medbery': {wins:112,losses:23,source:'https://uwbadgers.com/sports/wrestling/roster/connor-medbery/4273'},

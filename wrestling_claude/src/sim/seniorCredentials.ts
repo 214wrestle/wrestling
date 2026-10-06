@@ -1,6 +1,9 @@
 /** Senior Worlds/Olympics only: bio display, never NCAA rating inputs. */
 export interface SeniorHonors { olympicGold:number;worldGold:number;olympicSilver?:number;worldSilver?:number;olympicBronze?:number;worldBronze?:number;source:string; }
 export const SENIOR_HONORS:Record<string,SeniorHonors>={
+ 'Jack Reinwand':{olympicGold:0,worldGold:0,worldBronze:1,source:'https://uwbadgers.com/news/2013/8/26/Hall_of_Fame_Class_of_2013_Jack_Reinwand'},
+ 'Jim Haines':{olympicGold:0,worldGold:0,worldSilver:1,source:'https://uwbadgers.com/news/2012/8/27/Hall_of_Fame_Class_of_2012_Jim_Haines'},
+ 'Andy Rein':{olympicGold:0,worldGold:0,olympicSilver:1,source:'https://nwhof.org/hall_of_fame/bio/5960'},
  'Donny Pritzlaff':{olympicGold:0,worldGold:0,worldBronze:1,source:'https://scarletknights.com/sports/wrestling/roster/coaches/donny-pritzlaff/4480'},
  'Lee Kemp':{olympicGold:0,worldGold:3,source:'https://uwwsports.com/sports/wrestling/roster/coaches/lee-kemp/731'},
  'Stevan Micic':{olympicGold:0,worldGold:1,worldBronze:1,source:'https://www.cliffkeenwrestlingclub.com/three-michigan-alums-capture-world-medals-in-belgrade/'},
