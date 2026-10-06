@@ -40,6 +40,8 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Jesse Delgado": [{"year": 2012, "place": 7, "source": "https://fightingillini.com/sports/wrestling/roster/jesse-delgado/1529"}, {"year": 2013, "place": 1, "source": "https://fightingillini.com/sports/wrestling/roster/jesse-delgado/1529"}, {"year": 2014, "place": 1, "source": "https://fightingillini.com/sports/wrestling/roster/jesse-delgado/1529"}, {"year": 2015, "place": "qualifier", "source": "https://fightingillini.com/sports/wrestling/roster/jesse-delgado/1529"}],
+  "Adam Tirapelle": [{"year": 1998, "place": "qualifier", "source": "https://fightingillini.com/honors/hall-of-fame/adam-tirapelle/72/kiosk"}, {"year": 1999, "place": 3, "source": "https://fightingillini.com/honors/hall-of-fame/adam-tirapelle/72/kiosk"}, {"year": 2000, "place": 2, "source": "https://fightingillini.com/honors/hall-of-fame/adam-tirapelle/72/kiosk"}, {"year": 2001, "place": 1, "source": "https://fightingillini.com/honors/hall-of-fame/adam-tirapelle/72/kiosk"}],
   "Yianni Diakomihalis": [{"year": 2018, "place": 1, "source": "https://cornellbigred.com/aa.aspx?hid=686"}, {"year": 2019, "place": 1, "source": "https://cornellbigred.com/aa.aspx?hid=686"}, {"year": 2022, "place": 1, "source": "https://cornellbigred.com/aa.aspx?hid=686"}, {"year": 2023, "place": 1, "source": "https://cornellbigred.com/aa.aspx?hid=686"}],
   "Vito Arujau": [{"year": 2019, "place": 4, "source": "https://cornellbigred.com/aa.aspx?hid=701"}, {"year": 2022, "place": 3, "source": "https://cornellbigred.com/aa.aspx?hid=701"}, {"year": 2023, "place": 1, "source": "https://cornellbigred.com/news/2023/3/18/wrestling-day-3-recap-ncaa.aspx", "outstandingWrestler": true}, {"year": 2024, "place": 1, "source": "https://cornellbigred.com/aa.aspx?hid=701"}],
   "John Hughes": [{"year": 1992, "place": "qualifier", "source": "https://nwhof.org/brackets/62#page=11"}, {"year": 1994, "place": 7, "source": "https://nwhof.org/hall_of_fame/bio/6323"}, {"year": 1995, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/6323"}, {"year": 1996, "place": 2, "source": "https://nwhof.org/hall_of_fame/bio/6323"}],
@@ -163,6 +165,7 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Adam Tirapelle": {wins:127,losses:21,source:"https://fightingillini.com/documents/download/2015/12/9/2015_16_Media_Guide.pdf"},
   "Yianni Diakomihalis": {wins:115,losses:2,source:"https://cornellbigred.com/aa.aspx?hid=686"},
   "John Hughes": {wins:121,losses:26,ties:2,source:"https://nwhof.org/hall_of_fame/bio/6323"},
   "Aaron Brooks": {wins:89,losses:3,source:"https://gopsusports.com/news/2024/06/17/brooks-nemeth-named-penn-state-athletes-of-the-year"},

@@ -1,6 +1,6 @@
 # College Wrestling Legends — Updated Roster
 
-26 teams · 312 starters · 134 Coach’s Choice slots. Updated October 5, 2026.
+26 teams · 312 starters · 138 Coach’s Choice slots. Updated October 5, 2026.
 
 ## PENN STATE
 
@@ -24,30 +24,30 @@
 | Weight | Starter | Coach’s Choice |
 |---|---|---|
 | 118 | Barry Davis | Jessie Whitmer |
-| 125 | Spencer Lee | Terry Brands; Matt McDonough |
-| 133 | Tom Brands | Mark Ironside |
+| 125 | Spencer Lee | Terry Brands, Matt McDonough |
+| 133 | Tom Brands | Mark Ironside, Eric Juergens |
 | 141 | Jeff McGinness |  |
 | 149 | Lincoln McIlravy | Terry Steiner |
-| 157 | Jim Zalesky | Joe Williams; T.J. Williams |
+| 157 | Jim Zalesky | Joe Williams, T.J. Williams |
 | 165 | Mark Perry | Mark Reiland |
-| 174 | Ed Banach | Jay Borschel; Chris Campbell |
+| 174 | Ed Banach | Jay Borschel, Chris Campbell |
 | 184 | Jessman Smith | Sammy Brooks |
 | 190 | Duane Goldman | Lee Fullhart |
 | 197 | Stephen Buchanan II |  |
-| HWT | Lou Banach | Steve Mocco; Michael Mocco (eligibility exception) |
+| HWT | Lou Banach | Steve Mocco, Michael Mocco |
 
 ## NEBRASKA
 
 | Weight | Starter | Coach’s Choice |
 |---|---|---|
 | 118 | John Buxton | Brad Canoyer |
-| 125 | Jason Kelber | Jason Powell; Paul Donahoe; Mike Nissen; Tony Purler |
+| 125 | Jason Kelber | Jason Powell, Paul Donahoe, Mike Nissen, Tony Purler |
 | 133 | Gil Sanchez |  |
 | 141 | Brock Hardy | Al Freeman |
 | 149 | Ridge Lovett |  |
 | 157 | Antrell Taylor | Bryan Snyder |
 | 165 | Jordan Burroughs |  |
-| 174 | Jim Scherr | Corey Olson; Mikey Labriola |
+| 174 | Jim Scherr | Corey Olson, Mikey Labriola |
 | 184 | TJ Dudley |  |
 | 190 | Bill Scherr |  |
 | 197 | Brad Vering | Craig Brester |
@@ -59,11 +59,11 @@
 |---|---|---|
 | 118 | Eric Akin |  |
 | 125 | Bill Kelly |  |
-| 133 | Jim Gibbons | Zach Roberson; Mike Moreno Sr. |
-| 141 | Dan Gable (99) | Aaron Holker; Shawn Rustad; Nate Gallick |
-| 149 | Nate Carr | Gabe Moreno; Tim Krieger |
-| 157 | David Carr | Carl Adams; Trent Paulson |
-| 165 | Joe Heskett | Michael Moreno; Travis Paulson |
+| 133 | Jim Gibbons | Zach Roberson, Mike Moreno Sr. |
+| 141 | Dan Gable | Aaron Holker, Shawn Rustad, Nate Gallick |
+| 149 | Nate Carr | Gabe Moreno, Tim Krieger |
+| 157 | David Carr | Carl Adams, Trent Paulson |
+| 165 | Joe Heskett | Michael Moreno, Travis Paulson |
 | 174 | Jon Reader |  |
 | 184 | Cael Sanderson |  |
 | 190 | Eric Voelker |  |
@@ -83,26 +83,26 @@
 | 165 | Jacob Volkmann |  |
 | 174 | Marty Morgan |  |
 | 184 | Brandon Eggum |  |
-| 190 | Tim Hartung | Evan Johnson; Evan Bernstein |
+| 190 | Tim Hartung | Evan Johnson, Evan Bernstein |
 | 197 | Damion Hahn |  |
-| HWT | Gable Steveson | Cole Konrad; Brock Lesnar |
+| HWT | Gable Steveson | Cole Konrad, Brock Lesnar |
 
 ## OKLAHOMA STATE
 
 | Weight | Starter | Coach’s Choice |
 |---|---|---|
 | 118 | Teague Moore | Joe McDaniel |
-| 125 | Eric Guerrero | Kendall Cross; Yojiro Uetake |
+| 125 | Eric Guerrero | Kendall Cross, Yojiro Uetake |
 | 133 | John Smith | Johnny Thompson |
-| 141 | Alan Fried | Lee Roy Smith; Dean Heil; Steve Barrett |
-| 149 | Jordan Oliver | Kenny Monday; Zack Esposito |
+| 141 | Alan Fried | Lee Roy Smith, Dean Heil, Steve Barrett |
+| 149 | Jordan Oliver | Kenny Monday, Zack Esposito |
 | 157 | Pat Smith |  |
-| 165 | Alex Dieringer | Mike Sheets; Mark Branch; Johny Hendricks |
-| 174 | Chris Pendleton | Chris Barnes; Chris Perry |
+| 165 | Alex Dieringer | Mike Sheets, Mark Branch, Johny Hendricks |
+| 174 | Chris Pendleton | Chris Barnes, Chris Perry |
 | 184 | Jake Rosholt | Dustin Plott |
 | 190 | J.J. McGrew | Eric Wais |
 | 197 | Mark Muñoz | AJ Ferrari |
-| HWT | Steve Mocco | Jimmy Jackson; Wyatt Hendrickson; Dreshaun Ross (eligibility exception) |
+| HWT | Steve Mocco | Jimmy Jackson, Wyatt Hendrickson, Dreshaun Ross |
 
 ## OKLAHOMA
 
@@ -115,7 +115,7 @@
 | 149 | Jared Frayer |  |
 | 157 | Mike Grant | David Kjeldgaard |
 | 165 | Dave Schultz |  |
-| 174 | Mark Schultz |  |
+| 174 | Mark Schultz | Dan Hodge |
 | 184 | Melvin Douglas |  |
 | 190 | John Kading |  |
 | 197 | Dan Chaid |  |
@@ -135,8 +135,8 @@
 | 174 | Kevin Randleman |  |
 | 184 | Myles Martin | Mike Pucillo |
 | 190 | Mark Coleman | Rex Holman |
-| 197 | Kyle Snyder |  |
-| HWT | Tommy Rowlands |  |
+| 197 | Kollin Moore | Nick Heflin |
+| HWT | Kyle Snyder | Tommy Rowlands |
 
 ## MICHIGAN
 
@@ -150,7 +150,7 @@
 | 157 | Ryan Bertin |  |
 | 165 | Mark Churella |  |
 | 174 | Steve Luke |  |
-| 184 | Myles Amine | Andy Hrovat; Domenic Abounader |
+| 184 | Myles Amine | Andy Hrovat, Domenic Abounader |
 | 190 | Jack Barden |  |
 | 197 | Jacob Cardenas |  |
 | HWT | Mason Parris | Adam Coon |
@@ -168,9 +168,9 @@
 | 165 | Gerry Malecek | Joel Morissette |
 | 174 | Mike Bradley | Dave Mariola |
 | 184 | Cameron Caffey |  |
-| 190 | Brian Picklo | Jack Zindel; Emilio Collins |
+| 190 | Brian Picklo | Jack Zindel, Emilio Collins |
 | 197 | Nick Muzashvili |  |
-| HWT | Jeff Smith | Don Whipp; Ben Lewis; Mike McClure |
+| HWT | Jeff Smith | Don Whipp, Ben Lewis, Mike McClure |
 
 ## WISCONSIN
 
@@ -187,7 +187,7 @@
 | 184 | Travis Rutt |  |
 | 190 | Ron Jeidy |  |
 | 197 | Trevor Brandvold |  |
-| HWT | Jeff Walter | Connor Medbery; Roger Pillath; Trent Hillger |
+| HWT | Jeff Walter | Connor Medbery, Roger Pillath, Trent Hillger |
 
 ## ARIZONA STATE
 
@@ -199,12 +199,12 @@
 | 141 | Steve St. John |  |
 | 149 | Eric Larkin |  |
 | 157 | Bubba Jenkins |  |
-| 165 | Markus Mollica | Ray Miller; Steve Blackford |
+| 165 | Markus Mollica | Ray Miller, Steve Blackford |
 | 174 | Zahid Valencia |  |
 | 184 | Aaron Simpson | Blake Stauffer |
 | 190 | Mike Davies |  |
 | 197 | Ryan Bader | Kordell Norfleet |
-| HWT | Cain Velasquez | Curley Culp; Cohlton Schultz |
+| HWT | Cain Velasquez | Curley Culp, Cohlton Schultz |
 
 ## OREGON STATE
 
@@ -221,7 +221,7 @@
 | 184 | Trey Munoz |  |
 | 190 | Greg Strobel |  |
 | 197 | Taylor Meeks |  |
-| HWT | Jess Lewis | Jason Cooley; Larry Bielenberg; Howard Harris |
+| HWT | Jess Lewis | Jason Cooley, Larry Bielenberg, Howard Harris |
 
 ## ILLINOIS
 
@@ -278,7 +278,7 @@
 
 | Weight | Starter | Coach’s Choice |
 |---|---|---|
-| 118 | Doug Wyland | Al Palacio; Bob Monaghan |
+| 118 | Doug Wyland | Al Palacio, Bob Monaghan |
 | 125 | Dave Cooke |  |
 | 133 | T.J. Jaworsky |  |
 | 141 | Lenny Bernstein |  |
@@ -306,7 +306,7 @@
 | 184 | Parker Keckeisen | Drew Foster |
 | 190 | Kirk Myers |  |
 | 197 | Jacob Holschlag |  |
-| HWT | Mike McCready | Ashton Honnold (eligibility exception) |
+| HWT | Mike McCready | Ashton Honnold |
 
 ## LEHIGH
 
@@ -332,7 +332,7 @@
 | 118 | Neil Fink |  |
 | 125 | Joey Dance |  |
 | 133 | Korbin Myers |  |
-| 141 | Devin Carter | Bo Bassett (eligibility exception) |
+| 141 | Devin Carter | Bo Bassett |
 | 149 | Caleb Henson |  |
 | 157 | Nick Brascetta |  |
 | 165 | Mekhi Lewis |  |
@@ -419,7 +419,7 @@
 | 133 | Mike Pantoya |  |
 | 141 | Andrew Alirez |  |
 | 149 | Bob Smith |  |
-| 157 | Justin Gaethje | Scott Hewit; Don Govoni |
+| 157 | Justin Gaethje | Scott Hewit, Don Govoni |
 | 165 | T.J. Deaguero |  |
 | 174 | Mike Leberknight |  |
 | 184 | Alan Clothier |  |
@@ -431,7 +431,7 @@
 
 | Weight | Starter | Coach’s Choice |
 |---|---|---|
-| 118 | Gene Mills | Gray Simons; Rick Sanders |
+| 118 | Gene Mills | Gray Simons, Rick Sanders |
 | 125 | Stephen Abas |  |
 | 133 | Don Rohn |  |
 | 141 | Larry Owings |  |
@@ -442,5 +442,5 @@
 | 184 | Jake Herbert |  |
 | 190 | Mark Kerr |  |
 | 197 | Josh Glenn |  |
-| HWT | Carleton Haselrig | Stephen Neal; Kurt Angle |
+| HWT | Carleton Haselrig | Stephen Neal, Kurt Angle |
 

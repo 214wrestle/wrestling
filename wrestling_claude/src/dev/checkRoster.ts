@@ -57,3 +57,10 @@ for (const name of ['John Smith', 'Pat Smith', 'Mark Perry']) {
  check(!!w && !!smithPerryFamilyNote(w), `${name} reciprocal Smith–Perry family note`);
 }
 check(!smithPerryFamilyNote(ROSTER.find(w => w.firstName === 'Jessman')!), 'Unrelated Smith surname does not trigger family note');
+
+const snyder = ROSTER.filter(w => w.firstName === 'Kyle' && w.lastName === 'Snyder');
+check(snyder.length === 1 && snyder[0].weightClass === 285 && snyder[0].legends?.role === 'starter', 'Snyder exclusively HWT starter');
+check(byId('ohio-state-285-choice-tommy-rowlands').legends?.role === 'choice', 'Rowlands HWT choice');
+check(byId('ohio-state-197-starter-kollin-moore').weightClass === 197, 'Moore replacement at 197');
+
+check(byId('ohio-state-197-choice-nick-heflin').legends?.role === 'choice', 'Heflin owner choice at 197');
