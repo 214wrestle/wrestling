@@ -1,3 +1,4 @@
+import {careerCredentials} from '../sim/credentials';
 import { scoreCareer, seasonPoints, type NcaaSeason, CAREER_RECORDS, overallRating, recordAdjustment, ELIGIBILITY_SEASONS, COLLEGE_RECORDS } from '../sim/ratings';
 import { HODGE_AWARDS, PIN_HISTORY, pinningMultiplier } from '../sim/careerAwards';
 const assert = (ok: boolean) => { if (!ok) throw new Error('Rating scoring regression'); };
@@ -62,3 +63,19 @@ console.log('Championship tiers and three-title 96 ceiling passed');
 assert(CAREER_RECORDS["Jim Scherr"].find(s=>s.year===1981)?.place===0);
 assert(CAREER_RECORDS["Jim Scherr"].find(s=>s.year===1983)?.place==="qualifier");
 assert(COLLEGE_RECORDS["Bill Scherr"].losses===18);
+
+const credentialsCareer=scoreCareer([
+ {year:2001,place:2,source:'fixture'}, {year:2002,place:3,source:'fixture'},
+ {year:2003,place:4,source:'fixture'}, {year:2004,place:5,source:'fixture'},
+ {year:2005,place:6,source:'fixture'},
+]);
+if(careerCredentials(credentialsCareer)!=='5x AA')throw Error('Bio must count all five verified AA seasons, not only four rating seasons');
+if(careerCredentials(scoreCareer(CAREER_RECORDS['Steve Mocco']))!=='2x National Champ')throw Error('Mocco credential mismatch');
+if(careerCredentials(undefined)!==undefined)throw Error('Pending research must not fabricate credentials');
+console.log('Career credentials: full-career AA counts, championship priority and pending evidence verified');
+const starocci=scoreCareer(CAREER_RECORDS['Carter Starocci']);
+assert(careerCredentials(starocci)==='5x National Champ');
+assert(starocci.counted.length===4 && starocci.excluded.length===1 && starocci.placementPoints===40);
+const brooks=scoreCareer(CAREER_RECORDS['Aaron Brooks']);
+assert(careerCredentials(brooks,'Aaron Brooks')==='4x National Champ · 5x AA');
+assert(brooks.counted.length===4 && brooks.placementPoints===40);
