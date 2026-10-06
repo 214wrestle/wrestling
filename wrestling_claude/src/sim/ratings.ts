@@ -40,6 +40,8 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Dustin Plott': [{year:2021,place:'qualifier',source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'},{year:2022,place:6,source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'},{year:2023,place:6,source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'},{year:2024,place:2,source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'},{year:2025,place:4,source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'}],
+  'Joe McDaniel': [{year:1937,place:1,source:'https://okstate.com/news/2011/11/7/OSU_Loses_Wrestling_Great_Joe_McDaniel'},{year:1938,place:1,outstandingWrestler:true,source:'https://okstate.com/news/2011/11/7/OSU_Loses_Wrestling_Great_Joe_McDaniel'},{year:1939,place:1,source:'https://okstate.com/news/2011/11/7/OSU_Loses_Wrestling_Great_Joe_McDaniel'}],
   'J.J. McGrew': [{year:1991,place:'qualifier',source:'https://nwhof.org/brackets/61#page=23'},{year:1992,place:'qualifier',source:'https://nwhof.org/brackets/62#page=23'},{year:1994,place:7,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?wrestler=6382'},{year:1995,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?wrestler=6382'}],
   'Alan Fried': [{year:1991,place:2,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?wrestler=6410'},{year:1992,place:2,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?wrestler=6410'},{year:1994,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?wrestler=6410'}],
   'Eric Wais': [{year:1977,place:4,source:'https://okstate.com/news/2025/4/14/cowboy-wrestling-mourns-the-loss-of-eric-wais'},{year:1978,place:2,source:'https://okstate.com/news/2025/4/14/cowboy-wrestling-mourns-the-loss-of-eric-wais'},{year:1979,place:1,source:'https://okstate.com/news/2025/4/14/cowboy-wrestling-mourns-the-loss-of-eric-wais'},{year:1980,place:0,source:'https://nwhof.org/brackets/50#page=26'}],
@@ -216,7 +218,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -231,6 +233,8 @@ export function placementRating(average: number): number {
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
   'Eric Wais': {wins:89,losses:6,ties:2,source:'https://okstate.com/news/2025/4/14/cowboy-wrestling-mourns-the-loss-of-eric-wais'},
+  'Dustin Plott': {wins:114,losses:29,source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'},
+  'Joe McDaniel': {wins:28,losses:2,ties:0,source:'https://okstate.com/news/2011/11/7/OSU_Loses_Wrestling_Great_Joe_McDaniel'},
   'J.J. McGrew': {wins:88,losses:28,ties:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6382'},
   'Alan Fried': {wins:128,losses:6,ties:0,source:'https://okstate.com/documents/download/2023/2/11/13_-_Stanford.pdf#page=4'},
   'Royce Alger': {wins:131,losses:11,ties:2,source:'https://api.nwhof.org/national-wrestling-hall-of-fame-dan-gable-museum/bio/12791'},
