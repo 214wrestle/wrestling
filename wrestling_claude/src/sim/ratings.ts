@@ -40,6 +40,10 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Lance Palmer': [{year:2007,place:4,source:'https://nwhof.org/hall_of_fame/bio/1706'},{year:2008,place:8,source:'https://nwhof.org/hall_of_fame/bio/1706'},{year:2009,place:4,source:'https://nwhof.org/hall_of_fame/bio/1706'},{year:2010,place:2,source:'https://nwhof.org/hall_of_fame/bio/1706'}],
+  'Myles Martin': [{year:2016,place:1,source:'https://nwhof.org/hall_of_fame/bio/3559'},{year:2017,place:5,source:'https://nwhof.org/hall_of_fame/bio/3559'},{year:2018,place:2,source:'https://nwhof.org/hall_of_fame/bio/3559'},{year:2019,place:3,source:'https://nwhof.org/hall_of_fame/bio/3559'}],
+  'Mike Pucillo': [{year:2007,place:6,source:'https://nwhof.org/hall_of_fame/bio/11931'},{year:2008,place:1,source:'https://nwhof.org/hall_of_fame/bio/11931'},{year:2009,place:2,source:'https://nwhof.org/hall_of_fame/bio/11931'},{year:2010,place:'qualifier',source:'https://ohiostatebuckeyes.com/news/2010/3/20/palmer-set-to-meet-iowas-metcalf-in-149-pound-final'}],
+  'J Jaggers': [{year:2006,place:'qualifier',source:'https://ohiostatebuckeyes.com/news/2006/10/26/2006-07-wrestling-season-outlook'},{year:2007,place:7,source:'https://nwhof.org/hall_of_fame/bio/11938'},{year:2008,place:1,source:'https://nwhof.org/hall_of_fame/bio/11938'},{year:2009,place:1,source:'https://nwhof.org/hall_of_fame/bio/11938'}],
   'Melvin Douglas': [{year:1983,place:'qualifier',source:'https://nwhof.org/brackets/53#page=20'},{year:1984,place:'qualifier',source:'https://nwhof.org/brackets/54#page=20'},{year:1985,place:1,source:'https://nwhof.org/hall_of_fame/bio/2938'},{year:1986,place:1,source:'https://nwhof.org/hall_of_fame/bio/2938'}],
   'Steve "Dr. Death" Williams': [{year:1979,place:6,source:'https://nwhof.org/hall_of_fame/bio/12564'},{year:1980,place:5,source:'https://nwhof.org/hall_of_fame/bio/12564'},{year:1981,place:3,source:'https://nwhof.org/hall_of_fame/bio/12564'},{year:1982,place:2,source:'https://nwhof.org/hall_of_fame/bio/12564'}],
   'Gable Steveson': [{year:2019,place:3,source:'https://gophersports.com/sports/wrestling/roster/gable-steveson/22871'},{year:2021,place:1,source:'https://gophersports.com/sports/wrestling/roster/gable-steveson/22871'},{year:2022,place:1,source:'https://gophersports.com/sports/wrestling/roster/gable-steveson/22871'},{year:2025,place:2,source:'https://gophersports.com/sports/wrestling/roster/gable-steveson/22871'}],
@@ -254,6 +258,9 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Lance Palmer': {wins:121,losses:33,source:'https://ohiostatebuckeyes.com/news/2010/3/21/four-time-all-american-lance-palmer-is-ncaa-championships-runner-up'},
+  'Mike Pucillo': {wins:107,losses:17,source:'https://nwhof.org/hall_of_fame/bio/11931'},
+  'J Jaggers': {wins:105,losses:32,source:'https://nwhof.org/hall_of_fame/bio/11938'},
   'Gable Steveson': {wins:103,losses:3,source:'https://gophersports.com/sports/wrestling/roster/gable-steveson/22871'},
   'Brock Lesnar': {wins:55,losses:3,source:'https://gophersports.com/news/2001/10/2/BROCK_LESNAR_RETURNS_TO_MINNESOTA_WITH_THE_WORLD_WRESTLING_FEDERATION'},
   'Dustin Schlatter': {wins:114,losses:10,source:'https://gophersports.com/sports/2018/5/21/sports-m-wrestl-spec-rel-minn-m-wrestl-career-records-html'},
