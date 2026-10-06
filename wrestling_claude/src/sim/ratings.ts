@@ -12,7 +12,7 @@ export interface CareerScore {
   placementPoints: number;
   bonusPoints: number;
   total: number;
-  eligibilitySeasons: 3 | 4;
+  eligibilitySeasons: 2 | 3 | 4;
   averagePlacementPoints: number;
   averagePoints: number;
   tier: string;
@@ -23,7 +23,7 @@ export function seasonPoints(season: NcaaSeason): number {
   const placement = season.place === 0 ? 0 : season.place === 'qualifier' ? 1 : season.place <= 2 ? 11 - season.place : 10 - season.place;
   return placement + (season.outstandingWrestler ? 1 : 0);
 }
-export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 3 | 4 = 4): CareerScore {
+export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 2 | 3 | 4 = 4): CareerScore {
   if (new Set(seasons.map(s => s.year)).size !== seasons.length) throw new Error('Duplicate NCAA season');
   const sorted = seasons.map(s => {
     if (!Number.isInteger(s.year) || (s.place !== 'qualifier' && (!Number.isInteger(s.place) || s.place < 0 || s.place > 8))) throw new Error('Invalid NCAA result');
@@ -40,6 +40,10 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Mike Moreno Sr.": [{year:1989,place:"qualifier",source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=9"},{year:1990,place:"qualifier",source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=9"},{year:1991,place:0,source:"https://dailyiowan.lib.uiowa.edu/DI/1991/di1991-01-21.pdf#page=9"},{year:1992,place:7,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/4462"}],
+  "Chris Taylor": [{year:1972,place:1,source:"https://cyclones.com/news/2012/5/31/205435327"},{year:1973,place:1,source:"https://cyclones.com/news/2012/5/31/205435327"}],
+  "Aaron Holker": [{year:1999,place:7,source:"https://nwhof.org/hall_of_fame/bio/5860"},{year:2000,place:"qualifier",source:"https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/nwca.sidearmsports.com/documents/2023/11/14/NCAA_Championship_2000.pdf"},{year:2002,place:1,source:"https://nwhof.org/hall_of_fame/bio/5860"},{year:2003,place:7,source:"https://nwhof.org/hall_of_fame/bio/5860"}],
+  "Carl Adams": [{year:1969,place:5,source:"https://nwhof.org/hall_of_fame/bio/4679"},{year:1970,place:"qualifier",source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=9"},{year:1971,place:1,source:"https://nwhof.org/hall_of_fame/bio/4679"},{year:1972,place:1,source:"https://nwhof.org/hall_of_fame/bio/4679"}],
   "Jim Gibbons": [{year:1978,place:0,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12774"},{year:1980,place:7,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12774"},{year:1981,place:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12774"},{year:1982,place:3,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12774"}],
   "Bill Kelly": [{year:1984,place:"qualifier",source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=9"},{year:1985,place:"qualifier",source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=9"},{year:1986,place:"qualifier",source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=9"},{year:1987,place:1,source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=9"}],
   "Eric Voelker": [{year:1986,place:"qualifier",source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"},{year:1987,place:1,source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"},{year:1988,place:3,source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"},{year:1989,place:1,source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=7"}],
@@ -179,7 +183,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 3 | 4> = {'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -193,6 +197,9 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Chris Taylor": {wins:87,losses:0,ties:1,source:"https://cyclones.com/news/2012/5/31/205435327"},
+  "Aaron Holker": {wins:102,losses:31,source:"https://nwhof.org/hall_of_fame/bio/5860"},
+  "Carl Adams": {wins:77,losses:9,ties:4,source:"https://nwhof.org/hall_of_fame/bio/4679"},
   "Jim Gibbons": {wins:93,losses:22,ties:6,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12774"},
   "Bill Kelly": {wins:106,losses:23,ties:8,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6786"},
   "Eric Voelker": {wins:101,losses:13,ties:3,source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=26"},

@@ -9,6 +9,8 @@ assert(scoreCareer([1,2,3].map((_,i)=>result(1960+i,1)),3).averagePlacementPoint
 assert(scoreCareer([1,2,3,4].map((_,i)=>result(2000+i,1))).averagePlacementPoints === 10);
 const five = scoreCareer([result(2000,1),result(2001,1),result(2002,1),result(2003,2),result(2004,2,true)]);
 assert(five.total === 40 && five.bonusPoints === 1 && five.excluded[0].year === 2003);
+assert(scoreCareer([result(1972,1),result(1973,1)],2).averagePlacementPoints === 10);
+assert(overallRating('Chris Taylor',scoreCareer([result(1972,1),result(1973,1)],2),{wins:87,losses:0,ties:1,source:'test'}) === 94);
 const gable = scoreCareer(CAREER_RECORDS['Dan Gable'],3);
 assert(gable.total === 30 && gable.placementPoints === 29 && gable.averagePlacementPoints === 29/3);
 let rejected = false; try {scoreCareer([result(2000,1),result(2000,2)]);} catch { rejected = true; } assert(rejected);

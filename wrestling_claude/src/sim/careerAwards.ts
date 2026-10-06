@@ -32,6 +32,8 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  "Chris Taylor": {falls:70,bouts:88,gorriaranYears:[1973],gorriaranSource:"https://nwhof.org/brackets/43#page=1",source:"https://cyclones.com/news/2012/5/31/205435327"},
+  "Carl Adams": {falls:20,bouts:90,source:"https://nwhof.org/hall_of_fame/bio/4679"},
   "Jessie Whitmer": {falls:13,bouts:70,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6308"},
   "Terry Steiner": {falls:25,bouts:149,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12735"},
   "T.J. Williams": {falls:12,bouts:99,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=12525"},
