@@ -53,3 +53,5 @@ Cary Kolat is audited in [career 65](rating-batch-65.md).
 Sanshiro Abe and three additional verified pin histories are audited in [career 66](rating-batch-66.md).
 
 Nick Lee is audited in [career 67](rating-batch-67.md).
+
+Roman Bravo-Young is audited in [career 68](rating-batch-68.md).
