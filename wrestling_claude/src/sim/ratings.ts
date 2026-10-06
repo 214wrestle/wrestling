@@ -40,6 +40,8 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Teyon Ware': [{year:2003,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/783'},{year:2004,place:6,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/783'},{year:2005,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/783'},{year:2006,place:2,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/783'}],
+  'Cody Brewer': [{year:2013,place:7,source:'https://soonersports.com/news/2013/4/14/208400269'},{year:2014,place:8,source:'https://soonersports.com/sports/wrestling/roster/cody-brewer/688'},{year:2015,place:1,source:'https://nwhof.org/brackets/85#page=5'},{year:2016,place:3,source:'https://soonersports.com/news/2016/3/19/210816890'}],
   'Wyatt Hendrickson': [{year:2021,place:'qualifier',source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'},{year:2022,place:'qualifier',source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'},{year:2023,place:3,source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'},{year:2024,place:3,source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'},{year:2025,place:1,source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'}],
   'Dustin Plott': [{year:2021,place:'qualifier',source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'},{year:2022,place:6,source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'},{year:2023,place:6,source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'},{year:2024,place:2,source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'},{year:2025,place:4,source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'}],
   'Joe McDaniel': [{year:1937,place:1,source:'https://okstate.com/news/2011/11/7/OSU_Loses_Wrestling_Great_Joe_McDaniel'},{year:1938,place:1,outstandingWrestler:true,source:'https://okstate.com/news/2011/11/7/OSU_Loses_Wrestling_Great_Joe_McDaniel'},{year:1939,place:1,source:'https://okstate.com/news/2011/11/7/OSU_Loses_Wrestling_Great_Joe_McDaniel'}],
@@ -233,6 +235,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Teyon Ware': {wins:112,losses:15,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/783'},
+  'Cody Brewer': {wins:95,losses:22,source:'https://soonersports.com/news/2016/3/19/210816890'},
   'Eric Wais': {wins:89,losses:6,ties:2,source:'https://okstate.com/news/2025/4/14/cowboy-wrestling-mourns-the-loss-of-eric-wais'},
   'Wyatt Hendrickson': {wins:127,losses:11,source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'},
   'Dustin Plott': {wins:114,losses:29,source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'},
