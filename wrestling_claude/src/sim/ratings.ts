@@ -40,6 +40,7 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Lou Banach": [{"year": 1980, "place": 0, "source": "https://nwhof.org/brackets/50#page=29"}, {"year": 1981, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/93"}, {"year": 1982, "place": 3, "source": "https://nwhof.org/hall_of_fame/bio/93"}, {"year": 1983, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/93"}],
   "Eric Juergens": [{"year": 1998, "place": 3, "source": "https://nwhof.org/hall_of_fame/bio_by_name/eric-juergens"}, {"year": 1999, "place": 3, "source": "https://nwhof.org/hall_of_fame/bio_by_name/eric-juergens"}, {"year": 2000, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio_by_name/eric-juergens"}, {"year": 2001, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio_by_name/eric-juergens"}],
   "Steve Mocco": [{"year": 2002, "place": 2, "source": "https://nwhof.org/national-wrestling-hall-of-fame/bio/12557"}, {"year": 2003, "place": 1, "source": "https://nwhof.org/national-wrestling-hall-of-fame/bio/12557"}, {"year": 2005, "place": 1, "source": "https://nwhof.org/national-wrestling-hall-of-fame/bio/12557"}, {"year": 2006, "place": 2, "source": "https://nwhof.org/national-wrestling-hall-of-fame/bio/12557"}],
   "Kenny Monday": [{"year": 1981, "place": "qualifier", "source": "https://nwhof.org/brackets/51#page=11"}, {"year": 1982, "place": 2, "source": "https://nwhof.org/hall_of_fame/bio/377"}, {"year": 1983, "place": 2, "source": "https://nwhof.org/hall_of_fame/bio/377"}, {"year": 1984, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/377"}],
@@ -149,6 +150,7 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Lou Banach": {wins:90,losses:14,ties:2,source:"https://nwhof.org/hall_of_fame/bio/93"},
   "Eric Juergens": {wins:120,losses:13,source:"https://hawkeyesports.com/news/2019/08/05/wrestling-hall-of-fame-spotlight-eric-juergens"},
   "Steve Mocco": {wins:137, losses:6, source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12557"},
   "Kenny Monday": {wins:121, losses:12, ties:2, source:"https://okstate.com/documents/download/2023/3/14/16_-_NCAA_Championships_2023.pdf#page=4"},
