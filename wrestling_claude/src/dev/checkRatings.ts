@@ -83,5 +83,11 @@ assert(brooks.counted.length===4 && brooks.placementPoints===40);
 assert(overallRating('Yojiro Uetake',scoreCareer(CAREER_RECORDS['Yojiro Uetake'],3),COLLEGE_RECORDS['Yojiro Uetake'])===98);
 
 assert(careerCredentials(undefined,'John Smith')==='6x World/Olympic Champ');
-assert(careerCredentials(undefined,'Jordan Burroughs')==='7x World/Olympic Champ · 3x World Bronze Medalist');
+assert(careerCredentials(undefined,'Jordan Burroughs')==='7x World/Olympic Champ · 3x World/Olympic Bronze Medalist');
 assert(careerCredentials(undefined,'Unknown athlete')===undefined);
+
+assert(careerCredentials(undefined,'Cael Sanderson')==='1x World/Olympic Champ · 1x World/Olympic Silver Medalist');
+assert(careerCredentials(undefined,'Dan Hodge')==='1x World/Olympic Silver Medalist');
+
+assert(careerCredentials(undefined,'Kenny Monday')==='2x World/Olympic Champ · 2x World/Olympic Silver Medalist');
+assert(careerCredentials(undefined,'Terry Brands')==='2x World/Olympic Champ · 1x World/Olympic Bronze Medalist');

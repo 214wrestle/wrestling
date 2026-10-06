@@ -7,3 +7,7 @@ First verified entries: John Smith, two Olympic and four World titles (six combi
 Local selection bio and static roster exporter share composed NCAA/senior helper. Remaining roster senior honors need source-backed coverage. Publication pending.
 
 Second batch: Dan Gable 1 Olympic + 1 World gold (NWHOF bio/38); Uetake 2 Olympic gold (UWW yojiro-utake); Dan Hodge Olympic silver (OU Olympic history); Lee Roy Smith World silver (NWHOF staff/1). World Cup medals are explicitly excluded. Six athletes covered so far; remaining athletes pending.
+
+User clarified combined international accomplishments for all wrestlers. Display now sums World/Olympic gold, silver and bronze independently under combined labels; structured evidence retains each event type. Added Cael Sanderson Olympic gold/World silver (USAW article 10665), Kendall Cross Olympic gold (NWHOF 771), Mark Schultz Olympic gold/two World gold (NWHOF 100). Nine athletes covered.
+
+Third batch: Tom Brands Olympic/World gold (USAW Hall of Fame announcement), Terry Brands two World gold and Olympic bronze (NWHOF biography), Kenny Monday Olympic/World gold and Olympic/World silver (NWHOF UWW induction event table; its narrative 1999 World date is a typo, event list verifies 1989). Twelve athletes covered; combines each medal color across both events.

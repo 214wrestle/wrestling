@@ -1,6 +1,12 @@
 /** Senior Worlds/Olympics only: bio display, never NCAA rating inputs. */
 export interface SeniorHonors { olympicGold:number;worldGold:number;olympicSilver?:number;worldSilver?:number;olympicBronze?:number;worldBronze?:number;source:string; }
 export const SENIOR_HONORS:Record<string,SeniorHonors>={
+ 'Tom Brands':{olympicGold:1,worldGold:1,source:'https://www.themat.com/news/2001/february/08/tom-brands-elected-as-distingu-1375'},
+ 'Terry Brands':{olympicGold:0,worldGold:2,olympicBronze:1,source:'https://nwhof.org/hall_of_fame/bio_by_name/terry-brands'},
+ 'Kenny Monday':{olympicGold:1,worldGold:1,olympicSilver:1,worldSilver:1,source:'https://nwhof.org/news/monday-feldman-inducted-into-uww-hall-of-fame'},
+ 'Cael Sanderson':{olympicGold:1,worldGold:0,worldSilver:1,source:'https://content.usawmembership.com/articles/10665'},
+ 'Kendall Cross':{olympicGold:1,worldGold:0,source:'https://nwhof.org/hall_of_fame/bio/771'},
+ 'Mark Schultz':{olympicGold:1,worldGold:2,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/100'},
  'Dan Gable':{olympicGold:1,worldGold:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/38'},
  'Yojiro Uetake':{olympicGold:2,worldGold:0,source:'https://cms.uww.org/person/yojiro-utake'},
  'Dan Hodge':{olympicGold:0,worldGold:0,olympicSilver:1,source:'https://soonersports.com/sports/2019/8/9/211043996'},
@@ -13,7 +19,10 @@ export const SENIOR_HONORS:Record<string,SeniorHonors>={
 export function seniorCredentials(name?:string):string|undefined {
  const h=name?SENIOR_HONORS[name]:undefined;if(!h)return;
  const parts:string[]=[];const gold=h.olympicGold+h.worldGold;
- if(gold)parts.push(h.olympicGold&&h.worldGold?`${gold}x World/Olympic Champ`:h.olympicGold?`${h.olympicGold}x Olympic Champ`:`${h.worldGold}x World Champ`);
- for(const [count,label] of [[h.olympicSilver,'Olympic Silver Medalist'],[h.worldSilver,'World Silver Medalist'],[h.olympicBronze,'Olympic Bronze Medalist'],[h.worldBronze,'World Bronze Medalist']] as const)if(count)parts.push(`${count}x ${label}`);
+ if(gold)parts.push(`${gold}x World/Olympic Champ`);
+ const silver=(h.olympicSilver??0)+(h.worldSilver??0);
+ const bronze=(h.olympicBronze??0)+(h.worldBronze??0);
+ if(silver)parts.push(`${silver}x World/Olympic Silver Medalist`);
+ if(bronze)parts.push(`${bronze}x World/Olympic Bronze Medalist`);
  return parts.join(' · ')||undefined;
 }
