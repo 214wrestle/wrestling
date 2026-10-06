@@ -40,6 +40,10 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "J'den Cox": [{"year": 2014, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/player/jden-cox"}, {"year": 2015, "place": 5, "source": "https://mutigers.com/news/2016/3/20/wrestling-cox-becomes-second-ever-two-time-national-champion-in-program-history"}, {"year": 2016, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/player/jden-cox"}, {"year": 2017, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/player/jden-cox"}],
+  "Keegan O'Toole": [{"year": 2021, "place": 3, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"}, {"year": 2022, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"}, {"year": 2023, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"}, {"year": 2024, "place": 3, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"}, {"year": 2025, "place": 2, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"}],
+
+  "Drake Houdashelt": [{"year": 2012, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/player/drake-houdashelt"}, {"year": 2013, "place": 6, "source": "https://mutigers.com/sports/wrestling/roster/player/drake-houdashelt"}, {"year": 2014, "place": 5, "source": "https://mutigers.com/sports/wrestling/roster/player/drake-houdashelt"}, {"year": 2015, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/player/drake-houdashelt"}],
   "Brent Metcalf": [{"year": 2008, "place": 1, "source": "https://hawkeyesports.com/sports/wrestling/roster/season/2009-10/player/brent-metcalf", "outstandingWrestler": true}, {"year": 2009, "place": 2, "source": "https://hawkeyesports.com/sports/wrestling/roster/season/2009-10/player/brent-metcalf"}, {"year": 2010, "place": 1, "source": "https://hawkeyesports.com/sports/wrestling/roster/season/2009-10/player/brent-metcalf"}],
   "Max Askren": [{"year": 2007, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/maxwell-askren"}, {"year": 2008, "place": 7, "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/maxwell-askren"}, {"year": 2009, "place": 5, "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/maxwell-askren"}, {"year": 2010, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/maxwell-askren"}],
   "Ben Askren": [{"year": 2004, "place": 2, "source": "https://mutigers.com/news/2012/01/09/class-of-six-chosen-for-mu-athletics-hall-of-fame"}, {"year": 2005, "place": 2, "source": "https://mutigers.com/news/2012/01/09/class-of-six-chosen-for-mu-athletics-hall-of-fame"}, {"year": 2006, "place": 1, "source": "https://more.mutigers.com/mizzoumade/askren.html", "outstandingWrestler": true}, {"year": 2007, "place": 1, "source": "https://mutigers.com/news/2012/01/09/class-of-six-chosen-for-mu-athletics-hall-of-fame"}],
@@ -171,6 +175,10 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "J'den Cox": {"wins": 136, "losses": 5, "source": "https://mutigers.com/sports/wrestling/roster/player/jden-cox"},
+  "Keegan O'Toole": {"wins": 108, "losses": 5, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"},
+
+  "Drake Houdashelt": {wins:134,losses:23,source:"https://mutigers.com/sports/wrestling/roster/player/drake-houdashelt"},
   "Brent Metcalf": {wins:108,losses:3,source:"https://hawkeyesports.com/sports/wrestling/roster/season/2009-10/player/brent-metcalf"},
   "Max Askren": {wins:104,losses:16,source:"https://mutigers.com/sports/wrestling/roster/season/2008-09/player/maxwell-askren"},
   "Nick Heflin": {wins:99,losses:28,source:"https://ohiostatebuckeyes.com/news/2014/3/25/ohio-state-athletics-good-stuff-28"},

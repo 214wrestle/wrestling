@@ -1,0 +1,5 @@
+# Verified careers 86–87: Missouri
+
+J'den Cox: first (2014), fifth (2015), first (2016), first (2017); 136–5 career record. [Official final career biography](https://mutigers.com/sports/wrestling/roster/player/jden-cox) and [2016 championship account explicitly confirming 2015 fifth](https://mutigers.com/news/2016/3/20/wrestling-cox-becomes-second-ever-two-time-national-champion-in-program-history). Three-title maximum remains 96. Intermediate 2017 match notes contain incomplete career falls; no final fall rate assigned.
+
+Keegan O'Toole: third (2021), first (2022), first (2023), third (2024), second (2025). [Official updated career table](https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole) reports 108–5 and 31 falls. All five NCAA results retained as evidence, only best four counted: 2022, 2023, 2025 and 2024 (2021 excluded on equal-placement tie). Verified career win/fall percentages use total bouts rather than extra-year counts. Hodge finalist is not Hodge winner; no bonus assigned. Approved unique weight stays unchanged despite senior historical move to 174.

@@ -32,6 +32,8 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  "Keegan O'Toole": {falls:31,bouts:113,source:"https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"},
+  "Drake Houdashelt": {falls:18,bouts:157,source:"https://mutigers.com/sports/wrestling/roster/player/drake-houdashelt"},
   "Brent Metcalf": {falls:47,bouts:111,source:"https://hawkeyesports.com/sports/wrestling/roster/season/2009-10/player/brent-metcalf"},
   "Tommy Rowlands": {falls:30,bouts:179,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=5904"},
   "Adam Tirapelle": {falls:33,bouts:148,source:"https://fightingillini.com/honors/hall-of-fame/adam-tirapelle/72/kiosk"},
