@@ -40,6 +40,13 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Craig Brester": [{"year": 2007, "place": "qualifier", "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2008, "place": 4, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2009, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2010, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}],
+  "Mikey Labriola": [{"year": 2019, "place": 6, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2021, "place": 3, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2022, "place": 7, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2023, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}],
+
+  "Jason Kelber": [{"year": 1987, "place": 0, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 1989, "place": 6, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 1990, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 1991, "place": 1, "source": "https://huskers.com/nebraskas-100-win-club"}],
+  "Bryan Snyder": [{"year": 1999, "place": 4, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2000, "place": 5, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2001, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2002, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}],
+  "Corey Olson": [{"year": 1990, "place": 3, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 1991, "place": 0, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 1992, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 1993, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}],
+
   "Brad Vering": [{"year": 1998, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"}, {"year": 1999, "place": 4, "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"}, {"year": 2000, "place": 1, "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"}, {"year": 2001, "place": 7, "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"}],
   "Jason Powell": [{"year": 2001, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"}, {"year": 2002, "place": 5, "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"}, {"year": 2003, "place": 3, "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"}, {"year": 2004, "place": 1, "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"}],
   "Tolly Thompson": [{"year": 1994, "place": "qualifier", "source": "https://nwhof.org/brackets/64#page=29"}, {"year": 1995, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio_by_name/tolly-thompson"}, {"year": 1996, "place": 3, "source": "https://nwhof.org/hall_of_fame/bio_by_name/tolly-thompson"}, {"year": 1997, "place": 3, "source": "https://nwhof.org/hall_of_fame/bio_by_name/tolly-thompson"}],
@@ -203,6 +210,11 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Craig Brester": {wins:109,losses:21,source:"https://huskers.com/nebraskas-100-win-club"},
+  "Mikey Labriola": {wins:120,losses:28,source:"https://huskers.com/nebraskas-100-win-club"},
+  "Jason Kelber": {wins:123,losses:30,source:"https://huskers.com/nebraskas-100-win-club"},
+  "Bryan Snyder": {wins:136,losses:11,source:"https://huskers.com/nebraskas-100-win-club"},
+  "Corey Olson": {wins:115,losses:28,source:"https://huskers.com/nebraskas-100-win-club"},
   "Brad Vering": {wins:124,losses:26,source:"https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"},
   "Jason Powell": {wins:109,losses:24,source:"https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"},
   "Tolly Thompson": {wins:157,losses:21,source:"https://nwhof.org/hall_of_fame/bio_by_name/tolly-thompson"},
