@@ -1,0 +1,7 @@
+# NCAA career audit: 65 careers
+
+Cary Kolat: 1993 second, 1994 third at Penn State; 1996 and 1997 champion at Lock Haven. Original NWHOF brackets confirm all four results: https://nwhof.org/brackets/63#page=1 , https://nwhof.org/brackets/64#page=1 , https://nwhof.org/brackets/66#page=1 , https://nwhof.org/brackets/67#page=1 . Navy’s official biography confirms 111–7 and 53 career falls: https://navysports.com/news/2020/3/20/cary-kolat-named-navy-head-wrestling-coach.aspx?path=me . Lock Haven independently confirms the record and titles: https://www.lockhavenathletics.com/news/2016/11/14/kolat-selected-to-national-wrestling-hall-of-fame.aspx .
+
+Four competition seasons count; 1995 excluded rather than assigned zero. No NCAA OW or Hodge bonus applies. Historical 134/142 results do not change the approved Penn State 133 starter slot. Derived rating 94 within the two-title ceiling. Falls documented for subsequent pin-tendency integration; no pin multiplier changed in this batch.
+
+Rating coverage, roster uniqueness, typecheck and full-site build pass. Browser roster confirms Cary Kolat 94. Seeded 447 same-weight starter bouts: combined score remains 16.2, mat share 15%; average ride 14.2 to 14.1 seconds; regulation decisions 327 to 329, overtime finishes 54 to 53, majors 56 to 55, techs 8 and falls 2 unchanged. Still above 11.55 scoring target. Overall ratings coverage, athlete likenesses and individualized styles remain unfinished.

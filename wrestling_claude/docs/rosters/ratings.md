@@ -47,3 +47,5 @@ Eric Juergens is audited in [career 62](rating-batch-62.md).
 Lou Banach is audited in [career 63](rating-batch-63.md).
 
 Kerry McCoy is audited in [career 64](rating-batch-64.md).
+
+Cary Kolat is audited in [career 65](rating-batch-65.md).
