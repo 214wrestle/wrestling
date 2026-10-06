@@ -40,6 +40,8 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Eric Larkin': [{year:1999,place:4,source:'https://www.win-magazine.com/win-awards/hodge-trophy/eric-larkin-2003-hodge-trophy-winner/'},{year:2001,place:3,source:'https://www.win-magazine.com/win-awards/hodge-trophy/eric-larkin-2003-hodge-trophy-winner/'},{year:2002,place:2,source:'https://www.win-magazine.com/win-awards/hodge-trophy/eric-larkin-2003-hodge-trophy-winner/'},{year:2003,place:1,source:'https://www.win-magazine.com/win-awards/hodge-trophy/eric-larkin-2003-hodge-trophy-winner/',outstandingWrestler:true}],
+  'Anthony Robles': [{year:2008,place:'qualifier',source:'https://thesundevils.com/staff/anthony-robles'},{year:2009,place:4,source:'https://thesundevils.com/staff/anthony-robles'},{year:2010,place:7,source:'https://thesundevils.com/staff/anthony-robles'},{year:2011,place:1,source:'https://thesundevils.com/staff/anthony-robles',outstandingWrestler:true}],
   'Roger Pillath': [{year:1962,place:2,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1962.pdf'},{year:1963,place:0,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1963.pdf'},{year:1964,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1964.pdf'}],
   'Jeff Walter': [{year:1992,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1992.pdf'},{year:1994,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1994.pdf'},{year:1995,place:4,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1995.pdf'},{year:1996,place:1,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1996.pdf'}],
   'Ron Jeidy': [{year:1974,place:0,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1974.pdf'},{year:1976,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1976.pdf'},{year:1977,place:'qualifier',source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1977.pdf'},{year:1978,place:1,source:'https://nwcaonline.com/documents/2023/11/14/NCAA_Championship_1978.pdf'}],
@@ -323,6 +325,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Eric Larkin': {wins:123,losses:12,source:'https://thesundevils.com/asu-wrestler-eric-larkin-honored-as-2003-dan-hodge-award-winner'},
+  'Anthony Robles': {wins:122,losses:23,source:'https://thesundevils.com/staff/anthony-robles'},
   'Roger Pillath': {wins:35,losses:5,ties:1,source:'https://www.wiwrestlinghofhonorees.org/alpha/p/pillath-roger/'},
   'Jeff Walter': {wins:98,losses:43,ties:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6343'},
   'Ron Jeidy': {wins:99,losses:30,ties:3,source:'https://uwbadgers.com/honors/uw-athletic-hall-of-fame/ron-jeidy/274'},

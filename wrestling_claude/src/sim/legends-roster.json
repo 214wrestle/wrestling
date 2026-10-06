@@ -2400,89 +2400,6 @@
       ]
     },
     {
-      "team": "NORTHERN COLORADO",
-      "staff": [
-        "Head Coach: Troy Nickerson",
-        "Assistant Coaches: Michael Moreno, Earl Hall"
-      ],
-      "starters": [
-        {
-          "weight": "118",
-          "name": "Greg Alexander",
-          "source": "118 \u2014 Greg Alexander"
-        },
-        {
-          "weight": "125",
-          "name": "Stevo Poulin",
-          "source": "125 \u2014 Stevo Poulin"
-        },
-        {
-          "weight": "133",
-          "name": "Mike Pantoya",
-          "source": "133 \u2014 Mike Pantoya"
-        },
-        {
-          "weight": "141",
-          "name": "Andrew Alirez",
-          "source": "141 \u2014 Andrew Alirez"
-        },
-        {
-          "weight": "149",
-          "name": "Bob Smith",
-          "source": "149 \u2014 Bob Smith"
-        },
-        {
-          "weight": "157",
-          "name": "Justin Gaethje",
-          "source": "157 \u2014 Justin Gaethje"
-        },
-        {
-          "weight": "165",
-          "name": "T.J. Deaguero",
-          "source": "165 \u2014 T.J. Deaguero"
-        },
-        {
-          "weight": "174",
-          "name": "Mike Leberknight",
-          "source": "174 \u2014 Mike Leberknight"
-        },
-        {
-          "weight": "184",
-          "name": "Alan Clothier",
-          "source": "184 \u2014 Alan Clothier"
-        },
-        {
-          "weight": "190",
-          "name": "Len Lordino",
-          "source": "190 \u2014 Len Lordino"
-        },
-        {
-          "weight": "197",
-          "name": "Jason McMillan",
-          "source": "197 \u2014 Jason McMillan"
-        },
-        {
-          "weight": "HWT",
-          "name": "Walt Golt",
-          "source": "HWT \u2014 Walt Golt"
-        }
-      ],
-      "notesAndChoices": "Coach's Choice:\nScott Hewit \u2014 157\nDon Govoni \u2014 157\nAdditional historically deserving UNC depth as developed.\n\nSpecial:\nStevo Poulin \u2014 commentary recognizing viral youth-wrestling fame.\nJustin Gaethje \u2014 UFC/MMA-specific presentation and commentary.",
-      "id": "northern-colorado",
-      "choices": [
-        {
-          "name": "Scott Hewit",
-          "weight": "157",
-          "source": "Scott Hewit \u2014 157"
-        },
-        {
-          "name": "Don Govoni",
-          "weight": "157",
-          "source": "Don Govoni \u2014 157"
-        }
-      ]
-    },
-    {
       "team": "COLLEGE WRESTLING ICONS",
       "staff": [
         "Co-Head Coaches: Myron Roderick and Bobby Douglas"
@@ -2549,7 +2466,7 @@
           "source": "HWT \u2014 Carleton Haselrig \u2014 Pitt-Johnstown"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\n118 \u2014 Gray Simons \u2014 Lock Haven\n118 \u2014 Rick Sanders \u2014 Portland State\n165 \u2014 Chance Marsteller \u2014 Lock Haven\nHWT \u2014 Stephen Neal \u2014 Cal State Bakersfield\nHWT \u2014 Kurt Angle \u2014 Clarion\n\nIcons philosophy:\nReserve this roster and Coach's Choice pool for historically significant\nwrestlers from discontinued programs, smaller programs, or schools without\na full playable Legends team.",
+      "notesAndChoices": "Coach's Choice:\n141 \u2014 Andrew Alirez \u2014 Northern Colorado\n118 \u2014 Gray Simons \u2014 Lock Haven\n118 \u2014 Rick Sanders \u2014 Portland State\n165 \u2014 Chance Marsteller \u2014 Lock Haven\nHWT \u2014 Stephen Neal \u2014 Cal State Bakersfield\nHWT \u2014 Kurt Angle \u2014 Clarion\n\nIcons philosophy:\nReserve this roster and Coach's Choice pool for historically significant\nwrestlers from discontinued programs, smaller programs, or schools without\na full playable Legends team.",
       "id": "college-wrestling-icons",
       "choices": [
         {
@@ -2576,6 +2493,11 @@
           "name": "Kurt Angle",
           "weight": "HWT",
           "source": "HWT \u2014 Kurt Angle \u2014 Clarion"
+        },
+        {
+          "weight": "141",
+          "name": "Andrew Alirez",
+          "source": "141 \u2014 Andrew Alirez \u2014 Northern Colorado"
         }
       ]
     }

@@ -1,8 +1,8 @@
 import { morenoFamilyNote, morenoMatchupNote, smithPerryFamilyNote } from '../sim/easterEggs';
 import { ROSTER, LEGENDS_TEAMS, LEGENDS_WEIGHTS, byId, DEFAULT_MATCHUP } from '../sim/roster';
 const check = (ok: boolean, label: string) => { if (!ok) throw new Error(label); };
-check(LEGENDS_TEAMS.length === 26, '26 teams');
-check(ROSTER.filter(w => w.legends?.role === 'starter').length === 312, '312 assigned starters');
+check(LEGENDS_TEAMS.length === 25, '25 teams');
+check(ROSTER.filter(w => w.legends?.role === 'starter').length === 300, '300 assigned starters');
 check(new Set(ROSTER.map(w => w.id)).size === ROSTER.length, 'unique selectable identities');
 for (const team of LEGENDS_TEAMS) {
   for (const weight of LEGENDS_WEIGHTS) {
@@ -18,7 +18,7 @@ check(byId('penn-state-190-starter-quentin-wright').legends?.bioNote?.includes('
 check(ROSTER.filter(w => w.firstName === 'Dylan' && w.lastName === 'Ness').every(w => w.weightClass === 157), 'Ness locked weights');
 check(byId('iowa-state-141-starter-dan-gable').rating === 99, 'Gable 99');
 check(byId('iowa-state-141-starter-dan-gable').ncaaCareer?.total === 30, 'Gable verified career points');
-console.log(`${LEGENDS_TEAMS.length} teams, 312 assigned starters, ${ROSTER.length - 312} assigned Coach’s Choice slots verified`);
+console.log(`${LEGENDS_TEAMS.length} teams, 300 assigned starters, ${ROSTER.length - 300} assigned Coach’s Choice slots verified`);
 
 check(ROSTER.every(w => w.firstName.trim().length > 0 && w.lastName.trim().length > 0), 'all entries have first and last names');
 for (const [name, weight] of [['Trent', 157], ['Travis', 165]] as const) {
@@ -64,3 +64,7 @@ check(byId('ohio-state-285-choice-tommy-rowlands').legends?.role === 'choice', '
 check(byId('ohio-state-197-starter-kollin-moore').weightClass === 197, 'Moore replacement at 197');
 
 check(byId('ohio-state-197-choice-nick-heflin').legends?.role === 'choice', 'Heflin owner choice at 197');
+
+check(!LEGENDS_TEAMS.some(t => t.id === 'northern-colorado'), 'Northern Colorado removed as a selectable team');
+const alirez = ROSTER.filter(w => w.firstName === 'Andrew' && w.lastName === 'Alirez');
+check(alirez.length === 1 && alirez[0].school.id === 'college-wrestling-icons' && alirez[0].weightClass === 141 && alirez[0].legends?.role === 'choice', 'Andrew Alirez retained once in legends pool at 141');
