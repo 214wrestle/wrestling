@@ -40,6 +40,13 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Kevin Randleman': [{year:1991,place:2,source:'https://nwhof.org/hall_of_fame/bio/6480'},{year:1992,place:1,source:'https://nwhof.org/hall_of_fame/bio/6480'},{year:1993,place:1,source:'https://nwhof.org/hall_of_fame/bio/6480'},{year:1994,place:0,source:'https://nwhof.org/brackets/64'}],
+  'Kollin Moore': [{year:2017,place:3,source:'https://ohiostatebuckeyes.com/sports/wrestling/roster/kollin-moore/5393'},{year:2018,place:4,source:'https://ohiostatebuckeyes.com/sports/wrestling/roster/kollin-moore/5393'},{year:2019,place:2,source:'https://ohiostatebuckeyes.com/sports/wrestling/roster/kollin-moore/5393'}],
+  'Frank Romano': [{year:1968,place:'qualifier',source:'https://nwhof.org/brackets/21#page=2'},{year:1969,place:'qualifier',source:'https://nwhof.org/brackets/39#page=2'},{year:1970,place:'qualifier',source:'https://nwhof.org/brackets/40#page=2'}],
+  'Dave Reinbolt': [{year:1965,place:'qualifier',source:'https://nwhof.org/brackets/36#page=14'},{year:1966,place:1,source:'https://ohiostatebuckeyes.com/honors/hall-of-fame-inductees/dave-reinbolt/352'},{year:1967,place:'qualifier',source:'https://nwhof.org/brackets/38#page=23'}],
+  'Jude Skove': [{year:1982,place:'qualifier',source:'https://nwhof.org/brackets/52#page=13'},{year:1984,place:'qualifier',source:'https://nwhof.org/brackets/54#page=14'},{year:1985,place:0,source:'https://nwhof.org/brackets/55'},{year:1986,place:1,source:'https://nwhof.org/hall_of_fame/bio/6862'}],
+  'Mark Coleman': [{year:1984,place:0,source:'https://nwhof.org/brackets/54'},{year:1985,place:'qualifier',source:'https://nwhof.org/brackets/55#page=26'},{year:1986,place:4,source:'https://nwhof.org/hall_of_fame/bio/6721'},{year:1988,place:1,source:'https://nwhof.org/hall_of_fame/bio/6721'}],
+  'Rex Holman': [{year:1990,place:'qualifier',source:'https://nwhof.org/brackets/60#page=26'},{year:1991,place:'qualifier',source:'https://nwhof.org/brackets/61#page=26'},{year:1992,place:3,source:'https://nwhof.org/hall_of_fame/bio/6465'},{year:1993,place:1,source:'https://nwhof.org/hall_of_fame/bio/6465'}],
   'Lance Palmer': [{year:2007,place:4,source:'https://nwhof.org/hall_of_fame/bio/1706'},{year:2008,place:8,source:'https://nwhof.org/hall_of_fame/bio/1706'},{year:2009,place:4,source:'https://nwhof.org/hall_of_fame/bio/1706'},{year:2010,place:2,source:'https://nwhof.org/hall_of_fame/bio/1706'}],
   'Myles Martin': [{year:2016,place:1,source:'https://nwhof.org/hall_of_fame/bio/3559'},{year:2017,place:5,source:'https://nwhof.org/hall_of_fame/bio/3559'},{year:2018,place:2,source:'https://nwhof.org/hall_of_fame/bio/3559'},{year:2019,place:3,source:'https://nwhof.org/hall_of_fame/bio/3559'}],
   'Mike Pucillo': [{year:2007,place:6,source:'https://nwhof.org/hall_of_fame/bio/11931'},{year:2008,place:1,source:'https://nwhof.org/hall_of_fame/bio/11931'},{year:2009,place:2,source:'https://nwhof.org/hall_of_fame/bio/11931'},{year:2010,place:'qualifier',source:'https://ohiostatebuckeyes.com/news/2010/3/20/palmer-set-to-meet-iowas-metcalf-in-149-pound-final'}],
@@ -244,7 +251,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Brock Lesnar': 2, 'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Kollin Moore': 3, 'Frank Romano': 3, 'Dave Reinbolt': 3, 'Brock Lesnar': 2, 'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -258,6 +265,12 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Kevin Randleman': {wins:108,losses:7,ties:3,source:'https://nwhof.org/hall_of_fame/bio/6480'},
+  'Kollin Moore': {wins:110,losses:11,source:'https://ohiostatebuckeyes.com/sports/wrestling/roster/kollin-moore/5393'},
+  'Dave Reinbolt': {wins:44,losses:10,ties:2,source:'https://ohiostatebuckeyes.com/honors/hall-of-fame-inductees/dave-reinbolt/352'},
+  'Jude Skove': {wins:131,losses:31,ties:3,source:'https://ohiostatebuckeyes.com/honors/hall-of-fame-inductees/jude-skove/386'},
+  'Rex Holman': {wins:121,losses:21,ties:2,source:'https://nwhof.org/hall_of_fame/bio/6465'},
+  'Myles Martin': {wins:121,losses:19,source:'https://ohiostatebuckeyes.com/documents/download/2023/5/25/Year-In-Review-2018-19_080919.pdf'},
   'Lance Palmer': {wins:121,losses:33,source:'https://ohiostatebuckeyes.com/news/2010/3/21/four-time-all-american-lance-palmer-is-ncaa-championships-runner-up'},
   'Mike Pucillo': {wins:107,losses:17,source:'https://nwhof.org/hall_of_fame/bio/11931'},
   'J Jaggers': {wins:105,losses:32,source:'https://nwhof.org/hall_of_fame/bio/11938'},

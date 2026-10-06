@@ -14,7 +14,9 @@ function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
   // https://gophersports.com/sports/wrestling/roster/gable-steveson/22871
   if(champs)return `${champs}x National Champ${['Aaron Brooks','Gable Steveson'].includes(name ?? '')?' · 5x AA':''}`;
   const aa=seasons.filter(s=>typeof s.place==='number' && s.place>=1 && s.place<=8).length;
-  if(aa)return `${aa}x AA`;
+  // Verified bio-only 2020 NWCA first-team recognition adds no rating points.
+  // https://ohiostatebuckeyes.com/news/2020/4/18/six-buckeyes-earn-nwca-all-america-recognition
+  if(aa)return `${aa + (name === 'Kollin Moore' ? 1 : 0)}x AA`;
   const qualifiers=seasons.filter(s=>s.place==='qualifier').length;
   if(qualifiers)return `${qualifiers}x NCAA Qualifier`;
 }
