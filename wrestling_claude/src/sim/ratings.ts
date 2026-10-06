@@ -40,6 +40,7 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Nick Lee": [{"year": 2018, "place": 5, "source": "https://gopsusports.com/staff/nick-lee"}, {"year": 2019, "place": 5, "source": "https://gopsusports.com/staff/nick-lee"}, {"year": 2021, "place": 1, "source": "https://gopsusports.com/staff/nick-lee"}, {"year": 2022, "place": 1, "source": "https://gopsusports.com/staff/nick-lee"}],
   "Sanshiro Abe": [{"year": 1993, "place": 4, "source": "https://nwhof.org/brackets/63#page=1"}, {"year": 1994, "place": 3, "source": "https://nwhof.org/brackets/64#page=1"}, {"year": 1995, "place": 2, "source": "https://nwhof.org/brackets/65#page=1"}, {"year": 1996, "place": 1, "source": "https://nwhof.org/brackets/66#page=1"}],
   "Cary Kolat": [{"year": 1993, "place": 2, "source": "https://nwhof.org/brackets/63#page=1"}, {"year": 1994, "place": 3, "source": "https://nwhof.org/brackets/64#page=1"}, {"year": 1996, "place": 1, "source": "https://nwhof.org/brackets/66#page=1"}, {"year": 1997, "place": 1, "source": "https://nwhof.org/brackets/67#page=1"}],
   "Kerry McCoy": [{"year": 1993, "place": "qualifier", "source": "https://nwhof.org/brackets/63#page=26"}, {"year": 1994, "place": 1, "source": "https://nwhof.org/national-wrestling-hall-of-fame/bio/1272"}, {"year": 1995, "place": 3, "source": "https://nwhof.org/national-wrestling-hall-of-fame/bio/1272"}, {"year": 1997, "place": 1, "source": "https://nwhof.org/national-wrestling-hall-of-fame/bio/1272"}],
@@ -153,6 +154,7 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Nick Lee": {wins:118,losses:13,source:"https://gopsusports.com/staff/nick-lee"},
   "Cary Kolat": {wins:111,losses:7,source:"https://navysports.com/news/2020/3/20/cary-kolat-named-navy-head-wrestling-coach.aspx?path=me"},
   "Kerry McCoy": {wins:150,losses:18,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/1272"},
   "Lou Banach": {wins:90,losses:14,ties:2,source:"https://nwhof.org/hall_of_fame/bio/93"},

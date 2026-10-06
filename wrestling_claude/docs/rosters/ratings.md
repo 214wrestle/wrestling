@@ -51,3 +51,5 @@ Kerry McCoy is audited in [career 64](rating-batch-64.md).
 Cary Kolat is audited in [career 65](rating-batch-65.md).
 
 Sanshiro Abe and three additional verified pin histories are audited in [career 66](rating-batch-66.md).
+
+Nick Lee is audited in [career 67](rating-batch-67.md).
