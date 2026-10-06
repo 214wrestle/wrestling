@@ -18,7 +18,7 @@ function moreno(w: Wrestler): Athlete {
     stubble: 0.01, primary: '#9e1736', secondary: '#9e1736', piping: '#f5c635',
     shoe: '#17171a', shoeAccent: '#f0eee7', gearShell: '#f0eee7', gearStrap: '#f0eee7',
     face: {jaw: 0.004, chin: 0.0005, chinW: 1.3, faceLen: -0.008,
-      nose: -0.004, noseW: 0.0018, brow: -0.0018, cheek: 0.004, hollow: 0,
+      nose: -0.004, noseW: 0.0018, brow: -0.0018, cheek: 0.004, hollow: 0, roundedCheeks: true,
       lips: 0.95, cauli: 0, smile: 0, eyeOpen: 0.8, upperLidHood: 0.0025},
     frame: {neck: 1.02, traps: 1.02, torsoW: 1, torsoD: 0.99, limb: 1,
       delt: 1, hips: 1, head: 1},

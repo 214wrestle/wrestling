@@ -68,6 +68,8 @@ export interface FaceParams {
   eyeOpen?: number;
   /** Upper-lid fold descent in metres; separate from symmetric aperture height. */
   upperLidHood?: number;
+  /** Keep soft cheek tissue rounded instead of trimming it to skeletal jaw planes. */
+  roundedCheeks?: boolean;
 }
 
 /** Body frame, multipliers on the neutral build. */
@@ -493,10 +495,10 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
     ...pair(ell('head', [0.034, 1.616 + F.smile * 0.0006, 0.066 + F.smile * 0.0004], [0.018 * cheekFill, 0.02, 0.02 * cheekFill], 0.022, H, { rot: [0, -25, 0], ...hw })),
     // Buccal fill over the masseter: a young athlete's cheek is full between the
     // cheekbone and the jaw, trimmed by the same jaw planes so it never sags.
-    ...pair(ell('head', [0.047 + J * 0.5, 1.601, 0.048], [0.018 * cheekFill, 0.028, 0.031 * cheekFill], 0.024, H, { ...hw, planes: [massL, bodyL] })),
+    ...pair(ell('head', [0.047 + J * 0.5, 1.601, 0.048], [0.018 * cheekFill, 0.028, 0.031 * cheekFill], 0.024, H, { ...hw, planes: F.roundedCheeks ? undefined : [massL, bodyL] })),
     // Lower cheek beside the mouth (over the buccinator), filled out to the jaw
     // plane so the side of the lower face is flat-to-convex, never a crease.
-    ...pair(ell('head', [0.036 + J * 0.4, 1.587 - L * 0.4, 0.058], [0.017 * cheekFill, 0.024, 0.021 * cheekFill], 0.02, H, { rot: [0, -20, 0], ...hw, planes: [bodyL] })),
+    ...pair(ell('head', [0.036 + J * 0.4, 1.587 - L * 0.4, 0.058], [0.017 * cheekFill, 0.024, 0.021 * cheekFill], 0.02, H, { rot: [0, -20, 0], ...hw, planes: F.roundedCheeks ? undefined : [bodyL] })),
     // Cheekbones (zygoma body) and the arch back to the ear: the widest point of the face.
     ...pair(ell('head', [0.044 + F.cheek, 1.629, 0.058], [0.015, 0.0165, 0.02], 0.022, H, { rot: [0, -40, 0], ...hw })),
     ...pair(cone('head', [0.057 + F.cheek, 1.633, 0.042], [0.061, 1.636, 0.006], 0.0062, 0.005, 0.014, H, hw)),
