@@ -132,6 +132,8 @@ export type StartPosition = 'neutral' | 'top' | 'bottom';
 /** Normalised per-tick intent from a human or the AI. */
 export interface Command {
   /** U / left bumper: ankle-level single. I / triangle: contest control. */
+  /** Touch hold adds capped repeat effort only in sustained struggle positions. */
+  sustainedEffort?: boolean;
   technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry';
   lowSingle?: boolean;
   scramble?: boolean;

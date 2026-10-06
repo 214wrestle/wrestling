@@ -42,7 +42,7 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
   },
   {
     title: 'On bottom',
-    lead: 'Get your base, then get out.',
+    lead: 'Get your base, then get out. On a phone, tap repeatedly or hold a button to build effort while fighting off your back, clearing a hold or breaking a standing grip.',
     rows: [
       { key: 'J', move: 'Stand up', note: 'Works from a good base. Then K for hand control and J to turn out for the escape.' },
       { key: 'K', move: 'Switch', note: 'Time it right after he chops or drives — a reversal and you are on top.' },

@@ -245,6 +245,7 @@ export class Bout {
   readonly athletes: [Athlete, Athlete];
   position: Position = { kind: 'free' };
   private prev: [Command, Command];
+  private effortClock: [number, number] = [0, 0];
   private lowRequest: [boolean, boolean] = [false, false];
   private scramblePending: [number, number] = [0, 0];
   private scrambleCool: [number, number] = [0, 0];
@@ -293,6 +294,7 @@ export class Bout {
       x.act = 'idle';
       this.scramblePending[x.side] = 0;
     this.scrambleCool[x.side] = 0;
+    this.effortClock[x.side] = 0;
     this.lowRequest[x.side] = false;
     x.vel = { x: 0, z: 0 };
     }
@@ -301,6 +303,7 @@ export class Bout {
   private resetAthlete(x: Athlete): void {
     this.scramblePending[x.side] = 0;
     this.scrambleCool[x.side] = 0;
+    this.effortClock[x.side] = 0;
     this.lowRequest[x.side] = false;
     x.vel = { x: 0, z: 0 };
     x.level = 0.45;
@@ -349,6 +352,20 @@ export class Bout {
       a.buffer.shoot = c.shoot && !p.shoot ? BOUT.buffer : Math.max(0, a.buffer.shoot - dt);
       a.buffer.fight = c.fight && !p.fight ? BOUT.buffer : Math.max(0, a.buffer.fight - dt);
       a.buffer.sprawl = c.sprawl && !p.sprawl ? BOUT.buffer : Math.max(0, a.buffer.sprawl - dt);
+      const position = this.position;
+      const sustained = c.sustainedEffort && (position.kind === 'fhl' || position.kind === 'legs'
+        || position.kind === 'mat' && (position.sub === 'standing' || position.sub === 'exposed' || position.sub === 'spladle' || position.sub === 'flat' && position.A !== a.side));
+      if (sustained && (c.shoot || c.fight || c.sprawl)) {
+        this.effortClock[a.side] += dt;
+        if (this.effortClock[a.side] >= 0.18) {
+          this.effortClock[a.side] %= 0.18;
+          // Effort becomes the same buffered struggle press used by tapping.
+          // Neutral attacks, stand-ups, switches and throws never auto-repeat.
+          if (c.fight) a.buffer.fight = BOUT.buffer;
+          if (c.sprawl && !(position.kind === 'mat' && position.sub === 'standing')) a.buffer.sprawl = BOUT.buffer;
+          if (c.shoot && position.kind === 'mat' && (position.sub === 'exposed' || position.sub === 'spladle' || position.sub === 'flat' && position.A !== a.side)) a.buffer.shoot = BOUT.buffer;
+        }
+      } else this.effortClock[a.side] = 0;
       this.lowRequest[a.side] = !!c.lowSingle;
       this.scrambleCool[a.side] = Math.max(0, this.scrambleCool[a.side] - dt);
       if (this.scramblePending[a.side] > 0 && this.scrambleCool[a.side] <= 0 && a.stamina > 0.12) this.requestScramble(a);
