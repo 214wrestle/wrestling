@@ -81,3 +81,7 @@ assert(careerCredentials(brooks,'Aaron Brooks')==='4x National Champ · 5x AA');
 assert(brooks.counted.length===4 && brooks.placementPoints===40);
 
 assert(overallRating('Yojiro Uetake',scoreCareer(CAREER_RECORDS['Yojiro Uetake'],3),COLLEGE_RECORDS['Yojiro Uetake'])===98);
+
+assert(careerCredentials(undefined,'John Smith')==='6x World/Olympic Champ');
+assert(careerCredentials(undefined,'Jordan Burroughs')==='7x World/Olympic Champ · 3x World Bronze Medalist');
+assert(careerCredentials(undefined,'Unknown athlete')===undefined);

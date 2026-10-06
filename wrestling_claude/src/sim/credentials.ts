@@ -1,8 +1,9 @@
+import {seniorCredentials} from './seniorCredentials';
 import type { CareerScore } from './ratings';
 
 /** Bio honors count the entire verified career, including an extra season
  * excluded from the four-season gameplay rating. Cancelled events add none. */
-export function careerCredentials(career?:CareerScore,name?:string):string|undefined {
+function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
   if(!career)return;
   const seasons=[...career.counted,...career.excluded];
   const champs=seasons.filter(s=>s.place===1).length;
@@ -14,4 +15,8 @@ export function careerCredentials(career?:CareerScore,name?:string):string|undef
   if(aa)return `${aa}x AA`;
   const qualifiers=seasons.filter(s=>s.place==='qualifier').length;
   if(qualifiers)return `${qualifiers}x NCAA Qualifier`;
+}
+
+export function careerCredentials(career?:CareerScore,name?:string):string|undefined {
+ return [ncaaCredentials(career,name),seniorCredentials(name)].filter(Boolean).join(' · ')||undefined;
 }
