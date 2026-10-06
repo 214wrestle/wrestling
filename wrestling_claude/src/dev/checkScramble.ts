@@ -1,3 +1,5 @@
+import { applyOwnerPace, HIGH_PACE_NAMES, isScrambleSpecialist, heavyweightActivity } from '../sim/athleteProfiles';
+import { ROSTER } from '../sim/roster';
 import { Bout } from '../sim/bout';
 import { PROTOTYPE_ROSTER } from '../sim/roster';
 import { NO_COMMAND } from '../sim/types';
@@ -25,3 +27,24 @@ const gas=b.athletes[1].stamina;
 b.tick(1/60,[{...NO_COMMAND},{...NO_COMMAND,scramble:true}]);
 ok(b.athletes[1].stamina<gas,'mat scramble remains an effort, not a free escape');
 console.log('Low-single selection, contested grips, stamina and held-button checks passed');
+
+ok(isScrambleSpecialist("Ben Askren"),"Askren must receive scramble specialist behavior");
+ok(!isScrambleSpecialist("Max Askren"),"specialist status cannot leak by surname");
+ok(ROSTER.find(w => w.firstName === "Ben" && w.lastName === "Askren")?.hairStyle === "afro","Askren must use his own curly afro silhouette");
+
+for (const name of ['Kyle Snyder','Nick Gwiazdowski','Mason Parris','Steve Mocco','Michael Mocco','Cole Konrad','Tommy Rowlands','Dreshaun Ross']) {
+ const entries=ROSTER.filter(w=>`${w.firstName} ${w.lastName}`===name);
+ ok(entries.length>0,`${name} must resolve to approved roster`);
+ for(const w of entries)ok(heavyweightActivity(w).attack===1.25,`${name} must initiate actively at heavyweight`);
+}
+const ordinaryHeavy=heavyweightActivity({firstName:'Other',lastName:'Wrestler',weightClass:285});
+ok(ordinaryHeavy.attack===0.65,'ordinary heavyweight initiation must be lower');
+ok(heavyweightActivity({firstName:'Kyle',lastName:'Snyder',weightClass:197}).attack===1,'heavyweight pace cannot affect another weight');
+console.log('Heavyweight activity exceptions and weight isolation passed');
+
+const metcalf=ROSTER.find(w=>w.firstName==='Brent'&&w.lastName==='Metcalf');
+ok(metcalf?.motion?.highCrotchHand==='left','Metcalf specialty must be left-handed');
+ok((metcalf?.motion?.shots.highCrotch??0)>0.6,'Metcalf must favor high crotches');
+
+for(const name of HIGH_PACE_NAMES)ok(applyOwnerPace(name).tempo>=1.2,`${name} must sustain higher pace`);
+ok(applyOwnerPace('Bo Bassett').tempo>applyOwnerPace('David Taylor').tempo,'Bassett receives strongest sustained tempo');

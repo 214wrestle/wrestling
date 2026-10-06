@@ -8,6 +8,7 @@ export interface WrestlingStyle {
   stanceWidth: number; levelOffset: number; tempo: number; handActivity: number;
   pressure: number; circle: number; attackRate: number;
   topPatience?: number; turnPreference?: number;
+  highCrotchHand?: 'left' | 'right';
   shots: { double: number; single: number; highCrotch: number };
 }
 export interface AthleteProfile {
@@ -29,6 +30,18 @@ const brandsMotion: WrestlingStyle = {...DEFAULT_MOTION, stanceWidth: 1.05, leve
 /** Geometry numbers are visual estimates, not verified anthropometric measurements.
  * Motion numbers are an interpretation of era references, not measured technique frequencies. */
 export const ATHLETE_PROFILES: Record<string, AthleteProfile> = {
+  'Ben Askren': {
+    era: 'Missouri collegiate, 2004–2007',
+    summary: 'Funky Ben: unorthodox scrambling and transitions into pinning positions.',
+    appearanceStatus: 'Curly afro silhouette implemented; facial likeness and individual scramble animations remain in progress.',
+    shape: {torso: 1, limbs: 1, neck: 1, shoulders: 1, faceWidth: 1, faceLength: 1, jaw: 1, nose: 0},
+    motion: {...DEFAULT_MOTION},
+    look: {height: 1.78, build: 0.45, skinTone: '#dfb598', hairColor: '#65482e', hairStyle: 'afro', eyeColor: '#705b45', gear: '#171717'},
+    sources: [
+      {label: 'Missouri: Askren discusses collegiate funk and curly hair', url: 'https://mutigers.com/news/2008/06/18/olympic-wrestler-missouris-ben-askren-meets-the-press', kind: 'bio'},
+      {label: 'Missouri: Funky nickname and collegiate pinning record', url: 'https://mutigers.com/news/2013/07/29/former-tigers-askren-chandler-set-to-defend-bellator-world-titles', kind: 'bio'},
+    ],
+  },
   'Michael Moreno': {
     era: 'Iowa State collegiate, 2013–2015',
     summary: 'Patient top control and opportunistic turns; recorded a ride-to-pin against Isaac Jordan in 2015.',
@@ -77,3 +90,41 @@ export const ATHLETE_PROFILES: Record<string, AthleteProfile> = {
     ],
   },
 };
+
+/** Provisional style interpretation; the contest still requires control and stamina. */
+export const isScrambleSpecialist = (name: string): boolean => [
+  "Yianni Diakomihalis", "Jesse Delgado", "Ben Askren",
+].includes(name);
+
+/** Owner-selected heavyweight activity. Provisional tendencies, not measured film rates.
+ * This changes initiation, never scoring or defensive ability. */
+const ACTIVE_HEAVYWEIGHTS = new Set([
+  'Kyle Snyder', 'Nick Gwiazdowski', 'Mason Parris', 'Steve Mocco',
+  'Michael Mocco', 'Cole Konrad', 'Tommy Rowlands', 'Dreshaun Ross',
+]);
+export function heavyweightActivity(w: Pick<Wrestler, 'firstName' | 'lastName' | 'weightClass'>): {attack: number; pressure: number} {
+  if (w.weightClass !== 285) return {attack: 1, pressure: 1};
+  return ACTIVE_HEAVYWEIGHTS.has(`${w.firstName} ${w.lastName}`)
+    ? {attack: 1.25, pressure: 1.08}
+    : {attack: 0.65, pressure: 0.9};
+}
+
+/** Owner-confirmed specialty; percentages are provisional attack selection weights. */
+export const ATHLETE_MOTION_OVERRIDES: Record<string, WrestlingStyle> = {
+  'Brent Metcalf': {...DEFAULT_MOTION, highCrotchHand: 'left',
+    shots: {double: 0.2, single: 0.15, highCrotch: 0.65}},
+};
+
+/** Owner-selected pace; numbers remain provisional until film calibration. */
+export const HIGH_PACE_NAMES = [
+ 'Bo Bassett', 'David Taylor', 'Jason Nolf', 'Mitchell Messenbrink',
+ 'Tom Brands', 'Terry Brands', 'Mark Ironside', 'Doug Schwab',
+] as const;
+export function applyOwnerPace(name: string, base: WrestlingStyle = DEFAULT_MOTION): WrestlingStyle {
+ if (!(HIGH_PACE_NAMES as readonly string[]).includes(name)) return base;
+ const bassett = name === 'Bo Bassett';
+ return {...base, tempo: Math.max(base.tempo, bassett ? 1.3 : 1.2),
+   handActivity: Math.max(base.handActivity, bassett ? 1.3 : 1.2),
+   attackRate: Math.max(base.attackRate, bassett ? 1.25 : 1.15),
+   pressure: Math.max(base.pressure, 1.1)};
+}

@@ -21,6 +21,10 @@ const KEY_MAP: Record<string, string> = {
   KeyJ: 'shoot',
   KeyU: 'lowSingle',
   KeyI: 'scramble',
+  KeyO: 'duckUnder',
+  KeyB: 'superDuck',
+  KeyV: 'slideBy',
+  KeyC: 'firemansCarry',
   Space: 'shoot',
   KeyK: 'fight',
   KeyL: 'sprawl',
@@ -41,6 +45,7 @@ export interface PadState {
   fight: boolean;
   sprawl: boolean;
   level: boolean;
+  technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry';
   lowSingle?: boolean;
   scramble?: boolean;
 }
@@ -169,7 +174,8 @@ export class Input {
       x /= len;
       y /= len;
     }
-    return { x, y, shoot, fight, sprawl, level, lowSingle: this.held.has('lowSingle') || !!this.touch.lowSingle || !!pad?.buttons[4]?.pressed, scramble: this.held.has('scramble') || !!this.touch.scramble || !!pad?.buttons[3]?.pressed };
+    const technique = (['duckUnder','superDuck','slideBy','firemansCarry'] as const).find(k=>this.held.has(k)) ?? this.touch.technique ?? (pad?.buttons[12]?.pressed ? 'duckUnder' : pad?.buttons[13]?.pressed ? 'superDuck' : pad?.buttons[14]?.pressed ? 'slideBy' : pad?.buttons[15]?.pressed ? 'firemansCarry' : undefined);
+    return { x, y, shoot, fight, sprawl, level, technique, lowSingle: this.held.has('lowSingle') || !!this.touch.lowSingle || !!pad?.buttons[4]?.pressed, scramble: this.held.has('scramble') || !!this.touch.scramble || !!pad?.buttons[3]?.pressed };
   }
 
   /** A short controller buzz for impacts and scores. */

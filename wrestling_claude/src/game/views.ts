@@ -13,7 +13,7 @@ import type { Side } from '../sim/types';
  * dictionary between the two, and the only place that knows both vocabularies.
  */
 
-const HOLD_FOR_SUB = { ride: 'ride', flat: 'flat', standing: 'standing', exposed: 'exposed' } as const;
+const HOLD_FOR_SUB = { ride: 'ride', flat: 'flat', standing: 'standing', exposed: 'exposed', spladle: 'spladle' } as const;
 
 function stanceView(a: Athlete, o: Athlete, relaxed: boolean): AnimView {
   return {

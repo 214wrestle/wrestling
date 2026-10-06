@@ -13,7 +13,7 @@ export interface Vec2 {
 /* ------------------------------------------------------------- wrestlers --- */
 
 export type SingletPattern = 'panel' | 'sash' | 'stripes' | 'band';
-export type HairStyle = 'buzz' | 'crop' | 'curls' | 'bald';
+export type HairStyle = 'buzz' | 'crop' | 'curls' | 'afro' | 'bald';
 
 export interface School {
   id: string;
@@ -132,6 +132,7 @@ export type StartPosition = 'neutral' | 'top' | 'bottom';
 /** Normalised per-tick intent from a human or the AI. */
 export interface Command {
   /** U / left bumper: ankle-level single. I / triangle: contest control. */
+  technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry';
   lowSingle?: boolean;
   scramble?: boolean;
   /** Intended movement on the mat, world space, length <= 1. */

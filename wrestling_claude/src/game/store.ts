@@ -176,6 +176,6 @@ export interface GameApi {
   setPaused: (paused: boolean) => void;
   toggleHelp: () => void;
   toggleMute: () => void;
-  setTouch: (state: { x: number; y: number; shoot: boolean; fight: boolean; sprawl: boolean; level: boolean }) => void;
+  setTouch: (state: import("../engine/Input").PadState) => void;
   skipIntros: () => void;
 }

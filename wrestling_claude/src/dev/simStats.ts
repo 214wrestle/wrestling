@@ -58,7 +58,7 @@ for (let m = 0; m < N; m++) {
   for (let i = 0; i < 60 * 60 * 15 && sim.phase !== 'results'; i++) {
     if (sim.phase === 'positionChoice') sim.choosePosition((['neutral', 'top', 'bottom'] as const)[m % 3]);
     const wrestling = sim.phase === 'wrestling';
-    sim.tick(DT, [ais[0].update(DT, sim.bout, wrestling), ais[1].update(DT, sim.bout, wrestling)]);
+    sim.tick(DT, [ais[0].update(DT, sim.bout, wrestling, {timeLeft:sim.clock,finalPeriod:sim.period>=3,deficit:sim.score[1]-sim.score[0]}), ais[1].update(DT, sim.bout, wrestling, {timeLeft:sim.clock,finalPeriod:sim.period>=3,deficit:sim.score[0]-sim.score[1]})]);
     const p = sim.bout.position;
     if (wrestling && p.kind === 'mat') matTime += DT;
     if (wrestling && (p.kind === 'neutral' || p.kind === 'legs' || p.kind === 'fhl')) footTime += DT;

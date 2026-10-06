@@ -1,5 +1,5 @@
 import { CAREER_RECORDS, ELIGIBILITY_SEASONS, COLLEGE_RECORDS, overallRating, scoreCareer } from './ratings';
-import { ATHLETE_PROFILES } from './athleteProfiles';
+import { HIGH_PACE_NAMES, applyOwnerPace, ATHLETE_MOTION_OVERRIDES, ATHLETE_PROFILES } from './athleteProfiles';
 import type { School, Wrestler } from './types';
 import locked from './legends-roster.json';
 
@@ -252,3 +252,14 @@ export const OFFICIAL: Wrestler = {
   style: '',
   attributes: { quickness: 0.5, strength: 0.5, conditioning: 0.5, mat: 0.5, defense: 0.5 },
 };
+
+for (const w of ROSTER) {
+  const motion = ATHLETE_MOTION_OVERRIDES[`${w.firstName} ${w.lastName}`];
+  if (motion) {w.motion = motion; w.style = 'Left-handed high-crotch specialist';}
+}
+
+for (const w of ROSTER) {
+ const name = `${w.firstName} ${w.lastName}`;
+ if ((HIGH_PACE_NAMES as readonly string[]).includes(name)) w.motion = applyOwnerPace(name, w.motion);
+ if (name === 'Bo Bassett') w.style = 'Machine Gun Mindset — sustained movement and repeated setups';
+}

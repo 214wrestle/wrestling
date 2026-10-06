@@ -15,7 +15,7 @@ import { Kind, Part, Prim } from './sdf';
  * then scaled and moved into the A-shaped bind pose the mesh is built in.
  */
 
-export type HairStyle = 'buzz' | 'crop' | 'curls' | 'bald';
+export type HairStyle = 'buzz' | 'crop' | 'curls' | 'afro' | 'bald';
 export type Clothing = 'singlet' | 'referee';
 
 export interface BodyParams {
@@ -233,12 +233,12 @@ function neckAndHead(hair: HairStyle, clothing: Clothing): Spec[] {
 
   // Hair volume, kept above the hairline by a clip plane.
   const hairline = { c: [0, 1.7, 0.06] as V3, n: [0, -0.62, 0.78] as V3, k: 0.012 };
-  if (hair === 'crop' || hair === 'curls') {
+  if (hair === 'crop' || hair === 'curls' || hair === 'afro') {
     specs.push(
-      ell('head', [0, 1.678, -0.006], [0.081, 0.098, 0.1], 0.01, Part.Hair, {
+      ell('head', [0, 1.678, -0.006], hair === 'afro' ? [0.12, 0.145, 0.13] : [0.081, 0.098, 0.1], 0.01, Part.Hair, {
         w: { head: 1 },
         clip: hairline,
-        noise: hair === 'curls' ? 0.007 : 0.0015,
+        noise: hair === 'afro' ? 0.012 : hair === 'curls' ? 0.007 : 0.0015,
         claim: 0.6,
       }),
     );

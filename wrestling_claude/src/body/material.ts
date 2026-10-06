@@ -16,7 +16,7 @@ export type SingletPattern = 'panel' | 'sash' | 'stripes' | 'band';
 export interface BodyLook {
   skin: string;
   hair: string;
-  hairStyle: 'buzz' | 'crop' | 'curls' | 'bald';
+  hairStyle: 'buzz' | 'crop' | 'curls' | 'afro' | 'bald';
   primary: string;
   secondary: string;
   accent: string;
@@ -32,7 +32,7 @@ export interface BodyLook {
 }
 
 const PATTERN_ID: Record<SingletPattern, number> = { panel: 0, sash: 1, stripes: 2, band: 3 };
-const HAIR_ID = { buzz: 0, crop: 1, curls: 2, bald: 3 } as const;
+const HAIR_ID = { buzz: 0, crop: 1, curls: 2, afro: 2, bald: 3 } as const;
 
 function wordmarkTexture(text: string): CanvasTexture {
   const c = document.createElement('canvas');

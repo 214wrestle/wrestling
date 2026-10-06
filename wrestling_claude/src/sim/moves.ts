@@ -15,7 +15,7 @@ import type { ScoreKind } from './types';
  */
 
 export type Role = 'A' | 'B';
-export type MatSub = 'ride' | 'flat' | 'standing' | 'exposed';
+export type MatSub = 'ride' | 'flat' | 'standing' | 'exposed' | 'spladle';
 export type ShotKind = 'double' | 'single' | 'highCrotch' | 'lowSingle';
 export const SHOT_CLIPS = { double: 'shotDouble', single: 'shotSingle', highCrotch: 'shotHighCrotch', lowSingle: 'shotLowSingle' } as const;
 export const LEG_HOLDS = { double: 'legsDouble', single: 'legsSingle', highCrotch: 'legsHighCrotch', lowSingle: 'legsLowSingle' } as const;
@@ -61,10 +61,19 @@ export const HOLD_PLACES = {
   ride: { A: { x: 0.3, z: -0.14, yaw: -0.25 }, B: { x: 0, z: 0, yaw: 0 } },
   flat: { A: { x: 0.18, z: -0.05, yaw: -0.1 }, B: { x: 0, z: 0.12, yaw: 0 } },
   standing: { A: { x: 0.02, z: -0.34, yaw: 0 }, B: { x: 0, z: 0.02, yaw: 0 } },
+  spladle: { A: { x: 0.28, z: 0.05, yaw: -1.4 }, B: { x: 0, z: 0, yaw: 0 } },
   exposed: { A: { x: 0.36, z: 0.1, yaw: -1.4 }, B: { x: 0, z: 0, yaw: 0 } },
 } as const;
 
 export const MOVES: Record<string, MoveDef> = {
+  duckUnder: {id:'duckUnder',dur:1.3,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'duckUnder — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  superDuck: {id:'superDuck',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'superDuck — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  slideBy: {id:'slideBy',dur:1.25,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'slideBy — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  firemansCarry: {id:'firemansCarry',dur:1.8,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'firemansCarry — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  tieAttackCounter: {id:'tieAttackCounter',dur:1.1,camera:'low',next:{kind:'fhl',A:'B',frame:{x:0,z:0.1,yaw:PI}}},
+  spladleCounter: {id:'spladleCounter',dur:1.6,camera:'mat',
+    award:{to:'B',kind:'takedown',at:0.85,detail:'Spladle counter — control established'},
+    next:{kind:'mat',A:'B',frame:{x:0,z:0,yaw:0},sub:'spladle'}},
   shotLowSingle: { id: 'shotLowSingle', dur: 0.5, camera: 'low', next: {kind: 'legs', A: 'A', frame: {x:0,z:0,yaw:0}, shot:'lowSingle'} },
   finishLowSingle: { id: 'finishLowSingle', dur: 1.55, camera: 'low', award: {to:'A',kind:'takedown',at:0.8,detail:'Low single — ankle shelf'}, impact: {at:0.68,strength:0.6}, next: {kind:'mat',A:'A',frame:{x:-0.3,z:0.88,yaw:PI/2},sub:'ride',base:0.55} },
   shotHighCrotch: {

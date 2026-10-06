@@ -1,3 +1,4 @@
+import { isScrambleSpecialist, heavyweightActivity } from './athleteProfiles';
 import type { Bout } from './bout';
 import { BOUT, Rng } from './bout';
 import { otherSide } from './types';
@@ -74,7 +75,7 @@ export class WrestlerAI {
     }
   }
 
-  update(dt: number, bout: Bout, wrestling: boolean): Command {
+  update(dt: number, bout: Bout, wrestling: boolean, context?: {timeLeft:number; finalPeriod:boolean; deficit:number}): Command {
     const cmd = empty();
     if (!wrestling) {
       this.held = { shoot: false, fight: false, sprawl: false };
@@ -110,7 +111,7 @@ export class WrestlerAI {
 
     switch (pos.kind) {
       case 'neutral':
-        this.neutral(dt, bout, cmd);
+        this.neutral(dt, bout, cmd, context);
         break;
       case 'shot':
         break;
@@ -127,7 +128,7 @@ export class WrestlerAI {
         break;
     }
     const name = `${bout.wrestlers[this.side].firstName} ${bout.wrestlers[this.side].lastName}`;
-    if ((pos.kind === 'legs' || pos.kind === 'fhl' || pos.kind === 'mat') && ['Yianni Diakomihalis','Jesse Delgado'].includes(name) && this.rng.chance(dt * 0.3)) cmd.scramble = true;
+    if ((pos.kind === 'legs' || pos.kind === 'fhl' || pos.kind === 'mat') && isScrambleSpecialist(name) && this.rng.chance(dt * 0.3)) cmd.scramble = true;
     return this.edges(cmd);
   }
 
@@ -149,7 +150,7 @@ export class WrestlerAI {
 
   /* -------------------------------------------------------------- neutral */
 
-  private neutral(dt: number, bout: Bout, cmd: Command): void {
+  private neutral(dt: number, bout: Bout, cmd: Command, context?: {timeLeft:number; finalPeriod:boolean; deficit:number}): void {
     const me = bout.athletes[this.side];
     const them = bout.athletes[otherSide(this.side)];
     const dx = them.pos.x - me.pos.x;
@@ -176,7 +177,8 @@ export class WrestlerAI {
     }
     if (dist < 0.85) fwd = this.pushT > 0.5 ? 0.6 : -0.2;
     const style = bout.wrestlers[this.side].motion;
-    fwd *= style?.pressure ?? 1;
+    const activity = heavyweightActivity(bout.wrestlers[this.side]);
+    fwd *= (style?.pressure ?? 1) * activity.pressure;
     const lat = this.circleDir * 0.6 * (style?.circle ?? 1);
     cmd.moveX = nx * fwd + nz * lat - (me.pos.x / (r || 1)) * inward;
     cmd.moveZ = nz * fwd - nx * lat - (me.pos.z / (r || 1)) * inward;
@@ -194,7 +196,7 @@ export class WrestlerAI {
     }
 
     if (me.act !== 'stance' || me.cooldown > 0 || this.decideT > 0) return;
-    this.decideT = 1.4 + this.rng.next() * 1.4;
+    this.decideT = (1.4 + this.rng.next() * 1.4) / (style?.tempo ?? 1);
 
     // A look at the legs: how good would a shot be right now?
     const opening =
@@ -205,12 +207,19 @@ export class WrestlerAI {
       (me.sinceFake < 1 ? 0.25 : 0);
     const inRange = dist > 0.62 && dist < 1.25;
     const tired = me.stamina < 0.22;
+    if (!tired && context?.finalPeriod && context.timeLeft <= 20 && context.deficit > 0 && dist < 1.4 && this.rng.chance(0.08)) {
+      cmd.technique = 'superDuck'; return;
+    }
+    if (!tired && dist < 1.05 && me.hand >= 0.35 && this.rng.chance(0.025)) {
+      const r=this.rng.next();
+      cmd.technique=r<0.45?'duckUnder':r<0.85?'slideBy':'firemansCarry'; return;
+    }
 
-    if (inRange && !tired && opening > 0.2 + this.p.patience * 0.8 && this.rng.next() < this.p.aggression * 0.22 * (style?.attackRate ?? 1)) {
+    if (inRange && !tired && opening > 0.2 + this.p.patience * 0.8 && this.rng.next() < this.p.aggression * 0.22 * (style?.attackRate ?? 1) * activity.attack) {
       cmd.shoot = true;
       return;
     }
-    if (inRange && !tired && this.rng.next() < this.p.aggression * 0.04 * (1 - this.p.patience) * (style?.attackRate ?? 1)) {
+    if (inRange && !tired && this.rng.next() < this.p.aggression * 0.04 * (1 - this.p.patience) * (style?.attackRate ?? 1) * activity.attack) {
       cmd.shoot = true;
       return;
     }
@@ -274,7 +283,7 @@ export class WrestlerAI {
         cmd.moveX = fx * 0.4;
         cmd.moveZ = fz * 0.4;
       }
-      if (pos.sub === 'exposed') {
+      if ((pos.sub === 'exposed' || pos.sub === 'spladle')) {
         cmd.shoot = true;
         this.held.shoot = false;
         if (this.mashBeat()) cmd.fight = true;
@@ -311,7 +320,7 @@ export class WrestlerAI {
     }
 
     // Bottom.
-    if (pos.sub === 'exposed' || pos.sub === 'flat') {
+    if ((pos.sub === 'exposed' || pos.sub === 'spladle') || pos.sub === 'flat') {
       if (this.mashBeat()) cmd.sprawl = true;
       return;
     }

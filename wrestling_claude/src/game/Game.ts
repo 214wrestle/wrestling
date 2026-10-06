@@ -10,6 +10,7 @@ import {
 import { Renderer } from '../engine/Renderer';
 import { CameraRig } from '../engine/CameraRig';
 import type { CameraMode } from '../engine/CameraRig';
+import type { PadState } from '../engine/Input';
 import { Input } from '../engine/Input';
 import { AudioBus } from '../engine/AudioBus';
 import { createGym, createLighting } from '../arena/gym';
@@ -461,7 +462,7 @@ export class Game implements GameApi {
     this.store.set({ muted });
   }
 
-  setTouch(state: { x: number; y: number; shoot: boolean; fight: boolean; sprawl: boolean; level: boolean }): void {
+  setTouch(state: PadState): void {
     this.input.touch = state;
     if (state.shoot || state.fight || state.sprawl || state.x || state.y) this.store.set({ device: 'touch' });
   }
@@ -580,6 +581,7 @@ export class Game implements GameApi {
       moveX: move.x,
       moveZ: move.z,
       shoot: pad.shoot,
+      technique: pad.technique,
       lowSingle: pad.lowSingle,
       scramble: pad.scramble,
       fight: pad.fight,
@@ -587,7 +589,7 @@ export class Game implements GameApi {
       level: pad.level,
     };
     const wrestling = sim.phase === 'wrestling';
-    const aiCmd = this.ai!.update(dt, sim.bout, wrestling);
+    const aiCmd = this.ai!.update(dt, sim.bout, wrestling, {timeLeft:sim.clock,finalPeriod:sim.period>=3,deficit:sim.score[sim.humanSide]-sim.score[otherSide(sim.humanSide)]});
     const commands: [Command, Command] = sim.humanSide === 0 ? [human, aiCmd] : [aiCmd, human];
     sim.tick(dt, sim.phase === 'positionChoice' || sim.phase === 'results' ? [NO_COMMAND, NO_COMMAND] : commands);
   }

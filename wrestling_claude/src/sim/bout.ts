@@ -1,3 +1,4 @@
+import { isScrambleSpecialist } from './athleteProfiles';
 import { MAT } from './rules';
 import { pinningMultiplier } from './careerAwards';
 import { HOLD_PLACES, MOVES, SHOT_CLIPS, LEG_HOLDS } from './moves';
@@ -358,6 +359,16 @@ export class Bout {
     }
 
     const pos = this.position;
+    if (pos.kind === 'neutral') {
+      for (const a of this.athletes) {
+        const technique = cmds[a.side].technique;
+        if (technique && technique !== this.prev[a.side].technique && a.act === 'stance' && a.cooldown <= 0) {
+          this.tryTieAttack(a, technique, cmds[otherSide(a.side)]);
+          if (this.position !== pos) break;
+        }
+      }
+    }
+    if (this.position !== pos) {this.prev = [{...cmds[0]}, {...cmds[1]}]; return;}
     switch (pos.kind) {
       case 'free':
         break;
@@ -385,13 +396,30 @@ export class Bout {
     this.prev = [{ ...cmds[0] }, { ...cmds[1] }];
   }
 
+  private tryTieAttack(a: Athlete, technique: NonNullable<Command['technique']>, defense: Command): void {
+    const opponent = this.athletes[otherSide(a.side)];
+    const d = this.distance();
+    const big = technique === 'superDuck';
+    const cost = big ? 0.11 : technique === 'firemansCarry' ? 0.09 : 0.055;
+    if (d < 0.5 || d > (big ? 1.4 : 1.05) || a.stamina < cost + 0.1 || (!big && a.hand < 0.35)) {
+      this.ev.announce?.('Set up the attack', 'info', 'Close distance and establish hand control');
+      a.cooldown = 0.35; return;
+    }
+    this.spend(a, cost);
+    const wa=this.wrestlers[a.side].attributes, wd=this.wrestlers[opponent.side].attributes;
+    const opening = a.hand - opponent.hand + Math.max(0, opponent.lean);
+    const success = clamp((big ? 0.28 : 0.4) + opening * 0.25 + (wa.quickness-wd.defense)*0.3
+      + (opponent.act==='reach' ? 0.18 : 0) - (defense.sprawl ? 0.2 : 0), 0.08, 0.8);
+    this.startMove(this.rng.chance(success) ? technique : 'tieAttackCounter', a.side, this.pairFrame(a.side), false);
+  }
+
   private requestScramble(a: Athlete): void {
     const s = this.position;
     if (s.kind === 'free' || s.kind === 'move' || s.kind === 'shot' || s.kind === 'neutral' && (a.cooldown > 0 || a.act !== 'stance')) return;
     this.scramblePending[a.side] = 0;
     const o = this.athletes[otherSide(a.side)];
     const w = this.wrestlers[a.side];
-    const specialist = ['Yianni Diakomihalis', 'Jesse Delgado'].includes(`${w.firstName} ${w.lastName}`);
+    const specialist = isScrambleSpecialist(`${w.firstName} ${w.lastName}`);
     const skill = w.attributes.quickness * (specialist ? 1.18 : 1);
     this.scrambleCool[a.side] = 1.4;
     this.spend(a, 0.07);
@@ -611,7 +639,9 @@ export class Bout {
     const shot: ShotKind = this.lowRequest[a.side] || this.wrestlers[a.side].firstName === 'John' && this.wrestlers[a.side].lastName === 'Smith' && this.rng.chance(0.7) ? 'lowSingle' : !style ? (angled || this.rng.chance(0.3) ? 'single' : 'double')
       : roll < double ? 'double' : roll < double + single ? 'single' : 'highCrotch';
     // Near-leg attacks mirror when entering from his left.
-    const mirror = shot !== 'double' ? off < 0 : false;
+    // Base high-crotch clip penetrates with the left foot and inside left arm.
+    const hand = this.wrestlers[a.side].motion?.highCrotchHand;
+    const mirror = shot === 'highCrotch' && hand ? hand === 'right' : shot !== 'double' ? off < 0 : false;
 
     const fd = clamp01(1 - Math.abs(dist - BOUT.shotIdeal) / 0.55);
     const fl = clamp01(0.5 + (o.level - a.level) * 1.2);
@@ -857,6 +887,12 @@ export class Bout {
       this.spend(D, 0.02);
       this.ev.feedback?.(D.side, 'sprawl', 'ok');
     }
+    if (s.shot === 'single' && s.t >= 4.5 && s.progress < 0.7 && D.stamina > 0.2 && this.take(D, 'fight')) {
+      this.spend(D, 0.06);
+      this.ev.announce?.('Spladle counter', 'info', 'Head-inside single held too long');
+      this.startMove('spladleCounter', s.A, s.frame, s.mirror);
+      return;
+    }
     if (this.take(D, 'fight')) {
       s.progress -= (s.shot !== 'double' ? 0.035 : 0.025) * (0.7 + wd.strength * 0.6);
       this.spend(D, 0.02);
@@ -960,7 +996,7 @@ export class Bout {
     const sn = Math.sin(s.frame.yaw);
     const drive = clamp(ct.moveX * sn + ct.moveZ * c, -1, 1);
 
-    if (s.sub === 'exposed') {
+    if (s.sub === 'exposed' || s.sub === 'spladle') {
       this.tickExposed(dt, cmds, s, T, Bm);
       return;
     }
@@ -1152,26 +1188,33 @@ export class Bout {
   ): void {
     const wt = this.wrestlers[T.side].attributes;
     const wb = this.wrestlers[Bm.side].attributes;
+    const locked = s.sub === 'spladle';
+    // A tight leg cradle can persist with the shoulders elevated. Holding
+    // defensive base protects the shoulder line but does not break the lock.
+    const shouldersUp = locked && cmds[Bm.side].sprawl && Bm.stamina > 0.03;
+    if (shouldersUp) {this.spend(Bm, dt * 0.008); s.pin = Math.max(0, s.pin - dt * 0.23);}
     s.expo += dt;
     if (s.awarded === 0 && s.expo >= 2) {
       s.awarded = 2;
       T.stats.nearFalls += 1;
       this.ev.score?.(T.side, 'nearFall2', 'Near fall');
+      if (this.position !== s) return;
     } else if (s.awarded === 2 && s.expo >= 5) {
       s.awarded = 4;
       this.ev.score?.(T.side, 'nearFall4', 'Near fall');
+      if (this.position !== s) return;
     }
     const ct = cmds[T.side];
     const wrestler = this.wrestlers[T.side];
     const pinSkill = pinningMultiplier(`${wrestler.firstName} ${wrestler.lastName}`);
-    if (ct.shoot || ct.fight) s.pin += dt * 0.22 * (0.7 + wt.strength * 0.6) * pinSkill;
+    if (!shouldersUp && (locked || ct.shoot || ct.fight)) s.pin += dt * (locked ? 0.16 : 0.22) * (0.7 + wt.strength * 0.6) * pinSkill;
     if (this.take(T, 'shoot') || this.take(T, 'fight')) {
-      s.pin += 0.06 * pinSkill;
+      if (!shouldersUp) s.pin += 0.06 * pinSkill;
       this.ev.feedback?.(T.side, 'shoot', 'ok');
     }
     for (const b of ['sprawl', 'fight', 'shoot'] as const) {
       if (this.take(Bm, b)) {
-        s.fight += 0.11 * (0.7 + wb.defense * 0.6) * (0.5 + 0.5 * Bm.stamina);
+        s.fight += (locked ? 0.018 : 0.11) * (0.7 + wb.defense * 0.6) * (0.5 + 0.5 * Bm.stamina);
         s.pin = Math.max(0, s.pin - 0.08);
         this.spend(Bm, 0.02);
         this.ev.feedback?.(Bm.side, b, 'ok');
@@ -1189,7 +1232,7 @@ export class Bout {
     } else {
       s.pinHold = Math.max(0, s.pinHold - dt);
     }
-    if (s.fight >= 1 || s.expo > 8) {
+    if (s.fight >= 1 || !locked && s.expo > 8) {
       this.ev.announce?.('Fights off his back', 'info');
       this.ev.feedback?.(Bm.side, 'sprawl', 'won');
       this.startMove('fightOff', s.A, s.frame, false);

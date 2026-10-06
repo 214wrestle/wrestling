@@ -6,5 +6,8 @@ import './mat';
 import './neutral';
 import './highCrotch';
 import './lowSingle';
+import './spladle';
 import './moves';
 import './solo';
+
+import './tieAttacks';
