@@ -1,9 +1,9 @@
 {
-  "generated": "2026-10-06T12:37:39.842Z",
+  "generated": "2026-10-06T12:53:51.649Z",
   "rosterSlots": 451,
-  "verifiedSlots": 126,
-  "pendingSlots": 325,
-  "verifiedCareers": 125,
+  "verifiedSlots": 128,
+  "pendingSlots": 323,
+  "verifiedCareers": 127,
   "athletes": [
     {
       "id": "penn-state-118-starter-jeff-prescott",
@@ -1803,9 +1803,30 @@
       "school": "NEBRASKA",
       "weight": 125,
       "role": "choice",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 89,
+      "countedSeasons": [
+        {
+          "year": 2007,
+          "place": 1,
+          "source": "https://huskers.com/sports/wrestling/roster/player/paul-donahoe"
+        },
+        {
+          "year": 2009,
+          "place": 2,
+          "source": "https://gofightingscots.com/news/2012/8/1/GEN_25541.aspx?path=wlax"
+        },
+        {
+          "year": 2008,
+          "place": 3,
+          "source": "https://huskers.com/sports/wrestling/roster/player/paul-donahoe"
+        },
+        {
+          "year": 2006,
+          "place": "qualifier",
+          "source": "https://huskers.com/sports/wrestling/roster/player/paul-donahoe"
+        }
+      ],
       "excludedSeasons": []
     },
     {
@@ -3755,9 +3776,30 @@
       "school": "OKLAHOMA STATE",
       "weight": 285,
       "role": "choice",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 92,
+      "countedSeasons": [
+        {
+          "year": 1978,
+          "place": 1,
+          "source": "https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=7365"
+        },
+        {
+          "year": 1977,
+          "place": 1,
+          "source": "https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=7365"
+        },
+        {
+          "year": 1976,
+          "place": 1,
+          "source": "https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=7365"
+        },
+        {
+          "year": 1975,
+          "place": "qualifier",
+          "source": "https://nwhof.org/brackets/45#page=29"
+        }
+      ],
       "excludedSeasons": []
     },
     {
