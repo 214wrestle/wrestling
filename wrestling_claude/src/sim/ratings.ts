@@ -40,6 +40,9 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Chris Campbell": [{year:1974,place:"qualifier",source:"https://nwhof.org/brackets/44#page=23"},{year:1975,place:2,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=1353"},{year:1976,place:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=1353"},{year:1977,place:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=1353"}],
+  "T.J. Williams": [{year:1999,place:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=12525"},{year:2000,place:3,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=12525"},{year:2001,place:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=12525"}],
+  "Jay Borschel": [{year:2008,place:3,source:"https://hawkeyesports.com/sports/wrestling/roster/player/jay-borschel"},{year:2009,place:"qualifier",source:"https://hawkeyesports.com/sports/wrestling/roster/player/jay-borschel"},{year:2010,place:1,source:"https://hawkeyesports.com/sports/wrestling/roster/player/jay-borschel"}],
   "Sammy Brooks": [{year:2014,place:0,source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"},{year:2015,place:"qualifier",source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"},{year:2016,place:8,source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"},{year:2017,place:4,source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"}],
   "Vincenzo Joseph": [{year:2017,place:1,source:"https://lehighsports.com/staff-directory/vincenzo-joseph/1277"},{year:2018,place:1,source:"https://lehighsports.com/staff-directory/vincenzo-joseph/1277"},{year:2019,place:2,source:"https://lehighsports.com/staff-directory/vincenzo-joseph/1277"}],
   "Tyler McCormick": [{year:2005,place:0,source:"https://mutigers.com/documents/download/2020/2/17/History_Records.pdf#page=41"},{year:2006,place:7,source:"https://mutigers.com/documents/download/2020/2/17/History_Records.pdf#page=41"},{year:2007,place:6,source:"https://mutigers.com/documents/download/2020/2/17/History_Records.pdf#page=42"},{year:2008,place:"qualifier",source:"https://mutigers.com/documents/download/2020/2/17/History_Records.pdf#page=42"}],
@@ -169,7 +172,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 3 | 4> = {'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 3 | 4> = {'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -183,6 +186,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "T.J. Williams": {wins:98,losses:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=12525"},
+  "Jay Borschel": {wins:98,losses:10,source:"https://hawkeyesports.com/sports/wrestling/roster/player/jay-borschel"},
   "Sammy Brooks": {wins:102,losses:24,source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"},
   "Vincenzo Joseph": {wins:89,losses:9,source:"https://lehighsports.com/staff-directory/vincenzo-joseph/1277"},
   "Michael Chandler": {wins:100,losses:40,source:"https://mutigers.com/news/2013/01/17/mizzou-alum-and-mma-lightweight-champion-michael-chandler-to-defend-title-tonight"},
