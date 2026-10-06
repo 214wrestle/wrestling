@@ -204,11 +204,11 @@ export class WrestlerAI {
     const inRange = dist > 0.62 && dist < 1.25;
     const tired = me.stamina < 0.22;
 
-    if (inRange && !tired && opening > 0.2 + this.p.patience * 0.8 && this.rng.next() < this.p.aggression * 0.22 * (bout.wrestlers[this.side].motion?.attackRate ?? 1)) {
+    if (inRange && !tired && opening > 0.2 + this.p.patience * 0.8 && this.rng.next() < this.p.aggression * 0.22 * (style?.attackRate ?? 1)) {
       cmd.shoot = true;
       return;
     }
-    if (inRange && !tired && this.rng.next() < this.p.aggression * 0.04 * (1 - this.p.patience)) {
+    if (inRange && !tired && this.rng.next() < this.p.aggression * 0.04 * (1 - this.p.patience) * (style?.attackRate ?? 1)) {
       cmd.shoot = true;
       return;
     }

@@ -40,6 +40,9 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Mark Branch": [{"year": 1994, "place": 1, "source": "https://gowyo.com/sports/wrestling/roster/coaches/mark-branch/1410"}, {"year": 1995, "place": 2, "source": "https://gowyo.com/sports/wrestling/roster/coaches/mark-branch/1410"}, {"year": 1996, "place": 2, "source": "https://gowyo.com/sports/wrestling/roster/coaches/mark-branch/1410"}, {"year": 1997, "place": 1, "source": "https://gowyo.com/sports/wrestling/roster/coaches/mark-branch/1410"}],
+  "Mike Sheets": [{"year": 1981, "place": 7, "source": "https://nwhof.org/national-wrestling-hall-of-fame/bio/6987"}, {"year": 1982, "place": 2, "source": "https://nwhof.org/national-wrestling-hall-of-fame/bio/6987"}, {"year": 1983, "place": 1, "source": "https://okstate.com/news/2015/10/22/WREST_1022154158", "outstandingWrestler": true}, {"year": 1984, "place": 1, "source": "https://nwhof.org/national-wrestling-hall-of-fame/bio/6987"}],
+
   "Johnny Thompson": [{"year": 2001, "place": 2, "source": "https://okstate.com/news/2003/9/23/Johnny_Thompson"}, {"year": 2002, "place": 1, "source": "https://okstate.com/news/2003/9/23/Johnny_Thompson"}, {"year": 2003, "place": 1, "source": "https://okstate.com/news/2003/9/23/Johnny_Thompson"}, {"year": 2004, "place": 3, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"}],
   "Eric Guerrero": [{"year": 1996, "place": 5, "source": "https://nwhof.org/hall_of_fame/bio/3348"}, {"year": 1997, "place": 1, "source": "https://okstate.com/news/2009/2/27/Eric_Guerrero"}, {"year": 1998, "place": 1, "source": "https://okstate.com/news/2009/2/27/Eric_Guerrero"}, {"year": 1999, "place": 1, "source": "https://okstate.com/news/2009/2/27/Eric_Guerrero"}],
   "Zack Esposito": [{"year": 2003, "place": "qualifier", "source": "https://okstate.com/news/2005/10/6/Zack_Esposito"}, {"year": 2004, "place": 2, "source": "https://okstate.com/news/2005/10/6/Zack_Esposito"}, {"year": 2005, "place": 1, "source": "https://okstate.com/news/2005/10/6/Zack_Esposito"}, {"year": 2006, "place": 2, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"}],
@@ -142,6 +145,9 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Mark Branch": {"wins": 100, "losses": 18, "source": "https://okstate.com/documents/download/2015/5/18/sports_m_wrestl2013_14_release__release_20131207aaa.pdf"},
+  "Mike Sheets": {"wins": 122, "losses": 12, "source": "https://okstate.com/documents/download/2015/5/18/sports_m_wrestl2013_14_release__release_20131207aaa.pdf"},
+
   "Johnny Thompson": {"wins": 125, "losses": 14, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"},
   "Eric Guerrero": {"wins": 117, "losses": 13, "source": "https://okstate.com/news/2009/2/27/Eric_Guerrero"},
   "Zack Esposito": {"wins": 120, "losses": 12, "source": "https://okstate.com/news/2015/11/4/WREST_1104153308"},

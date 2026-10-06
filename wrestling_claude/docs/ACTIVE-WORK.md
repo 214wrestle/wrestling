@@ -2,7 +2,7 @@
 
 All three workstreams remain unfinished and authorized. Hourly continuation is configured for this thread.
 
-1. Ratings: 56 verified careers; continue all roster entries using source-backed results and explicit eligibility. Gable and Sanderson alone may be 99.
+1. Ratings: 58 verified careers; continue all roster entries using source-backed results and explicit eligibility. Gable and Sanderson alone may be 99.
 2. Characters: Moreno has a playable detailed-renderer pilot, still below requested likeness quality; next replace generic facial construction with reference-matched proportions and surface detail, then extend individual athletes.
 3. Gameplay: athlete profiles now affect circling, pressure, hand activity and top decisions. Level-change timer uses elapsed time so frame rate does not alter intent timing. A distinct high-crotch entry, hold and finish is implemented; throws, contact quality, smoother transitions and target scoring distribution remain required.
 
