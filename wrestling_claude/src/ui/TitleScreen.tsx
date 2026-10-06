@@ -1,3 +1,4 @@
+import { careerCredentials } from '../sim/credentials';
 import { wrestlerFamilyNote, morenoMatchupNote, ncaaMatchupNotes, historicalMeetingText } from '../sim/easterEggs';
 import { useEffect, useState } from 'react';
 import type { Difficulty } from '../sim/ai';
@@ -34,6 +35,7 @@ function Tile({ w, on, onPick, corner }: { w: Wrestler; on: boolean; onPick: () 
       <span className="tile__name-row"><span className="tile__name">
         <span className="tile__first">{w.firstName}</span> {w.lastName}
       </span><span className="tile__rating" title={w.rating === undefined ? "Historical rating research pending" : "Overall rating"}>{w.rating ?? "Unrated"}</span></span>
+      {careerCredentials(w.ncaaCareer) && <span className="tile__meta" title="Verified NCAA career credentials · AA means All-American">{careerCredentials(w.ncaaCareer)}</span>}
       <span className="tile__meta">
         {w.weightClass === 285 ? 'HWT' : `${w.weightClass} lbs`} · {w.legends?.role === 'choice' ? 'Coach’s Choice' : 'Starter'}
       </span>
