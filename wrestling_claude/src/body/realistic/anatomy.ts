@@ -66,6 +66,8 @@ export interface FaceParams {
   smile: number;
   /** Eye aperture height multiplier (1 = 9.8 mm). */
   eyeOpen?: number;
+  /** Upper-lid fold descent in metres; separate from symmetric aperture height. */
+  upperLidHood?: number;
 }
 
 /** Body frame, multipliers on the neutral build. */
@@ -568,6 +570,16 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
     // Brow fat pad over the upper lid: the soft hood that makes the lid fold.
     ...pair(ell('head', [E[0] + 0.002, E[1] + 0.0132, E[2] + 0.0088], [0.014, 0.0045, 0.0062], 0.006, H, { rot: [-20, 0, 8], ...hw })),
   ];
+
+  // A hooded upper lid is a separate fold over the globe, not a smaller
+  // symmetric eye hole. Add it after socket carving so the orbital subtraction
+  // cannot remove the fold. The lower lid and eyeball centre stay fixed.
+  const hood = Math.max(0, Math.min(0.004, F.upperLidHood ?? 0));
+  if (hood > 0) {
+    specs.push(...pair(ell('head', [E[0] + 0.001, E[1] + 0.009 - hood, E[2] + 0.0105],
+      [0.0135, 0.004, 0.0055], 0.002, PART.Lid,
+      { rot: [0, 0, 5], ...hw, late: true })));
+  }
 
   specs.push(...ears(F.cauli));
 
