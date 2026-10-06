@@ -1,0 +1,12 @@
+.brand__mark.brand__mark--legends {
+  font-size: clamp(2.4rem, 4.1vw, 3.35rem);
+  line-height: .94;
+}
+.brand__mark--legends span {
+  display: block;
+  margin-left: 0;
+}
+@media (max-width: 760px), (max-height: 520px) {
+  .brand__mark.brand__mark--legends { font-size: 1.9rem; }
+  .brand__mark.brand__mark--legends span { display: block; margin-left: 0; }
+}

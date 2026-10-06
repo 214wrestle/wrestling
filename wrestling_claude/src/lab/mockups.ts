@@ -49,7 +49,7 @@ function menu(host: HTMLElement): void {
       <a class="primary" href="?v=${s.id}&orbit=1">3D view</a><a href="?v=${s.id}">Six-shot sheet</a></div>`,
   ).join('');
   host.innerHTML = `<main class="mk-menu">
-    <h1>Mat Rivals — character style mockups</h1>
+    <h1>Legends of College Wrestling — character style mockups</h1>
     <p>Three candidate art styles for the wrestlers, each showing Kyle Dake (Cornell) vs David Taylor
     (Penn State) from the 2013 NCAA 165&nbsp;lb final. In the 3D view, drag to orbit and scroll or pinch
     to zoom. Scores and notes are on the <a href="${COMPARISON}">comparison page</a>.</p>

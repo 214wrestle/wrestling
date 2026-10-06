@@ -1,4 +1,5 @@
 import { careerCredentials } from '../sim/credentials';
+import './branding.css';
 import { wrestlerFamilyNote, morenoMatchupNote, ncaaMatchupNotes, historicalMeetingText } from '../sim/easterEggs';
 import { useEffect, useState } from 'react';
 import type { Difficulty } from '../sim/ai';
@@ -91,8 +92,8 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
       <aside className="title__panel">
         <header className="brand">
           <div className="brand__kicker">College Wrestling · NCAA Rules</div>
-          <h1 className="brand__mark">
-            Mat<span>Rivals</span>
+          <h1 className="brand__mark brand__mark--legends">
+            Legends<span>of College</span><span>Wrestling</span>
           </h1>
           <div className="brand__event">
             {MEET.event} · {MEET.round}
