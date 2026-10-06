@@ -40,6 +40,12 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Melvin Douglas': [{year:1983,place:'qualifier',source:'https://nwhof.org/brackets/53#page=20'},{year:1984,place:'qualifier',source:'https://nwhof.org/brackets/54#page=20'},{year:1985,place:1,source:'https://nwhof.org/hall_of_fame/bio/2938'},{year:1986,place:1,source:'https://nwhof.org/hall_of_fame/bio/2938'}],
+  'Steve "Dr. Death" Williams': [{year:1979,place:6,source:'https://nwhof.org/hall_of_fame/bio/12564'},{year:1980,place:5,source:'https://nwhof.org/hall_of_fame/bio/12564'},{year:1981,place:3,source:'https://nwhof.org/hall_of_fame/bio/12564'},{year:1982,place:2,source:'https://nwhof.org/hall_of_fame/bio/12564'}],
+  'David Kjeldgaard': [{year:1998,place:0,source:'https://nwhof.org/brackets/68'},{year:1999,place:'qualifier',source:'https://nwhof.org/brackets/69#page=14'},{year:2000,place:'qualifier',source:'https://nwhof.org/brackets/70#page=14'},{year:2001,place:0,source:'https://soonersports.com/news/2001/1/31/208401975'}],
+  'Leonce Crump': [{year:2001,place:4,source:'https://nwhof.org/brackets/71#page=1'},{year:2002,place:'qualifier',source:'https://nwhof.org/brackets/72#page=29'},{year:2003,place:0,source:'https://soonersports.com/news/2003/11/25/208394842'},{year:2004,place:3,source:'https://nwhof.org/brackets/74#page=1'}],
+  'John Kading': [{year:1994,place:6,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6283'},{year:1995,place:5,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6283'},{year:1996,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6283'},{year:1997,place:2,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6283'}],
+  'Dan Chaid': [{year:1983,place:6,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6874'},{year:1984,place:4,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6874'},{year:1985,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6874'},{year:1986,place:2,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6874'}],
   'Mark Schultz': [{year:1979,place:'qualifier',source:'https://nwhof.org/brackets/49#page=17'},{year:1981,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/100'},{year:1982,place:1,outstandingWrestler:true,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/100'},{year:1983,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/100'}],
   'Mike Grant': [{year:1968,place:2,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/7313'},{year:1969,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/7313'},{year:1970,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/7313'}],
   'Sam Hazewinkel': [{year:2004,place:3,source:'https://soonersports.com/news/2007/3/17/208398867'},{year:2005,place:3,source:'https://soonersports.com/news/2007/3/17/208398867'},{year:2006,place:3,source:'https://soonersports.com/news/2007/3/17/208398867'},{year:2007,place:2,source:'https://soonersports.com/news/2007/3/17/208398867'}],
@@ -239,6 +245,11 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Leonce Crump': {wins:117,losses:16,source:'https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/utc.sidearmsports.com/documents/2020/4/14/2005_06_media_guide.pdf'},
+  'John Kading': {wins:104,losses:22,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6283'},
+  'Dan Chaid': {wins:151,losses:18,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6874'},
+  'Melvin Douglas': {wins:109,losses:19,ties:4,source:'https://nwhof.org/hall_of_fame/bio/2938'},
+  'Mark Schultz': {wins:97,losses:15,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=100'},
   'Mike Grant': {wins:69,losses:4,ties:3,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/7313'},
   'Sam Hazewinkel': {wins:132,losses:10,source:'https://soonersports.com/documents/download/2013/7/25/2007_08_wr_guide_history.pdf#page=8'},
   'Jared Frayer': {wins:129,losses:38,source:'https://soonersports.com/documents/download/2013/7/25/2007_08_wr_guide_history.pdf#page=8'},
