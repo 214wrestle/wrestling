@@ -1,0 +1,3 @@
+# Smith family Easter egg
+
+Owner confirmed Lee Roy, John and Pat Smith are brothers and uncles of J.T. Realmuto through their sister. MLB confirms mother Margaret is John Smith’s sister: https://www.mlb.com/amp/news/j-t-realmuto-thankful-for-family-on-players-weekend-2025.html . WIN’s interview explicitly identifies Lee Roy, John, Pat and Mark as his four uncles: https://www.win-magazine.com/2022/11/01/phillies-catcher-realmuto-still-credits-his-wrestling-roots/ . Phillies player page: https://www.mlb.com/player/j-t-realmuto-592663 . Exact athlete/school matches; preserve Mark Perry connection.
