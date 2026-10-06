@@ -40,6 +40,9 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Sammy Brooks": [{year:2014,place:0,source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"},{year:2015,place:"qualifier",source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"},{year:2016,place:8,source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"},{year:2017,place:4,source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"}],
+  "Vincenzo Joseph": [{year:2017,place:1,source:"https://lehighsports.com/staff-directory/vincenzo-joseph/1277"},{year:2018,place:1,source:"https://lehighsports.com/staff-directory/vincenzo-joseph/1277"},{year:2019,place:2,source:"https://lehighsports.com/staff-directory/vincenzo-joseph/1277"}],
+  "Tyler McCormick": [{year:2005,place:0,source:"https://mutigers.com/documents/download/2020/2/17/History_Records.pdf#page=41"},{year:2006,place:7,source:"https://mutigers.com/documents/download/2020/2/17/History_Records.pdf#page=41"},{year:2007,place:6,source:"https://mutigers.com/documents/download/2020/2/17/History_Records.pdf#page=42"},{year:2008,place:"qualifier",source:"https://mutigers.com/documents/download/2020/2/17/History_Records.pdf#page=42"}],
   "Jaydin Eierman": [{"year": 2017, "place": 5, "source": "https://hawkeyesports.com/sports/wrestling/roster/season/2021-22/player/jaydin-eierman"}, {"year": 2018, "place": 4, "source": "https://hawkeyesports.com/sports/wrestling/roster/season/2021-22/player/jaydin-eierman"}, {"year": 2019, "place": 3, "source": "https://hawkeyesports.com/sports/wrestling/roster/season/2021-22/player/jaydin-eierman"}, {"year": 2021, "place": 2, "source": "https://hawkeyesports.com/sports/wrestling/roster/season/2021-22/player/jaydin-eierman"}, {"year": 2022, "place": "qualifier", "source": "https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/nwca.sidearmsports.com/documents/2023/11/14/NCAA_Championship_2022.pdf"}],
   "Michael Chandler": [{"year": 2006, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/michael-chandler"}, {"year": 2007, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/michael-chandler"}, {"year": 2008, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/michael-chandler"}, {"year": 2009, "place": 5, "source": "https://mutigers.com/news/2013/01/17/mizzou-alum-and-mma-lightweight-champion-michael-chandler-to-defend-title-tonight"}],
   "Alan Waters": [{"year": 2011, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/player/alan-waters"}, {"year": 2012, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/player/alan-waters"}, {"year": 2013, "place": 4, "source": "https://mutigers.com/sports/wrestling/roster/player/alan-waters"}, {"year": 2015, "place": 3, "source": "https://mutigers.com/news/2015/03/21/waters-takes-third-cox-takes-fifth-at-ncaa-championships-session-5"}],
@@ -166,7 +169,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 3 | 4> = {'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 3 | 4> = {'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -180,6 +183,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Sammy Brooks": {wins:102,losses:24,source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"},
+  "Vincenzo Joseph": {wins:89,losses:9,source:"https://lehighsports.com/staff-directory/vincenzo-joseph/1277"},
   "Michael Chandler": {wins:100,losses:40,source:"https://mutigers.com/news/2013/01/17/mizzou-alum-and-mma-lightweight-champion-michael-chandler-to-defend-title-tonight"},
   "Alan Waters": {"wins": 136, "losses": 14, "source": "https://mutigers.com/sports/wrestling/roster/player/alan-waters"},
   "Mark Ellis": {"wins": 90, "losses": 39, "source": "https://mutigers.com/honors/hall-of-fame/mark-ellis/211/kiosk"},
