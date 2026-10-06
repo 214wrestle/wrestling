@@ -32,6 +32,9 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  'Nick Simmons': {falls:46,bouts:158,source:'https://msuspartans.com/honors/hall-of-fame/nick-simmons/193'},
+  'Randy Lewis': {falls:64,bouts:139,source:'https://hawkeyesports.com/news/2004/06/16/four-time-all-americans'},
+  'Jeff Smith': {falls:23,bouts:52,source:'https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/msuspartans.com/documents/2015/10/30/_msu_m_wrestl_2015_16_misc_non_event__RecordBook.pdf#page=6'},
   'Wyatt Hendrickson': {falls:72,bouts:138,gorriaranYears:[2023],source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'},
   "Jason Powell": {gorriaranYears:[2003],source:"https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"},
   "Tolly Thompson": {falls:53,bouts:178,source:"https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/huskers.com/documents/2019/8/30/2019_20_Nebraska_All_Sport_Record_Book.pdf#page=298"},

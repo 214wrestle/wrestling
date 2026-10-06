@@ -18,7 +18,7 @@ function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
   // https://ohiostatebuckeyes.com/news/2020/4/18/six-buckeyes-earn-nwca-all-america-recognition
   if(aa)return `${aa + (name === 'Kollin Moore' ? 1 : 0)}x AA`;
   const qualifiers=seasons.filter(s=>s.place==='qualifier').length;
-  if(qualifiers)return `${qualifiers}x NCAA Qualifier`;
+  if(qualifiers)return `${qualifiers}x NCAA Qualifier${name === 'Cameron Caffey' ? ' · 2020 NWCA All-American' : ''}`;
 }
 
 export function careerCredentials(career?:CareerScore,name?:string):string|undefined {

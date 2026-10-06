@@ -1,6 +1,7 @@
 /** Senior Worlds/Olympics only: bio display, never NCAA rating inputs. */
 export interface SeniorHonors { olympicGold:number;worldGold:number;olympicSilver?:number;worldSilver?:number;olympicBronze?:number;worldBronze?:number;source:string; }
 export const SENIOR_HONORS:Record<string,SeniorHonors>={
+ 'Randy Lewis':{olympicGold:1,worldGold:0,source:'https://hof.hawkeyesports.com/inductees/randall-scott-lewis/'},
  'Dave Schultz':{olympicGold:1,worldGold:1,worldSilver:3,worldBronze:2,source:'https://www.themat.com/news/2006/january/26/detailed-wrestling-biography-o-13935'},
  'Royce Alger':{olympicGold:0,worldGold:0,worldSilver:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame-dan-gable-museum/bio/12791'},
  'Tom Brands':{olympicGold:1,worldGold:1,source:'https://www.themat.com/news/2001/february/08/tom-brands-elected-as-distingu-1375'},
