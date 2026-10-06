@@ -1,6 +1,7 @@
 /** Senior Worlds/Olympics only: bio display, never NCAA rating inputs. */
 export interface SeniorHonors { olympicGold:number;worldGold:number;olympicSilver?:number;worldSilver?:number;olympicBronze?:number;worldBronze?:number;source:string; }
 export const SENIOR_HONORS:Record<string,SeniorHonors>={
+ 'Royce Alger':{olympicGold:0,worldGold:0,worldSilver:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame-dan-gable-museum/bio/12791'},
  'Tom Brands':{olympicGold:1,worldGold:1,source:'https://www.themat.com/news/2001/february/08/tom-brands-elected-as-distingu-1375'},
  'Terry Brands':{olympicGold:0,worldGold:2,olympicBronze:1,source:'https://nwhof.org/hall_of_fame/bio_by_name/terry-brands'},
  'Kenny Monday':{olympicGold:1,worldGold:1,olympicSilver:1,worldSilver:1,source:'https://nwhof.org/news/monday-feldman-inducted-into-uww-hall-of-fame'},

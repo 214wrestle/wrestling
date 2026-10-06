@@ -186,7 +186,7 @@
           "source": "HWT \u2014 Lou Banach"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nJessie Whitmer \u2014 118\nTerry Brands \u2014 125\nMatt McDonough \u2014 125\nMark Ironside \u2014 133\nJeff McGinness \u2014 141\nLincoln McIlravy \u2014 149 option\nJoe Williams \u2014 157 option\nMark Reiland \u2014 165\nJay Borschel \u2014 174\nLee Fullhart \u2014 190\nSteve Mocco \u2014 HWT\nMichael Mocco \u2014 HWT [special eligibility exception]\nEric Juergens \u2014 133\n\nOwner revision: Lincoln McIlravy \u2014 149 starter; Joe Williams \u2014 157 starter. Terry Steiner \u2014 149 choice; Jim Zalesky \u2014 157 choice. Iowa 141 starter: Jeff McGinness; 165 starter: Mark Perry.\nOwner revision: Jim Zalesky starter (historical 158, mapped to Legends 157); Joe Williams backup at 157.\nApproved final placements: Jeff McGinness \u2014 141 starter; Mark Perry \u2014 165 starter. Mark Reiland remains 165 Coach\u2019s Choice.\nOwner additions: T.J. Williams \u2014 157 Coach\u2019s Choice; Jessman Smith \u2014 184 Coach\u2019s Choice.\nApproved revision: Chris Campbell \u2014 174 Coach\u2019s Choice behind Ed Banach (historical NCAA titles at 177); Jessman Smith \u2014 184 starter; Sammy Brooks \u2014 184 Coach\u2019s Choice.",
+      "notesAndChoices": "Coach's Choice:\nJessie Whitmer \u2014 118\nTerry Brands \u2014 125\nMatt McDonough \u2014 125\nMark Ironside \u2014 133\nJeff McGinness \u2014 141\nLincoln McIlravy \u2014 149 option\nJoe Williams \u2014 157 option\nMark Reiland \u2014 165\nJay Borschel \u2014 174\nLee Fullhart \u2014 190\nSteve Mocco \u2014 HWT\nMichael Mocco \u2014 HWT [special eligibility exception]\nEric Juergens \u2014 133\n\nOwner revision: Lincoln McIlravy \u2014 149 starter; Joe Williams \u2014 157 starter. Terry Steiner \u2014 149 choice; Jim Zalesky \u2014 157 choice. Iowa 141 starter: Jeff McGinness; 165 starter: Mark Perry.\nOwner revision: Jim Zalesky starter (historical 158, mapped to Legends 157); Joe Williams backup at 157.\nApproved final placements: Jeff McGinness \u2014 141 starter; Mark Perry \u2014 165 starter. Mark Reiland remains 165 Coach\u2019s Choice.\nOwner additions: T.J. Williams \u2014 157 Coach\u2019s Choice; Jessman Smith \u2014 184 Coach\u2019s Choice.\nApproved revision: Chris Campbell \u2014 174 Coach\u2019s Choice behind Ed Banach (historical NCAA titles at 177); Jessman Smith \u2014 184 starter; Sammy Brooks \u2014 184 Coach\u2019s Choice.\nOwner addition: Royce Alger \u2014 historical 167 (Legends 165), Coach\u2019s Choice; one weight only.",
       "id": "iowa",
       "choices": [
         {
@@ -268,6 +268,11 @@
           "name": "Brent Metcalf",
           "weight": "149",
           "source": "Owner specialty addition: Brent Metcalf \u2014 149 Coach\u2019s Choice; lefty high crotch"
+        },
+        {
+          "name": "Royce Alger",
+          "weight": "165",
+          "source": "Owner addition: historical 167, mapped to Legends 165"
         }
       ]
     },
