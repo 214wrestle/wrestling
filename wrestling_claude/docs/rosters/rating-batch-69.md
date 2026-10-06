@@ -1,0 +1,7 @@
+# NCAA career audit: 69 careers
+
+Quentin Wright: 2009 sixth at 174, 2011 champion and 2012 runner-up at 184, 2013 champion at 197. The approved Penn State 190 Legends slot remains unchanged. Four actual tournaments; 2010 redshirt excluded. Contemporary official final report verifies all four finishes, 116–23 college record and 37 career falls: https://gopsusports.com/news/2013/03/24/nittany-lions-win-third-straight-ncaa-wrestling-crown. Prior-year biography independently verifies the redshirt and freshman finish: https://gopsusports.com/sports/wrestling/roster/season/2011-12/player/quentin-wright . Big Ten OW is not NCAA OW; no bonus applied for it.
+
+Distinct technique evidence for future animation: 2013 NCAA quarterfinal shoulder throw pinned Scott Schiller at 2:48; final used underhook-to-knee-pick takedowns twice against Dustin Kilgore, winning 8–6. These are report-backed technique examples, not film analysis or completed throw animation. No invented pin total or automatic pin.
+
+Derived rating 93. Ratings, roster and typecheck pass; export contains 447 slots and 69 researched careers. Seeded 447-bout before/after: combined points 16.2 unchanged, mat share 15% unchanged, mean ride 14.1 to 14.2 seconds; result counts unchanged (329 regulation decisions, 53 overtime decisions, 55 majors, 8 techs, 2 falls). Full-site build passes. Full roster research, recognizable likenesses and natural wrestling motion remain unfinished.

@@ -32,6 +32,7 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  "Quentin Wright": {falls:37,bouts:139,source:"https://gopsusports.com/news/2013/03/24/nittany-lions-win-third-straight-ncaa-wrestling-crown"},
   "Nick Lee": {falls:18,bouts:131,source:"https://gopsusports.com/staff/nick-lee"},
   "Cary Kolat": {falls:53,bouts:118,source:"https://navysports.com/news/2020/3/20/cary-kolat-named-navy-head-wrestling-coach.aspx?path=me"},
   "Kerry McCoy": {falls:34,bouts:168,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/1272"},
