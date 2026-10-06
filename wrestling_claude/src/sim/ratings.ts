@@ -40,6 +40,13 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Dave Mariola': [{year:1985,place:0,source:'https://nwhof.org/brackets/55'},{year:1986,place:5,source:'https://nwhof.org/hall_of_fame/bio/6747'},{year:1987,place:0,source:'https://nwhof.org/brackets/57'},{year:1988,place:'qualifier',source:'https://msuspartans.com/documents/download/2024/3/25/2023-24_Updated_Record_Book.pdf'}],
+  'Joel Morissette': [{year:1993,place:0,source:'https://nwhof.org/brackets/63'},{year:1994,place:0,source:'https://nwhof.org/brackets/64'},{year:1995,place:'qualifier',source:'https://msuspartans.com/documents/download/2015/4/30/_msu_m_wrestl__03-04mg-rev-fac20-28.pdf'},{year:1996,place:6,source:'https://msuspartans.com/documents/download/2015/4/30/_msu_m_wrestl__03-04mg-rev-fac20-28.pdf'}],
+  'Gray Maynard': [{year:2000,place:'qualifier',source:'https://msuspartans.com/news/2001/3/11/Six_Wrestlers_Off_To_NCAA_Championships'},{year:2001,place:8,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?wrestler=5882'},{year:2002,place:7,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?wrestler=5882'},{year:2003,place:7,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?wrestler=5882'}],
+  'Nick Muzashvili': [{year:1997,place:0,source:'https://msuspartans.com/news/2000/3/3/spartan_grapplers_prepare_for_big_ten_championships'},{year:1998,place:'qualifier',source:'https://msuspartans.com/documents/download/2024/3/25/2023-24_Updated_Record_Book.pdf'},{year:1999,place:3,source:'https://msuspartans.com/documents/download/2024/3/25/2023-24_Updated_Record_Book.pdf'},{year:2000,place:4,source:'https://msuspartans.com/documents/download/2024/3/25/2023-24_Updated_Record_Book.pdf'}],
+  'Brian Picklo': [{year:1994,place:0,source:'https://nwhof.org/brackets/64'},{year:1995,place:0,source:'https://nwhof.org/brackets/65'},{year:1996,place:5,source:'https://nwhof.org/hall_of_fame/bio/6296'},{year:1997,place:5,source:'https://nwhof.org/hall_of_fame/bio/6296'}],
+  'Mike Bradley': [{year:1966,place:'qualifier',source:'https://nwhof.org/brackets/37#page=18'},{year:1967,place:2,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/4140'},{year:1968,place:'qualifier',source:'https://nwhof.org/wp-content/uploads/2021/03/NCAA-1968-2021.pdf#page=27'}],
+  'Gerry Malecek': [{year:1970,place:4,source:'https://nwhof.org/brackets/40#page=24'},{year:1971,place:'qualifier',source:'https://nwhof.org/brackets/41#page=14'},{year:1972,place:4,source:'https://nwhof.org/brackets/42#page=21'}],
   'Dan Wirnsberger': [{year:1991,place:0,source:'https://bucknellbison.com/staff-directory/dan-wirnsberger/4'},{year:1993,place:4,source:'https://nwhof.org/hall_of_fame/bio/6397'},{year:1994,place:8,source:'https://nwhof.org/hall_of_fame/bio/6397'},{year:1995,place:2,source:'https://nwhof.org/hall_of_fame/bio/6397'}],
   'Dale Carr': [{year:1966,place:'qualifier',source:'https://nwhof.org/brackets/37#page=8'},{year:1967,place:6,source:'https://nwhof.org/brackets/38#page=15'},{year:1968,place:4,source:'https://nwhof.org/wp-content/uploads/2021/03/NCAA-1968-2021.pdf#page=15'}],
   'Franklin Gomez': [{year:2007,place:0,source:'https://msuspartans.com/documents/download/2018/7/25/19084_msuspartans_cstv_com_msu_m_wrestl__2008GomezatNCAAs.pdf'},{year:2008,place:3,source:'https://msuspartans.com/news/2010/6/21/Michigan_State_Announces_Major_Athletic_Award_Winners'},{year:2009,place:1,source:'https://msuspartans.com/news/2010/6/21/Michigan_State_Announces_Major_Athletic_Award_Winners'},{year:2010,place:3,source:'https://msuspartans.com/news/2010/6/21/Michigan_State_Announces_Major_Athletic_Award_Winners'}],
@@ -258,7 +265,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Dale Carr': 3, 'Greg Johnson': 3, 'Kollin Moore': 3, 'Frank Romano': 3, 'Dave Reinbolt': 3, 'Brock Lesnar': 2, 'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Mike Bradley': 3, 'Gerry Malecek': 3, 'Dale Carr': 3, 'Greg Johnson': 3, 'Kollin Moore': 3, 'Frank Romano': 3, 'Dave Reinbolt': 3, 'Brock Lesnar': 2, 'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -272,6 +279,7 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Mike Bradley': {wins:55,losses:7,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/4140'},
   'Dan Wirnsberger': {wins:120,losses:44,source:'https://bucknellbison.com/staff-directory/dan-wirnsberger/4'},
   'Franklin Gomez': {wins:119,losses:15,source:'https://msuspartans.com/news/2010/6/21/Michigan_State_Announces_Major_Athletic_Award_Winners'},
   'Tom Milkovich': {wins:93,losses:7,ties:1,source:'https://msuspartans.com/honors/hall-of-fame/tom-milkovich/154'},
