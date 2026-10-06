@@ -1,0 +1,3 @@
+Jared Frayer — Oklahoma 149 starter
+
+NWHOF archived brackets: 1999 qualifier (69 PDF pages11–12), 2000 qualifier (70 PDF pages11–12), 2001 fourth (71 PDF page12), 2002 second (72 PDF page1). First two consolation brackets inspected; neither places Frayer among the eight finishers. Official Oklahoma March14,2000 NCAA preview independently labels him a two-time NCAA qualifier. Four actual seasons count. School 2007–08 history guide PDF page8 records 129–38–0: https://soonersports.com/documents/download/2013/7/25/2007_08_wr_guide_history.pdf#page=8 . Two NCAA All-American finishes. No championship or NCAA OW credited; 2012 Olympic participation is not a medal. Current school-bio archive URL has little retained biography, so use the actual school record table instead.

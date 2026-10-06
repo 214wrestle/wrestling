@@ -40,6 +40,10 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Mark Schultz': [{year:1979,place:'qualifier',source:'https://nwhof.org/brackets/49#page=17'},{year:1981,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/100'},{year:1982,place:1,outstandingWrestler:true,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/100'},{year:1983,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/100'}],
+  'Mike Grant': [{year:1968,place:2,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/7313'},{year:1969,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/7313'},{year:1970,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/7313'}],
+  'Sam Hazewinkel': [{year:2004,place:3,source:'https://soonersports.com/news/2007/3/17/208398867'},{year:2005,place:3,source:'https://soonersports.com/news/2007/3/17/208398867'},{year:2006,place:3,source:'https://soonersports.com/news/2007/3/17/208398867'},{year:2007,place:2,source:'https://soonersports.com/news/2007/3/17/208398867'}],
+  'Jared Frayer': [{year:1999,place:'qualifier',source:'https://nwhof.org/brackets/69#page=11'},{year:2000,place:'qualifier',source:'https://nwhof.org/brackets/70#page=11'},{year:2001,place:4,source:'https://nwhof.org/brackets/71#page=12'},{year:2002,place:2,source:'https://nwhof.org/brackets/72#page=1'}],
   'Teyon Ware': [{year:2003,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/783'},{year:2004,place:6,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/783'},{year:2005,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/783'},{year:2006,place:2,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/783'}],
   'Cody Brewer': [{year:2013,place:7,source:'https://soonersports.com/news/2013/4/14/208400269'},{year:2014,place:8,source:'https://soonersports.com/sports/wrestling/roster/cody-brewer/688'},{year:2015,place:1,source:'https://nwhof.org/brackets/85#page=5'},{year:2016,place:3,source:'https://soonersports.com/news/2016/3/19/210816890'}],
   'Wyatt Hendrickson': [{year:2021,place:'qualifier',source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'},{year:2022,place:'qualifier',source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'},{year:2023,place:3,source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'},{year:2024,place:3,source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'},{year:2025,place:1,source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'}],
@@ -221,7 +225,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -235,9 +239,12 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Mike Grant': {wins:69,losses:4,ties:3,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/7313'},
+  'Sam Hazewinkel': {wins:132,losses:10,source:'https://soonersports.com/documents/download/2013/7/25/2007_08_wr_guide_history.pdf#page=8'},
+  'Jared Frayer': {wins:129,losses:38,source:'https://soonersports.com/documents/download/2013/7/25/2007_08_wr_guide_history.pdf#page=8'},
   'Teyon Ware': {wins:112,losses:15,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/783'},
-  'Cody Brewer': {wins:95,losses:22,source:'https://soonersports.com/news/2016/3/19/210816890'},
   'Eric Wais': {wins:89,losses:6,ties:2,source:'https://okstate.com/news/2025/4/14/cowboy-wrestling-mourns-the-loss-of-eric-wais'},
+  'Cody Brewer': {wins:95,losses:22,source:'https://soonersports.com/news/2016/3/19/210816890'},
   'Wyatt Hendrickson': {wins:127,losses:11,source:'https://okstate.com/sports/wrestling/roster/wyatt-hendrickson/12920'},
   'Dustin Plott': {wins:114,losses:29,source:'https://okstate.com/sports/wrestling/roster/dustin-plott/12900'},
   'Joe McDaniel': {wins:28,losses:2,ties:0,source:'https://okstate.com/news/2011/11/7/OSU_Loses_Wrestling_Great_Joe_McDaniel'},
