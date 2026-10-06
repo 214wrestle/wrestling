@@ -11,6 +11,7 @@ export interface HistoricalMeeting {
 }
 /** Verified historical bouts; game roster weights do not rewrite history. */
 export const NCAA_MEETINGS: readonly HistoricalMeeting[] = [
+  {winner:"J'den Cox",loser:"Nick Heflin",year:2014,round:"final",weight:197,result:"2–1",source:"https://ohiostatebuckeyes.com/news/2014/3/25/ohio-state-athletics-good-stuff-28"},
   {winner:"Vito Arujau",loser:"Roman Bravo-Young",year:2023,round:"final",weight:133,result:"10–4",source:"https://gopsusports.com/news/2023/03/19/starocci-and-brooks-win-individual-titles-for-national-champion-wrestling-team"},
   {winner:"Eric Juergens",loser:"Johnny Thompson",year:2001,round:"final",weight:133,result:"10–7",source:"https://hawkeyesports.com/news/2019/08/05/wrestling-hall-of-fame-spotlight-eric-juergens"},
   {winner:'Jake Varner',loser:'Craig Brester',year:2010,round:'final',weight:197,result:'5–2',source:'https://cyclones.com/news/2010/3/21/204912702'},

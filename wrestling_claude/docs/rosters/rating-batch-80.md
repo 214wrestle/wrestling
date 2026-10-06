@@ -1,0 +1,13 @@
+# Ohio State career evidence — coverage 80
+
+Nick Heflin, owner-approved 197 Coach’s Choice, rating 82. NCAA 2011 qualifier, 2012 fifth, 2013 fifth, 2014 runner-up. First appearance official report https://ohiostatebuckeyes.com/news/2011/3/18/colt-sponseller-advances-to-ncaa-championships-quarterfinals; fifth in 2012 https://ohiostatebuckeyes.com/news/2012/11/1/ohio-state-names-2012-13-team-captains; fifth in 2013 official yearbook https://ohiostatebuckeyes.com/documents/download/2023/5/25/1213year-in-review.pdf; 2014 final and 99–28 college record https://ohiostatebuckeyes.com/news/2014/3/25/ohio-state-athletics-good-stuff-28. Three documented All-America finishes prove 2011 was nonplacing. Historical first three seasons at 174, approved Legends slot exclusively 197. No NCAA OW/Hodge/fall total invented.
+
+Tommy Rowlands, owner-approved HWT Coach’s Choice, rating 94. NCAA 2001 runner-up, 2002 champion, 2003 sixth, 2004 champion. Official Ohio State table https://ohiostatebuckeyes.com/documents/download/2023/6/1/2012_13TeamGuide.pdf#page=33 confirms four placements; school Hall of Fame confirms two titles https://ohiostatebuckeyes.com/honors/hall-of-fame-inductees/tommy-rowlands/362. NWHOF collegiate season table https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=5904 verifies 164–15 and 30 falls across 179 bouts. High-school 167–10 is not used. No NCAA OW/Hodge bonus invented.
+
+Added sourced 2014 final matchup Easter egg: J'den Cox beat Nick Heflin 2–1 at 197. Historical scores are not rewritten to modern scoring.
+
+80 researched careers. Rating, roster, type and paired animation checks pass. Updated 448 Starter AI legends regression: 16.7 combined points, 15% mat share, 14.4s average ride; 324 decisions, 68 majors, 4 techs, 1 fall, 11 rideouts, 22 tiebreakers, 18 sudden-victory. Scoring remains above 11.55 target. Roster changed from earlier sample; do not attribute all variation to these two ratings.
+
+Low-single contacts now attach both hands to the distal shin late in entry and early in the finish; the outside hand transitions to torso control before the established ride grip. Both entry and finish inspectable in the animation lab. Visual review finds persistent torso/leg intersections and foot-planting issues. Contact refinement is not a completed realistic finish or likeness. Proof under task outputs/low-single-grip-review.jpg.
+
+Next: complete Moore's canceled-season normalization explicitly, research more approved Ohio State careers, improve actual scramble body chains and Moreno's face/eyes. All broader streams remain active.

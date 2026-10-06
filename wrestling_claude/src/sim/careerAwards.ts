@@ -32,6 +32,7 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  "Tommy Rowlands": {falls:30,bouts:179,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=5904"},
   "Adam Tirapelle": {falls:33,bouts:148,source:"https://fightingillini.com/honors/hall-of-fame/adam-tirapelle/72/kiosk"},
   "John Hughes": {falls:14,bouts:149,source:"https://nwhof.org/hall_of_fame/bio/6323"},
   "Aaron Brooks": {falls:16,bouts:92,source:"https://gopsusports.com/news/2024/06/17/brooks-nemeth-named-penn-state-athletes-of-the-year"},

@@ -190,6 +190,8 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
           <span>
             <Key>L</Key> sprawl
           </span>
+          <span><Key>U</Key> low single</span>
+          <span><Key>I</Key> scramble</span>
           <span>
             <Key>Shift</Key> level
           </span>

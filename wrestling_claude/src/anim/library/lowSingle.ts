@@ -9,7 +9,10 @@ registerMove({id:'shotLowSingle',startDist:1,warpBy:0.7,A:[
  {t:0,pose:{base:stanceAt({x:0,z:-0.5,yaw:0},1)}},
  {t:0.28,pose:{hips:[0.12,0.38,-0.3],rot:[-12,25,0],spine:[20,0,0],handL:[0.12,0.18,0.02],handR:[0.16,0.22,0.06]}},
  {t:0.7,pose:{hips:[0.2,0.26,0.04],kneeL:[0.22,0.055,0.24],footL:[0.22,BALL,-0.05,0,65],footR:[-0.18,BALL,-0.4,-15,55],handL:[0.15,0.09,0.35],handR:[0.12,0.15,0.43]}},
- {t:1,pose:{base:holdAt('legsLowSingle','A',0)}}], B:[{t:0,pose:{base:stanceAt({x:0,z:0.5,yaw:180},1)}},{t:1,pose:{base:holdAt('legsLowSingle','B',0)}}]});
+ {t:1,pose:{base:holdAt('legsLowSingle','A',0)}}], B:[{t:0,pose:{base:stanceAt({x:0,z:0.5,yaw:180},1)}},{t:1,pose:{base:holdAt('legsLowSingle','B',0)}}],contacts:[
+ {who:'A',hand:'L',on:'shinR',at:[0.035,-0.36,0.02],from:0.82,to:1},
+ {who:'A',hand:'R',on:'shinR',at:[-0.035,-0.31,-0.015],from:0.82,to:1}
+]});
 const END={x:-0.3,z:0.88,yaw:90};
 registerMove({id:'finishLowSingle',A:[
  {t:0,pose:{base:holdAt('legsLowSingle','A',1)}},
@@ -19,4 +22,10 @@ registerMove({id:'finishLowSingle',A:[
  {t:0,pose:{base:holdAt('legsLowSingle','B',1)}},
  {t:0.35,pose:{hips:[-0.1,0.62,0.62],rot:[150,30,-8],footR:[0.1,0.2,0.44,160,40],handL:[-0.5,0.35,0.75],handR:[-0.4,0.38,0.9]}},
  {t:0.68,land:true,pose:{hips:[-0.28,0.24,0.94],rot:[90,65,0,65],handL:[-0.6,POST,0.85],handR:[-0.6,POST,1.1],footL:[-0.1,0.07,1.15,90,70],footR:[-0.1,0.16,0.75,90,60]}},
- {t:1,pose:{base:holdAt('ride','B',0,END)}}]});
+ {t:1,pose:{base:holdAt('ride','B',0,END)}}],contacts:[
+ {who:'A',hand:'L',on:'shinR',at:[0.035,-0.36,0.02],from:0,to:0.56,fade:0.09},
+ {who:'A',hand:'R',on:'shinR',at:[-0.035,-0.31,-0.015],from:0,to:0.48,fade:0.09},
+ {who:'A',hand:'R',on:'chest',at:[0.1,-0.08,0.08],from:0.66,to:0.8,fade:0.08},
+ {who:'A',hand:'R',on:'spine',at:[0,0.02,0.11],from:0.9,to:1},
+ {who:'A',hand:'L',on:'forearmL',at:[0,-0.04,-0.035],from:0.92,to:1}
+]});
