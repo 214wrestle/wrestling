@@ -1,9 +1,9 @@
 {
-  "generated": "2026-10-06T12:16:57.148Z",
+  "generated": "2026-10-06T12:37:39.842Z",
   "rosterSlots": 451,
-  "verifiedSlots": 119,
-  "pendingSlots": 332,
-  "verifiedCareers": 118,
+  "verifiedSlots": 126,
+  "pendingSlots": 325,
+  "verifiedCareers": 125,
   "athletes": [
     {
       "id": "penn-state-118-starter-jeff-prescott",
@@ -1418,9 +1418,30 @@
       "school": "NEBRASKA",
       "weight": 118,
       "role": "starter",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 62,
+      "countedSeasons": [
+        {
+          "year": 1993,
+          "place": 7,
+          "source": "https://huskers.com/sports/wrestling/roster/player/john-buxton"
+        },
+        {
+          "year": 1991,
+          "place": "qualifier",
+          "source": "https://huskers.com/sports/wrestling/roster/player/john-buxton"
+        },
+        {
+          "year": 1990,
+          "place": "qualifier",
+          "source": "https://huskers.com/sports/wrestling/roster/player/john-buxton"
+        },
+        {
+          "year": 1992,
+          "place": 0,
+          "source": "https://huskers.com/sports/wrestling/roster/player/john-buxton"
+        }
+      ],
       "excludedSeasons": []
     },
     {
@@ -1461,9 +1482,30 @@
       "school": "NEBRASKA",
       "weight": 133,
       "role": "starter",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 72,
+      "countedSeasons": [
+        {
+          "year": 1987,
+          "place": 2,
+          "source": "https://nwhof.org/brackets/57"
+        },
+        {
+          "year": 1986,
+          "place": "qualifier",
+          "source": "https://nwhof.org/brackets/56"
+        },
+        {
+          "year": 1984,
+          "place": 0,
+          "source": "https://nwhof.org/brackets/54"
+        },
+        {
+          "year": 1983,
+          "place": 0,
+          "source": "https://nwhof.org/brackets/53"
+        }
+      ],
       "excludedSeasons": []
     },
     {
@@ -1569,9 +1611,30 @@
       "school": "NEBRASKA",
       "weight": 184,
       "role": "starter",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 81,
+      "countedSeasons": [
+        {
+          "year": 2016,
+          "place": 2,
+          "source": "https://huskers.com/sports/wrestling/roster/season/2014-15/player/tj-dudley"
+        },
+        {
+          "year": 2017,
+          "place": 3,
+          "source": "https://huskers.com/sports/wrestling/roster/season/2014-15/player/tj-dudley"
+        },
+        {
+          "year": 2015,
+          "place": 8,
+          "source": "https://huskers.com/sports/wrestling/roster/season/2014-15/player/tj-dudley"
+        },
+        {
+          "year": 2014,
+          "place": "qualifier",
+          "source": "https://huskers.com/sports/wrestling/roster/season/2014-15/player/tj-dudley"
+        }
+      ],
       "excludedSeasons": []
     },
     {
@@ -1676,9 +1739,30 @@
       "school": "NEBRASKA",
       "weight": 118,
       "role": "choice",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 67,
+      "countedSeasons": [
+        {
+          "year": 1995,
+          "place": 6,
+          "source": "https://huskers.com/sports/wrestling/roster/season/1996-97/player/brad-canoyer"
+        },
+        {
+          "year": 1998,
+          "place": "qualifier",
+          "source": "https://huskers.com/sports/wrestling/roster/season/1996-97/player/brad-canoyer"
+        },
+        {
+          "year": 1997,
+          "place": "qualifier",
+          "source": "https://huskers.com/sports/wrestling/roster/season/1996-97/player/brad-canoyer"
+        },
+        {
+          "year": 1996,
+          "place": "qualifier",
+          "source": "https://huskers.com/sports/wrestling/roster/season/1996-97/player/brad-canoyer"
+        }
+      ],
       "excludedSeasons": []
     },
     {
@@ -1730,9 +1814,25 @@
       "school": "NEBRASKA",
       "weight": 125,
       "role": "choice",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 87,
+      "countedSeasons": [
+        {
+          "year": 1963,
+          "place": 1,
+          "source": "https://nwhof.org/brackets/34#page=1"
+        },
+        {
+          "year": 1962,
+          "place": 3,
+          "source": "https://nwhof.org/brackets/33#page=5"
+        },
+        {
+          "year": 1961,
+          "place": "qualifier",
+          "source": "https://nwhof.org/brackets/32#page=6"
+        }
+      ],
       "excludedSeasons": []
     },
     {
@@ -1752,9 +1852,30 @@
       "school": "NEBRASKA",
       "weight": 141,
       "role": "choice",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 73,
+      "countedSeasons": [
+        {
+          "year": 1983,
+          "place": 2,
+          "source": "https://huskers.com/sports/wrestling/roster/player/al-freeman"
+        },
+        {
+          "year": 1981,
+          "place": 8,
+          "source": "https://huskers.com/sports/wrestling/roster/player/al-freeman"
+        },
+        {
+          "year": 1980,
+          "place": 0,
+          "source": "https://huskers.com/sports/wrestling/roster/player/al-freeman"
+        },
+        {
+          "year": 1979,
+          "place": 0,
+          "source": "https://huskers.com/sports/wrestling/roster/player/al-freeman"
+        }
+      ],
       "excludedSeasons": []
     },
     {
@@ -1891,9 +2012,30 @@
       "school": "NEBRASKA",
       "weight": 285,
       "role": "choice",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 82,
+      "countedSeasons": [
+        {
+          "year": 1984,
+          "place": 2,
+          "source": "https://huskers.com/nebraskas-100-win-club"
+        },
+        {
+          "year": 1986,
+          "place": 3,
+          "source": "https://huskers.com/nebraskas-100-win-club"
+        },
+        {
+          "year": 1982,
+          "place": 7,
+          "source": "https://huskers.com/nebraskas-100-win-club"
+        },
+        {
+          "year": 1985,
+          "place": "qualifier",
+          "source": "https://nwhof.org/brackets/55#page=29"
+        }
+      ],
       "excludedSeasons": []
     },
     {

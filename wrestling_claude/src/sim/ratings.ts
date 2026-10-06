@@ -40,6 +40,13 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Al Freeman': [{year:1979,place:0,source:'https://huskers.com/sports/wrestling/roster/player/al-freeman'},{year:1980,place:0,source:'https://huskers.com/sports/wrestling/roster/player/al-freeman'},{year:1981,place:8,source:'https://huskers.com/sports/wrestling/roster/player/al-freeman'},{year:1983,place:2,source:'https://huskers.com/sports/wrestling/roster/player/al-freeman'}],
+  'Mike Nissen': [{year:1961,place:'qualifier',source:'https://nwhof.org/brackets/32#page=6'},{year:1962,place:3,source:'https://nwhof.org/brackets/33#page=5'},{year:1963,place:1,source:'https://nwhof.org/brackets/34#page=1'}],
+  "John Buxton": [{"year": 1990, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/player/john-buxton"}, {"year": 1991, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/player/john-buxton"}, {"year": 1992, "place": 0, "source": "https://huskers.com/sports/wrestling/roster/player/john-buxton"}, {"year": 1993, "place": 7, "source": "https://huskers.com/sports/wrestling/roster/player/john-buxton"}],
+  "Gil Sanchez": [{"year": 1983, "place": 0, "source": "https://nwhof.org/brackets/53"}, {"year": 1984, "place": 0, "source": "https://nwhof.org/brackets/54"}, {"year": 1986, "place": "qualifier", "source": "https://nwhof.org/brackets/56"}, {"year": 1987, "place": 2, "source": "https://nwhof.org/brackets/57"}],
+  "Gary Albright": [{"year": 1982, "place": 7, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 1984, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 1985, "place": "qualifier", "source": "https://nwhof.org/brackets/55#page=29"}, {"year": 1986, "place": 3, "source": "https://huskers.com/nebraskas-100-win-club"}],
+  "Brad Canoyer": [{"year": 1995, "place": 6, "source": "https://huskers.com/sports/wrestling/roster/season/1996-97/player/brad-canoyer"}, {"year": 1996, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/season/1996-97/player/brad-canoyer"}, {"year": 1997, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/season/1996-97/player/brad-canoyer"}, {"year": 1998, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/season/1996-97/player/brad-canoyer"}],
+  "TJ Dudley": [{"year": 2014, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/season/2014-15/player/tj-dudley"}, {"year": 2015, "place": 8, "source": "https://huskers.com/sports/wrestling/roster/season/2014-15/player/tj-dudley"}, {"year": 2016, "place": 2, "source": "https://huskers.com/sports/wrestling/roster/season/2014-15/player/tj-dudley"}, {"year": 2017, "place": 3, "source": "https://huskers.com/sports/wrestling/roster/season/2014-15/player/tj-dudley"}],
   "Craig Brester": [{"year": 2007, "place": "qualifier", "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2008, "place": 4, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2009, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2010, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}],
   "Mikey Labriola": [{"year": 2019, "place": 6, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2021, "place": 3, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2022, "place": 7, "source": "https://huskers.com/nebraskas-100-win-club"}, {"year": 2023, "place": 2, "source": "https://huskers.com/nebraskas-100-win-club"}],
 
@@ -196,7 +203,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -210,6 +217,13 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Al Freeman': {wins:82,losses:24,ties:2,source:'https://huskers.com/sports/wrestling/roster/season/1984-85/staff/al-freeman'},
+  'Mike Nissen': {wins:48,losses:5,ties:0,source:'https://huskers.com/nebraskas-national-champions'},
+  "John Buxton": {wins:85,losses:33,ties:4,source:"https://huskers.com/sports/wrestling/roster/player/john-buxton"},
+  "Gil Sanchez": {wins:96,losses:25,ties:3,source:"https://huskers.com/sports/wrestling/roster/season/1987-88/staff/gil-sanchez"},
+  "Gary Albright": {wins:112,losses:19,ties:4,source:"https://huskers.com/nebraskas-100-win-club"},
+  "Brad Canoyer": {wins:109,losses:43,source:"https://huskers.com/sports/wrestling/roster/season/1996-97/player/brad-canoyer"},
+  "TJ Dudley": {wins:114,losses:31,source:"https://huskers.com/sports/wrestling/roster/season/2014-15/player/tj-dudley"},
   "Craig Brester": {wins:109,losses:21,source:"https://huskers.com/nebraskas-100-win-club"},
   "Mikey Labriola": {wins:120,losses:28,source:"https://huskers.com/nebraskas-100-win-club"},
   "Jason Kelber": {wins:123,losses:30,source:"https://huskers.com/nebraskas-100-win-club"},
