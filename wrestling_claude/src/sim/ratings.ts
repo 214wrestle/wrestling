@@ -40,6 +40,11 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Jack Barden': [{year:1961,place:0,source:'https://nwhof.org/brackets/32'},{year:1962,place:0,source:'https://nwhof.org/brackets/33'},{year:1963,place:1,source:'https://nwhof.org/brackets/34'}],
+  'Jacob Cardenas': [{year:2022,place:'qualifier',source:'https://mgoblue.com/sports/wrestling/roster/jacob-cardenas/26081'},{year:2023,place:8,source:'https://mgoblue.com/sports/wrestling/roster/jacob-cardenas/26081'},{year:2024,place:4,source:'https://mgoblue.com/sports/wrestling/roster/jacob-cardenas/26081'},{year:2025,place:4,source:'https://mgoblue.com/sports/wrestling/roster/jacob-cardenas/26081'}],
+  'Stevan Micic': [{year:2017,place:4,source:'https://mgoblue.com/sports/wrestling/roster/stevan-micic/22814'},{year:2018,place:2,source:'https://mgoblue.com/sports/wrestling/roster/stevan-micic/22814'},{year:2019,place:3,source:'https://mgoblue.com/sports/wrestling/roster/stevan-micic/22814'},{year:2022,place:'qualifier',source:'https://mgoblue.com/sports/wrestling/roster/stevan-micic/22814'}],
+  // 2017 at-large qualifier; injury withdrawal before wrestling, not a placement.
+  'Nick Suriano': [{year:2017,place:'qualifier',source:'https://gopsusports.com/news/2017/03/9/wrest-notes-2017-ncaa-wrestling-championships'},{year:2018,place:2,source:'https://mgoblue.com/sports/wrestling/roster/nick-suriano/23014'},{year:2019,place:1,source:'https://mgoblue.com/sports/wrestling/roster/nick-suriano/23014'},{year:2022,place:1,source:'https://mgoblue.com/sports/wrestling/roster/nick-suriano/23014'}],
   'Myles Amine': [{year:2017,place:4,source:'https://mgoblue.com/sports/wrestling/roster/myles-amine/22801'},{year:2018,place:3,source:'https://mgoblue.com/sports/wrestling/roster/myles-amine/22801'},{year:2019,place:3,source:'https://mgoblue.com/sports/wrestling/roster/myles-amine/22801'},{year:2021,place:3,source:'https://mgoblue.com/sports/wrestling/roster/myles-amine/22801'},{year:2022,place:2,source:'https://mgoblue.com/sports/wrestling/roster/myles-amine/22801'}],
   'Mason Parris': [{year:2019,place:'qualifier',source:'https://mgoblue.com/sports/wrestling/roster/mason-parris/23669'},{year:2021,place:2,source:'https://mgoblue.com/sports/wrestling/roster/mason-parris/23669'},{year:2022,place:5,source:'https://mgoblue.com/sports/wrestling/roster/mason-parris/23669'},{year:2023,place:1,source:'https://mgoblue.com/sports/wrestling/roster/mason-parris/23669'}],
   'Jarrett Hubbard': [{year:1971,place:4,source:'https://mgoblue.com/sports/2017/6/16/genrel-blackhistory-2010-html'},{year:1972,place:2,source:'https://bentley.umich.edu/athdept/wrestl/wrncaa/wrestlaa.htm'},{year:1973,place:1,source:'https://nwhof.org/brackets/43'},{year:1974,place:1,source:'https://nwhof.org/brackets/44'}],
@@ -289,7 +294,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Dave Schultz': 3, 'Jeff Smith': 2, 'Ben Lewis': 3, 'Jack Zindel': 3, 'Mike Bradley': 3, 'Gerry Malecek': 3, 'Dale Carr': 3, 'Greg Johnson': 3, 'Kollin Moore': 3, 'Frank Romano': 3, 'Dave Reinbolt': 3, 'Brock Lesnar': 2, 'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Jack Barden': 3, 'Dave Schultz': 3, 'Jeff Smith': 2, 'Ben Lewis': 3, 'Jack Zindel': 3, 'Mike Bradley': 3, 'Gerry Malecek': 3, 'Dale Carr': 3, 'Greg Johnson': 3, 'Kollin Moore': 3, 'Frank Romano': 3, 'Dave Reinbolt': 3, 'Brock Lesnar': 2, 'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -303,6 +308,10 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Jack Barden': {wins:31,losses:4,ties:4,source:'https://mgoblue.com/documents/download/2015/8/17/wrm-record-book.pdf'},
+  'Jacob Cardenas': {wins:95,losses:25,source:'https://mgoblue.com/sports/wrestling/roster/jacob-cardenas/26081'},
+  'Stevan Micic': {wins:87,losses:19,source:'https://mgoblue.com/sports/wrestling/roster/stevan-micic/22814'},
+  'Nick Suriano': {wins:86,losses:7,source:'https://mgoblue.com/sports/wrestling/roster/nick-suriano/23014'},
   'Myles Amine': {wins:112,losses:21,source:'https://mgoblue.com/sports/wrestling/roster/myles-amine/22801'},
   'Mason Parris': {wins:124,losses:18,source:'https://mgoblue.com/sports/wrestling/roster/mason-parris/23669'},
   'Jarrett Hubbard': {wins:80,losses:8,source:'https://mgoblue.com/sports/2017/6/16/genrel-blackhistory-2010-html'},
