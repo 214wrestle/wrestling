@@ -14,7 +14,8 @@
     "check:roster": "esbuild src/dev/checkRoster.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-roster.mjs --log-level=warning && node node_modules/.cache/check-roster.mjs",
     "check:ratings": "esbuild src/dev/checkRatings.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-ratings.mjs --log-level=warning && node node_modules/.cache/check-ratings.mjs",
     "roster:export": "node scripts/export-roster.mjs",
-    "check:clips": "esbuild src/dev/checkClips.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-clips.mjs --log-level=warning && node node_modules/.cache/check-clips.mjs"
+    "check:clips": "esbuild src/dev/checkClips.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-clips.mjs --log-level=warning && node node_modules/.cache/check-clips.mjs",
+    "check:scramble": "esbuild src/dev/checkScramble.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-scramble.mjs --log-level=warning && node node_modules/.cache/check-scramble.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",

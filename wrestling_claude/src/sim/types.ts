@@ -131,6 +131,9 @@ export type StartPosition = 'neutral' | 'top' | 'bottom';
 
 /** Normalised per-tick intent from a human or the AI. */
 export interface Command {
+  /** U / left bumper: ankle-level single. I / triangle: contest control. */
+  lowSingle?: boolean;
+  scramble?: boolean;
   /** Intended movement on the mat, world space, length <= 1. */
   moveX: number;
   moveZ: number;

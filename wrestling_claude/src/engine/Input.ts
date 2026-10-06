@@ -19,6 +19,8 @@ const KEY_MAP: Record<string, string> = {
   KeyD: 'right',
   ArrowRight: 'right',
   KeyJ: 'shoot',
+  KeyU: 'lowSingle',
+  KeyI: 'scramble',
   Space: 'shoot',
   KeyK: 'fight',
   KeyL: 'sprawl',
@@ -39,6 +41,8 @@ export interface PadState {
   fight: boolean;
   sprawl: boolean;
   level: boolean;
+  lowSingle?: boolean;
+  scramble?: boolean;
 }
 
 export const NO_PAD: PadState = { x: 0, y: 0, shoot: false, fight: false, sprawl: false, level: false };
@@ -165,7 +169,7 @@ export class Input {
       x /= len;
       y /= len;
     }
-    return { x, y, shoot, fight, sprawl, level };
+    return { x, y, shoot, fight, sprawl, level, lowSingle: this.held.has('lowSingle') || !!this.touch.lowSingle || !!pad?.buttons[4]?.pressed, scramble: this.held.has('scramble') || !!this.touch.scramble || !!pad?.buttons[3]?.pressed };
   }
 
   /** A short controller buzz for impacts and scores. */

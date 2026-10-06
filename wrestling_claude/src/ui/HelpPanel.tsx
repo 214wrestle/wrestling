@@ -12,6 +12,8 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
     title: 'On your feet',
     lead: 'Distance, level and hands decide everything. Right on the stick always moves you toward him.',
     rows: [
+      {key:'U / LB',move:'Low single',note:'Attack the ankle from neutral. John Smith favors this entry.'},
+      {key:'I / Y',move:'Scramble',note:'Contest grips and control with a burst of movement. Costs stamina; points require a completed finish or reversal. Press at any time; during a committed transition it queues for the next live position.'},
       { key: 'J', move: 'Shoot', note: 'From about an arm’s length. Square up for a double, come off an angle for a single. Out of range it is a fake that can pull his sprawl.' },
       { key: 'K', move: 'Hand fight', note: 'Win ties for wrist control, then a collar tie. With the collar, K snaps him down — best when he is leaning on you or standing tall.' },
       { key: 'L', move: 'Sprawl', note: 'Hips back the instant he shoots. Early is fine, late gets you taken down. Sprawling at nothing leaves you open.' },

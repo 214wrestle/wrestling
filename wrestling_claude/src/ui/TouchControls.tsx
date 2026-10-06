@@ -10,7 +10,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
   const padRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLSpanElement>(null);
   const stick = useRef({ x: 0, y: 0 });
-  const buttons = useRef({ shoot: false, fight: false, sprawl: false, level: false });
+  const buttons = useRef({ shoot: false, fight: false, sprawl: false, level: false, lowSingle: false, scramble: false });
 
   const push = useCallback(() => {
     api.setTouch({ ...stick.current, ...buttons.current });
@@ -43,7 +43,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     push();
   };
 
-  const hold = (key: 'shoot' | 'fight' | 'sprawl' | 'level', down: boolean) => {
+  const hold = (key: 'shoot' | 'fight' | 'sprawl' | 'level' | 'lowSingle' | 'scramble', down: boolean) => {
     buttons.current[key] = down;
     push();
   };
@@ -66,6 +66,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
         <span ref={knobRef} className="touch__knob" />
       </div>
       <div className="touch__buttons">
+        {(['lowSingle', 'scramble'] as const).map(key => <button key={key} type="button" className="touch__btn" onPointerDown={() => hold(key,true)} onPointerUp={() => hold(key,false)} onPointerLeave={() => hold(key,false)} onPointerCancel={() => hold(key,false)}>{key === 'lowSingle' ? 'Low single' : 'Scramble'}</button>)}
         {(['sprawl', 'fight', 'shoot'] as const).map((key) => (
           <button
             key={key}

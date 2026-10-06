@@ -126,6 +126,8 @@ export class WrestlerAI {
       default:
         break;
     }
+    const name = `${bout.wrestlers[this.side].firstName} ${bout.wrestlers[this.side].lastName}`;
+    if ((pos.kind === 'legs' || pos.kind === 'fhl' || pos.kind === 'mat') && ['Yianni Diakomihalis','Jesse Delgado'].includes(name) && this.rng.chance(dt * 0.3)) cmd.scramble = true;
     return this.edges(cmd);
   }
 
@@ -295,7 +297,11 @@ export class WrestlerAI {
       }
       // Ride: keep him tight, break him down, then turn him. A chop comes with a
       // quick second one, before he can rebuild the base the first one cost him.
-      if (pos.base < 0.32) cmd.shoot = true;
+      // A failed turn leaves a short recovery window. Retain the ride and
+      // continue breaking the base instead of forcing a blocked repeat tilt
+      // that the simulation penalizes by releasing control.
+      if (pos.base < 0.32 && pos.turnCool <= 0) cmd.shoot = true;
+      else if (pos.base < 0.32 && pos.turnCool > 0) cmd.fight = true;
       else if (me.stamina < 0.2 || pos.control < 0.45) cmd.sprawl = true;
       else if (this.rng.next() < 0.5) {
         cmd.fight = true;

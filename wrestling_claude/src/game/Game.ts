@@ -580,6 +580,8 @@ export class Game implements GameApi {
       moveX: move.x,
       moveZ: move.z,
       shoot: pad.shoot,
+      lowSingle: pad.lowSingle,
+      scramble: pad.scramble,
       fight: pad.fight,
       sprawl: pad.sprawl,
       level: pad.level,

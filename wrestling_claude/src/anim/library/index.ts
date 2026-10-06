@@ -5,5 +5,6 @@
 import './mat';
 import './neutral';
 import './highCrotch';
+import './lowSingle';
 import './moves';
 import './solo';

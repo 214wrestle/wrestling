@@ -244,6 +244,9 @@ export class Bout {
   readonly athletes: [Athlete, Athlete];
   position: Position = { kind: 'free' };
   private prev: [Command, Command];
+  private lowRequest: [boolean, boolean] = [false, false];
+  private scramblePending: [number, number] = [0, 0];
+  private scrambleCool: [number, number] = [0, 0];
   private rng: Rng;
 
   constructor(
@@ -287,11 +290,17 @@ export class Bout {
     this.position = { kind: 'free' };
     for (const x of this.athletes) {
       x.act = 'idle';
-      x.vel = { x: 0, z: 0 };
+      this.scramblePending[x.side] = 0;
+    this.scrambleCool[x.side] = 0;
+    this.lowRequest[x.side] = false;
+    x.vel = { x: 0, z: 0 };
     }
   }
 
   private resetAthlete(x: Athlete): void {
+    this.scramblePending[x.side] = 0;
+    this.scrambleCool[x.side] = 0;
+    this.lowRequest[x.side] = false;
     x.vel = { x: 0, z: 0 };
     x.level = 0.45;
     x.lean = 0;
@@ -331,12 +340,17 @@ export class Bout {
 
   tick(dt: number, cmds: [Command, Command]): void {
     for (const a of this.athletes) {
-      const c = cmds[a.side];
+      let c = cmds[a.side];
       const p = this.prev[a.side];
+      this.scramblePending[a.side] = c.scramble && !p.scramble ? 2.5 : Math.max(0, this.scramblePending[a.side] - dt);
+      if (c.lowSingle && !p.lowSingle) c = cmds[a.side] = {...c, shoot:true, level:true};
       // Buffer fresh presses so a tap just before an action opens still counts.
       a.buffer.shoot = c.shoot && !p.shoot ? BOUT.buffer : Math.max(0, a.buffer.shoot - dt);
       a.buffer.fight = c.fight && !p.fight ? BOUT.buffer : Math.max(0, a.buffer.fight - dt);
       a.buffer.sprawl = c.sprawl && !p.sprawl ? BOUT.buffer : Math.max(0, a.buffer.sprawl - dt);
+      this.lowRequest[a.side] = !!c.lowSingle;
+      this.scrambleCool[a.side] = Math.max(0, this.scrambleCool[a.side] - dt);
+      if (this.scramblePending[a.side] > 0 && this.scrambleCool[a.side] <= 0 && a.stamina > 0.12) this.requestScramble(a);
       a.cooldown = Math.max(0, a.cooldown - dt);
       a.actT += dt;
       a.sinceFake += dt;
@@ -369,6 +383,43 @@ export class Bout {
 
     if (this.position.kind !== 'free') this.checkBounds();
     this.prev = [{ ...cmds[0] }, { ...cmds[1] }];
+  }
+
+  private requestScramble(a: Athlete): void {
+    const s = this.position;
+    if (s.kind === 'free' || s.kind === 'move' || s.kind === 'shot' || s.kind === 'neutral' && (a.cooldown > 0 || a.act !== 'stance')) return;
+    this.scramblePending[a.side] = 0;
+    const o = this.athletes[otherSide(a.side)];
+    const w = this.wrestlers[a.side];
+    const specialist = ['Yianni Diakomihalis', 'Jesse Delgado'].includes(`${w.firstName} ${w.lastName}`);
+    const skill = w.attributes.quickness * (specialist ? 1.18 : 1);
+    this.scrambleCool[a.side] = 1.4;
+    this.spend(a, 0.07);
+    this.ev.announce?.('Scramble!', 'info', 'Control is still contested');
+    if (s.kind === 'neutral') {
+      a.buffer.shoot = BOUT.buffer;
+      this.lowRequest[a.side] = true;
+    } else if (s.kind === 'legs') {
+      // Hip separation and a corner change: no score until the finish wins control.
+      const delta = 0.09 * skill * (0.5 + a.stamina) - 0.04 * this.wrestlers[o.side].attributes.defense;
+      s.progress = clamp(s.progress + (s.A === a.side ? delta : -delta), 0.02, 0.98);
+      s.intensity = 1;
+      s.frame.yaw += (s.A === a.side ? 1 : -1) * 0.18;
+    } else if (s.kind === 'fhl') {
+      s.recover = clamp(s.recover + (s.A === a.side ? -1 : 1) * 0.14 * skill, 0, 1);
+      s.intensity = 1;
+    } else if (s.kind === 'mat') {
+      if (s.A !== a.side) {
+        s.base = Math.min(1, s.base + 0.12 * skill);
+        s.control = Math.max(0, s.control - 0.1 * skill);
+        // Existing switch/escape/fight-off checks decide the outcome.
+        a.buffer[s.sub === 'exposed' ? 'sprawl' : s.sub === 'standing' ? 'shoot' : 'fight'] = BOUT.buffer;
+      } else {
+        s.control = Math.min(1, s.control + 0.07 * skill);
+        a.buffer.fight = BOUT.buffer;
+      }
+      s.intensity = 1;
+    }
   }
 
   /** Consume a buffered press. */
@@ -557,7 +608,7 @@ export class Bout {
     const double = angled ? weights.double * 0.25 : weights.double;
     const single = angled ? weights.single * 1.6 : weights.single;
     const roll = style ? this.rng.next() * (double + single + weights.highCrotch) : 0;
-    const shot: ShotKind = !style ? (angled || this.rng.chance(0.3) ? 'single' : 'double')
+    const shot: ShotKind = this.lowRequest[a.side] || this.wrestlers[a.side].firstName === 'John' && this.wrestlers[a.side].lastName === 'Smith' && this.rng.chance(0.7) ? 'lowSingle' : !style ? (angled || this.rng.chance(0.3) ? 'single' : 'double')
       : roll < double ? 'double' : roll < double + single ? 'single' : 'highCrotch';
     // Near-leg attacks mirror when entering from his left.
     const mirror = shot !== 'double' ? off < 0 : false;
@@ -823,7 +874,7 @@ export class Bout {
     if (s.progress >= 1) {
       // A double won quickly, by a strong man with gas left, often goes up in the air.
       const lift = s.shot === 'double' && s.t < 1.2 && A.stamina > 0.4 && this.rng.chance(0.06 + wa.strength * 0.2);
-      this.startMove(s.shot === 'highCrotch' ? 'finishHighCrotch' : s.shot === 'single' ? 'finishSingle' : lift ? 'liftDouble' : 'finishDouble', s.A, s.frame, s.mirror);
+      this.startMove(s.shot === 'lowSingle' ? 'finishLowSingle' : s.shot === 'highCrotch' ? 'finishHighCrotch' : s.shot === 'single' ? 'finishSingle' : lift ? 'liftDouble' : 'finishDouble', s.A, s.frame, s.mirror);
       return;
     }
     if (s.progress <= 0) {
@@ -1163,7 +1214,7 @@ export class Bout {
       return { x: dx * c - dz * s, z: dx * s + dz * c, yaw: wrap(a.yaw - frame.yaw) };
     };
     let dur = def.dur;
-    if (id === 'shotDouble' || id === 'shotSingle' || id === 'shotHighCrotch') dur = from.kind === 'shot' ? from.dur : def.dur;
+    if (id === 'shotDouble' || id === 'shotSingle' || id === 'shotHighCrotch' || id === 'shotLowSingle') dur = from.kind === 'shot' ? from.dur : def.dur;
     this.position = {
       kind: 'move',
       id,

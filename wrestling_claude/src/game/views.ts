@@ -115,7 +115,7 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete]): AnimV
         u: Math.min(1, p.t / p.dur),
         progress: 0,
         intensity: 1,
-        dist: p.id === 'stuffed' || p.id === 'shotDouble' || p.id === 'shotSingle' || p.id === 'shotHighCrotch' ? p.dist : undefined,
+        dist: p.id === 'stuffed' || p.id === 'shotDouble' || p.id === 'shotSingle' || p.id === 'shotHighCrotch' || p.id === 'shotLowSingle' ? p.dist : undefined,
         ...base,
       };
     default:

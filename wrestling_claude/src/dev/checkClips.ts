@@ -21,7 +21,7 @@ for (const id of Object.keys(HOLD_PLACES)) {
     if (!pose.every(Number.isFinite)) throw new Error(`Invalid hold pose: ${id}`);
   }
 }
-for (const shot of ['double', 'single', 'highCrotch'] as const) {
+for (const shot of ['double', 'single', 'highCrotch', 'lowSingle'] as const) {
   if (!hasMove(SHOT_CLIPS[shot]) || !hasHold(LEG_HOLDS[shot])) throw new Error(`Incomplete attack: ${shot}`);
 }
 console.log('Every simulation move and hold has finite paired animation poses, including mirrored high crotches');
