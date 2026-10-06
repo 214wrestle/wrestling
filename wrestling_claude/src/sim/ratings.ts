@@ -40,6 +40,8 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Brent Metcalf": [{"year": 2008, "place": 1, "source": "https://hawkeyesports.com/sports/wrestling/roster/season/2009-10/player/brent-metcalf", "outstandingWrestler": true}, {"year": 2009, "place": 2, "source": "https://hawkeyesports.com/sports/wrestling/roster/season/2009-10/player/brent-metcalf"}, {"year": 2010, "place": 1, "source": "https://hawkeyesports.com/sports/wrestling/roster/season/2009-10/player/brent-metcalf"}],
+  "Max Askren": [{"year": 2007, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/maxwell-askren"}, {"year": 2008, "place": 7, "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/maxwell-askren"}, {"year": 2009, "place": 5, "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/maxwell-askren"}, {"year": 2010, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/maxwell-askren"}],
   "Ben Askren": [{"year": 2004, "place": 2, "source": "https://mutigers.com/news/2012/01/09/class-of-six-chosen-for-mu-athletics-hall-of-fame"}, {"year": 2005, "place": 2, "source": "https://mutigers.com/news/2012/01/09/class-of-six-chosen-for-mu-athletics-hall-of-fame"}, {"year": 2006, "place": 1, "source": "https://more.mutigers.com/mizzoumade/askren.html", "outstandingWrestler": true}, {"year": 2007, "place": 1, "source": "https://mutigers.com/news/2012/01/09/class-of-six-chosen-for-mu-athletics-hall-of-fame"}],
   "Nathan Tomasello": [{"year": 2015, "place": 1, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/nathan-tomasello/2226"}, {"year": 2016, "place": 3, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/nathan-tomasello/2226"}, {"year": 2017, "place": 3, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/nathan-tomasello/2226"}, {"year": 2018, "place": 3, "source": "https://ohiostatebuckeyes.com/sports/wrestling/roster/nathan-tomasello/2226"}],
   "Nick Heflin": [{"year": 2011, "place": "qualifier", "source": "https://ohiostatebuckeyes.com/news/2011/3/18/colt-sponseller-advances-to-ncaa-championships-quarterfinals"}, {"year": 2012, "place": 5, "source": "https://ohiostatebuckeyes.com/news/2012/11/1/ohio-state-names-2012-13-team-captains"}, {"year": 2013, "place": 5, "source": "https://ohiostatebuckeyes.com/documents/download/2023/5/25/1213year-in-review.pdf"}, {"year": 2014, "place": 2, "source": "https://ohiostatebuckeyes.com/news/2014/3/25/ohio-state-athletics-good-stuff-28"}],
@@ -155,7 +157,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 3 | 4> = {'Dan Gable': 3, 'Dan Hodge': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 3 | 4> = {'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -169,6 +171,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Brent Metcalf": {wins:108,losses:3,source:"https://hawkeyesports.com/sports/wrestling/roster/season/2009-10/player/brent-metcalf"},
+  "Max Askren": {wins:104,losses:16,source:"https://mutigers.com/sports/wrestling/roster/season/2008-09/player/maxwell-askren"},
   "Nick Heflin": {wins:99,losses:28,source:"https://ohiostatebuckeyes.com/news/2014/3/25/ohio-state-athletics-good-stuff-28"},
   "Tommy Rowlands": {wins:164,losses:15,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=5904"},
   "Adam Tirapelle": {wins:127,losses:21,source:"https://fightingillini.com/documents/download/2015/12/9/2015_16_Media_Guide.pdf"},
