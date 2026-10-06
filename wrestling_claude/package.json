@@ -18,7 +18,8 @@
     "check:scramble": "esbuild src/dev/checkScramble.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-scramble.mjs --log-level=warning && node node_modules/.cache/check-scramble.mjs",
     "check:spladle": "esbuild src/dev/checkSpladle.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-spladle.mjs --log-level=warning && node node_modules/.cache/check-spladle.mjs",
     "check:tie-attacks": "esbuild src/dev/checkTieAttacks.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-tie-attacks.mjs --log-level=warning && node node_modules/.cache/check-tie-attacks.mjs",
-    "check:touch-effort": "esbuild src/dev/checkTouchEffort.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-touch-effort.mjs --log-level=warning && node node_modules/.cache/check-touch-effort.mjs"
+    "check:touch-effort": "esbuild src/dev/checkTouchEffort.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-touch-effort.mjs --log-level=warning && node node_modules/.cache/check-touch-effort.mjs",
+    "ratings:coverage": "node scripts/export-rating-coverage.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",
