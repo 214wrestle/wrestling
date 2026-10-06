@@ -1,3 +1,4 @@
+import { MOVES } from '../sim/moves';
 import { BOUT } from '../sim/bout';
 import type { MatchSim } from '../sim/MatchSim';
 import { otherSide } from '../sim/types';
@@ -143,6 +144,10 @@ export function readPrompts(sim: MatchSim, me: Side): PromptRead {
             },
         meters: [{ label: 'Base', value: pos.base, tone: top ? 'them' : 'you', mark: 0.35 }, ...((pos.legRide ?? 0) > 0 ? [{label:(pos.legRide ?? 0) >= 0.8 ? 'Leg ride secured' : 'Opening the pocket',value:pos.legRide!,tone:top ? 'you' as const : 'them' as const}] : []), ...((pos.pockets ?? 0) > 0.3 ? [{label:'Pockets closed',value:pos.pockets!,tone:top ? 'them' as const : 'you' as const}] : []), ...((pos.legCaught ?? 0) > 0 ? [{label:'Clearing the leg',value:pos.legCaught!,tone:top ? 'them' as const : 'you' as const}] : [])],
       };
+    }
+    case 'move': {
+      const award = MOVES[pos.id].award;
+      return {position: !pos.awarded && award && ['takedown','reversal','escape'].includes(award.kind) ? 'Scramble' : '—', prompts:{shoot:P('—','off'),fight:P('—','off'),sprawl:P('—','off')},meters:[]};
     }
     default:
       return {

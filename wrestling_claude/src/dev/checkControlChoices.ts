@@ -64,3 +64,13 @@ for(let seed=1;seed<=100;seed++)for(const guard of [false,true]){
 ok(disrupted>0&&disrupted<100,'a scramble can disrupt a finish but cannot guarantee it');
 ok(guarded<disrupted,'offensive counter-scramble protects contested finish');
 console.log(`Contested finish: ${disrupted}/100 disrupted; ${guarded}/100 with offensive counter-scramble`);
+for(const id of ['switch','escapeTurn'] as const){
+ let contested=0;
+ for(let seed=1;seed<=100;seed++){
+  const move=new Bout([PROTOTYPE_ROSTER[0],PROTOTYPE_ROSTER[1]],{},Math.imul(seed,2654435761)>>>0);
+  move.position={kind:'move',id,A:0,mirror:false,t:0.1,dur:1,frame:{x:0,z:0,yaw:0},awarded:false,impacted:false,startA:{x:0,z:0,yaw:0},startB:{x:0,z:0,yaw:0},dist:0.5};
+  move.tick(1/60,[{...NO_COMMAND,scramble:true},NO_COMMAND]);
+  if((move.position as import('../sim/bout').Position).kind==='mat')contested++;
+ }
+ ok(contested>0&&contested<100,`${id}: pre-score scramble restores a contested mat position`);
+}

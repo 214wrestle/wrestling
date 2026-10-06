@@ -442,13 +442,18 @@ export class Bout {
     if (s.kind === 'free' || s.kind === 'neutral') { this.scramblePending[a.side] = 0; return; }
     if (s.kind === 'move') {
       const def = MOVES[s.id];
-      if (s.awarded || !def.award || def.award.kind !== 'takedown') return;
-      const attacker = s.A;
+      if (s.awarded || !def.award || !['takedown','reversal','escape'].includes(def.award.kind)) return;
+      const attacker = def.award.to === 'A' ? s.A : otherSide(s.A);
       if (a.side === attacker) { this.scramblePending[a.side] = 0; this.scrambleCool[a.side] = 1.4; this.spend(a, 0.07); s.scrambleGuard = 1.4; return; }
       const chance = clamp(0.22 - (s.scrambleGuard ? 0.18 : 0) + this.wrestlers[a.side].attributes.quickness * 0.24 - this.wrestlers[otherSide(a.side)].attributes.quickness * 0.12, 0.1, 0.5);
       this.scramblePending[a.side] = 0; this.scrambleCool[a.side] = 1.4; this.spend(a, 0.07);
       if (a.side !== attacker && this.rng.chance(chance)) {
-        this.position = {kind:'legs', A:attacker, shot:'single', mirror:s.mirror, t:0, frame:s.frame, progress:0.48, intensity:1};
+        if (def.award.kind === 'takedown') this.position = {kind:'legs', A:s.A, shot:s.id.toLowerCase().includes('double') ? 'double' : s.id.toLowerCase().includes('highcrotch') ? 'highCrotch' : 'single', mirror:s.mirror, t:0, frame:s.frame, progress:0.48, intensity:1};
+        else {
+          const mat = this.matPosition(s.A, s.frame, def.award.kind === 'escape' ? 'standing' : 'ride', 0.8);
+          if (mat.kind === 'mat') { mat.control = 0.3; mat.escape = 0.4; }
+          this.position = mat;
+        }
         this.placeHold(); this.ev.announce?.('Scramble!', 'info', 'Finish disrupted — control still contested');
       }
       return;
