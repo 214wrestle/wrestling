@@ -186,7 +186,7 @@
           "source": "HWT — Lou Banach"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nJessie Whitmer — 118\nTerry Brands — 125\nMatt McDonough — 125\nMark Ironside — 133\nJeff McGinness — 141\nLincoln McIlravy — 149 option\nJoe Williams — 157 option\nMark Reiland — 165\nJay Borschel — 174\nLee Fullhart — 190\nSteve Mocco — HWT\nMichael Mocco — HWT [special eligibility exception]\nEric Jurgens\n\nOwner revision: Lincoln McIlravy — 149 starter; Joe Williams — 157 starter. Terry Steiner — 149 choice; Jim Zalesky — 157 choice. Iowa 141 starter: Jeff McGinness; 165 starter: Mark Perry.\nOwner revision: Jim Zalesky starter (historical 158, mapped to Legends 157); Joe Williams backup at 157.\nApproved final placements: Jeff McGinness — 141 starter; Mark Perry — 165 starter. Mark Reiland remains 165 Coach’s Choice.\nOwner additions: T.J. Williams — 157 Coach’s Choice; Jessman Smith — 184 Coach’s Choice.\nApproved revision: Chris Campbell — 174 Coach’s Choice behind Ed Banach (historical NCAA titles at 177); Jessman Smith — 184 starter; Sammy Brooks — 184 Coach’s Choice.",
+      "notesAndChoices": "Coach's Choice:\nJessie Whitmer — 118\nTerry Brands — 125\nMatt McDonough — 125\nMark Ironside — 133\nJeff McGinness — 141\nLincoln McIlravy — 149 option\nJoe Williams — 157 option\nMark Reiland — 165\nJay Borschel — 174\nLee Fullhart — 190\nSteve Mocco — HWT\nMichael Mocco — HWT [special eligibility exception]\nEric Juergens — 133\n\nOwner revision: Lincoln McIlravy — 149 starter; Joe Williams — 157 starter. Terry Steiner — 149 choice; Jim Zalesky — 157 choice. Iowa 141 starter: Jeff McGinness; 165 starter: Mark Perry.\nOwner revision: Jim Zalesky starter (historical 158, mapped to Legends 157); Joe Williams backup at 157.\nApproved final placements: Jeff McGinness — 141 starter; Mark Perry — 165 starter. Mark Reiland remains 165 Coach’s Choice.\nOwner additions: T.J. Williams — 157 Coach’s Choice; Jessman Smith — 184 Coach’s Choice.\nApproved revision: Chris Campbell — 174 Coach’s Choice behind Ed Banach (historical NCAA titles at 177); Jessman Smith — 184 starter; Sammy Brooks — 184 Coach’s Choice.",
       "id": "iowa",
       "choices": [
         {
@@ -258,6 +258,11 @@
           "name": "Chris Campbell",
           "weight": "174",
           "source": "Chris Campbell — 174 [owner-approved backup to Ed Banach; historical NCAA titles at 177]"
+        },
+        {
+          "name": "Eric Juergens",
+          "weight": "133",
+          "source": "Eric Juergens — 133 [owner addition: Coach’s Choice]"
         }
       ]
     },
