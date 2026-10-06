@@ -40,6 +40,9 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Jessie Whitmer": [{year:1994,place:0,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6308"},{year:1995,place:0,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6308"},{year:1996,place:0,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6308"},{year:1997,place:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6308"}],
+  "Mark Reiland": [{year:1989,place:4,source:"https://nwhof.org/brackets/59#page=18"},{year:1990,place:0,source:"https://nwhof.org/brackets/60#page=20"},{year:1991,place:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=12707"},{year:1992,place:"qualifier",source:"https://nwhof.org/brackets/62#page=20"}],
+  "Terry Steiner": [{year:1990,place:0,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12735"},{year:1991,place:3,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12735"},{year:1992,place:5,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12735"},{year:1993,place:1,outstandingWrestler:true,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12735"}],
   "Chris Campbell": [{year:1974,place:"qualifier",source:"https://nwhof.org/brackets/44#page=23"},{year:1975,place:2,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=1353"},{year:1976,place:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=1353"},{year:1977,place:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=1353"}],
   "T.J. Williams": [{year:1999,place:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=12525"},{year:2000,place:3,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=12525"},{year:2001,place:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=12525"}],
   "Jay Borschel": [{year:2008,place:3,source:"https://hawkeyesports.com/sports/wrestling/roster/player/jay-borschel"},{year:2009,place:"qualifier",source:"https://hawkeyesports.com/sports/wrestling/roster/player/jay-borschel"},{year:2010,place:1,source:"https://hawkeyesports.com/sports/wrestling/roster/player/jay-borschel"}],
@@ -186,6 +189,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Jessie Whitmer": {wins:50,losses:20,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6308"},
+  "Terry Steiner": {wins:125,losses:22,ties:2,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12735"},
   "T.J. Williams": {wins:98,losses:1,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=12525"},
   "Jay Borschel": {wins:98,losses:10,source:"https://hawkeyesports.com/sports/wrestling/roster/player/jay-borschel"},
   "Sammy Brooks": {wins:102,losses:24,source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"},

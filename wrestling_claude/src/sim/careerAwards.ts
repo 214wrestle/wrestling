@@ -32,6 +32,8 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  "Jessie Whitmer": {falls:13,bouts:70,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6308"},
+  "Terry Steiner": {falls:25,bouts:149,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/12735"},
   "T.J. Williams": {falls:12,bouts:99,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=12525"},
   "Jay Borschel": {falls:24,bouts:108,source:"https://hawkeyesports.com/sports/wrestling/roster/player/jay-borschel"},
   "Sammy Brooks": {falls:27,bouts:126,source:"https://hawkeyesports.com/sports/wrestling/roster/player/sammy-brooks"},
