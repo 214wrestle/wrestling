@@ -1,0 +1,5 @@
+# Moreno relaxed mouth revision
+
+Official reference visually reviewed: https://dxbhsrqyrr690.cloudfront.net/sidearm.nextgen.sites/isuni.sidearmsports.com/images/2015/10/2/TGCJBIUFSYWIISS.20151002142327.jpg . Portrait smile is not copied into relaxed wrestling pose. New Moreno-only closedMouth geometry joins upper/lower lip volumes, reduces protrusion, and omits deep subtractive seam; material supplies a surface seam. This removes the open slot and pronounced lip shelves. Other athletes preserve existing mouth construction.
+
+Fresh body-lab inspection:60057 body,41075 head,9729 gear vertices, no warnings/errors. Typecheck and full-site build pass. Lower-eyelid support experiment produced visible bags and was removed. Eyes, hair and likeness remain artificial; no claim of recognizable/UFC quality. Screenshot outputs/moreno-relaxed-mouth.jpg. Complete Quick match with revised Moreno production mesh:0–7 vs Mark Perry,fall with2.2seconds left inP1,16seconds riding time. Console errors/warnings empty. Idle-player smoke verifies renderer completion, not likeness or competitive calibration.

@@ -70,6 +70,8 @@ export interface FaceParams {
   upperLidHood?: number;
   /** Keep soft cheek tissue rounded instead of trimming it to skeletal jaw planes. */
   roundedCheeks?: boolean;
+  /** Joined relaxed lips with reduced protrusion. */
+  closedMouth?: boolean;
 }
 
 /** Body frame, multipliers on the neutral build. */
@@ -537,14 +539,14 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
     ...pair(cone('head', [0.0042, 1.6035 - L * 0.25, 0.1003], [0.0052, 1.591 - L * 0.28, 0.1032], 0.002, 0.002, 0.004, H, hw)),
     // Upper vermilion in two halves meeting in a Cupid's bow: thin and firm.
     ...pair(
-      ell('head', [0.0082, 1.5868 - L * 0.3, 0.0962], [0.0152, 0.0036 * F.lips, 0.0082], 0.0045, PART.Lip, {
+      ell('head', [0.0082, (F.closedMouth ? 1.5852 : 1.5868) - L * 0.3, F.closedMouth ? 0.094 : 0.0962], [0.0152, 0.0036 * F.lips, F.closedMouth ? 0.0065 : 0.0082], 0.0045, PART.Lip, {
         rot: [-6, 22, -4 + F.smile * 1.3],
         ...hw,
       }),
     ),
     // Lower vermilion, a little fuller, closed against the upper lip.
     ...pair(
-      ell('head', [0.0068, 1.5775 - L * 0.4, 0.0955], [0.0142, 0.0046 * F.lips, 0.0085 * Math.sqrt(F.lips)], 0.005, PART.Lip, {
+      ell('head', [0.0068, (F.closedMouth ? 1.5798 : 1.5775) - L * 0.4, F.closedMouth ? 0.0935 : 0.0955], [0.0142, 0.0046 * F.lips, (F.closedMouth ? 0.0068 : 0.0085) * Math.sqrt(F.lips)], 0.005, PART.Lip, {
         rot: [4, 22, F.smile * 1.3],
         ...hw,
       }),
@@ -554,9 +556,9 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
     // Mouth corners: a small pit where the lips tuck into the cheek.
     ...pair(ell('head', [0.0236, 1.5815 - L * 0.35 + F.smile * 0.00055, 0.0875], [0.0018, 0.0022, 0.0024], 0.004, H, { sub: true, claim: 0 })),
     // The closed line between the lips: a hairline crease, not a gap.
-    ...pair(
+    ...(F.closedMouth ? [] : pair(
       ell('head', [0.0092, 1.5822 - L * 0.35, 0.1045], [0.0125, 0.0011, 0.0024], 0.0025, H, { rot: [0, 24, F.smile * 1.4], sub: true, claim: 0 }),
-    ),
+    )),
     // Eye sockets, carved; the lids are unioned after (late) into the hollow.
     ...pair(ell('head', [0.032, 1.6505, EYE_Z + 0.0102], [0.0158, 0.0108, 0.0115], 0.009, H, { sub: true, claim: 0 })),
     // Lids: one shell that hugs the eyeball, with an almond aperture carved
