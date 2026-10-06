@@ -22,7 +22,8 @@ function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
   // https://ohiostatebuckeyes.com/news/2020/4/18/six-buckeyes-earn-nwca-all-america-recognition
   if(aa)return `${aa + (['Kollin Moore','Trent Hillger'].includes(name ?? '') ? 1 : 0)}x AA`;
   const qualifiers=seasons.filter(s=>s.place==='qualifier').length;
-  if(qualifiers)return `${qualifiers}x NCAA Qualifier${name === 'Cameron Caffey' ? ' · 2020 NWCA All-American' : ''}`;
+  // Norfleet's fourth qualification was for the canceled 2020 tournament: bio only.
+  if(qualifiers)return `${qualifiers + (name === 'Kordell Norfleet' ? 1 : 0)}x NCAA Qualifier${['Cameron Caffey', 'Kordell Norfleet'].includes(name ?? '') ? ' · 2020 NWCA All-American' : ''}`;
 }
 
 export function careerCredentials(career?:CareerScore,name?:string):string|undefined {
