@@ -12,7 +12,9 @@ function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
   // https://gopsusports.com/news/2024/04/3/penn-state-wrestling-season-in-review
   // Minnesota verifies five Steveson AA honors, including bio-only 2020 NWCA honor.
   // https://gophersports.com/sports/wrestling/roster/gable-steveson/22871
-  if(champs)return `${champs}x National Champ${['Aaron Brooks','Gable Steveson'].includes(name ?? '')?' · 5x AA':''}`;
+  // Michigan verifies Parris's fourth honor through the 2020 NWCA recognition.
+  // https://mgoblue.com/sports/wrestling/roster/mason-parris/23669
+  if(champs)return `${champs}x National Champ${['Aaron Brooks','Gable Steveson'].includes(name ?? '')?' · 5x AA':name === 'Mason Parris'?' · 4x AA':''}`;
   const aa=seasons.filter(s=>typeof s.place==='number' && s.place>=1 && s.place<=8).length;
   // Verified bio-only 2020 NWCA first-team recognition adds no rating points.
   // https://ohiostatebuckeyes.com/news/2020/4/18/six-buckeyes-earn-nwca-all-america-recognition
