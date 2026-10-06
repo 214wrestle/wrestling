@@ -1,9 +1,9 @@
 {
-  "generated": "2026-10-06T11:10:08.303Z",
+  "generated": "2026-10-06T11:16:41.036Z",
   "rosterSlots": 451,
-  "verifiedSlots": 111,
-  "pendingSlots": 340,
-  "verifiedCareers": 110,
+  "verifiedSlots": 114,
+  "pendingSlots": 337,
+  "verifiedCareers": 113,
   "athletes": [
     {
       "id": "penn-state-118-starter-jeff-prescott",
@@ -1591,9 +1591,30 @@
       "school": "NEBRASKA",
       "weight": 197,
       "role": "starter",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 82,
+      "countedSeasons": [
+        {
+          "year": 2000,
+          "place": 1,
+          "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"
+        },
+        {
+          "year": 1999,
+          "place": 4,
+          "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"
+        },
+        {
+          "year": 2001,
+          "place": 7,
+          "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"
+        },
+        {
+          "year": 1998,
+          "place": "qualifier",
+          "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"
+        }
+      ],
       "excludedSeasons": []
     },
     {
@@ -1602,9 +1623,30 @@
       "school": "NEBRASKA",
       "weight": 285,
       "role": "starter",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 88,
+      "countedSeasons": [
+        {
+          "year": 1995,
+          "place": 1,
+          "source": "https://nwhof.org/hall_of_fame/bio_by_name/tolly-thompson"
+        },
+        {
+          "year": 1997,
+          "place": 3,
+          "source": "https://nwhof.org/hall_of_fame/bio_by_name/tolly-thompson"
+        },
+        {
+          "year": 1996,
+          "place": 3,
+          "source": "https://nwhof.org/hall_of_fame/bio_by_name/tolly-thompson"
+        },
+        {
+          "year": 1994,
+          "place": "qualifier",
+          "source": "https://nwhof.org/brackets/64#page=29"
+        }
+      ],
       "excludedSeasons": []
     },
     {
@@ -1624,9 +1666,30 @@
       "school": "NEBRASKA",
       "weight": 125,
       "role": "choice",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 85,
+      "countedSeasons": [
+        {
+          "year": 2004,
+          "place": 1,
+          "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"
+        },
+        {
+          "year": 2003,
+          "place": 3,
+          "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"
+        },
+        {
+          "year": 2002,
+          "place": 5,
+          "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"
+        },
+        {
+          "year": 2001,
+          "place": "qualifier",
+          "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"
+        }
+      ],
       "excludedSeasons": []
     },
     {

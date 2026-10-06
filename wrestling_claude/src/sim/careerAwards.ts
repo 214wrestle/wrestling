@@ -32,6 +32,8 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  "Jason Powell": {gorriaranYears:[2003],source:"https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"},
+  "Tolly Thompson": {falls:53,bouts:178,source:"https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/huskers.com/documents/2019/8/30/2019_20_Nebraska_All_Sport_Record_Book.pdf#page=298"},
   "Chris Taylor": {falls:70,bouts:88,gorriaranYears:[1973],gorriaranSource:"https://nwhof.org/brackets/43#page=1",source:"https://cyclones.com/news/2012/5/31/205435327"},
   "Carl Adams": {falls:20,bouts:90,source:"https://nwhof.org/hall_of_fame/bio/4679"},
   "Jessie Whitmer": {falls:13,bouts:70,source:"https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6308"},

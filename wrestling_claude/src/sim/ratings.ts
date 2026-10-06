@@ -40,6 +40,10 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Brad Vering": [{"year": 1998, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"}, {"year": 1999, "place": 4, "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"}, {"year": 2000, "place": 1, "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"}, {"year": 2001, "place": 7, "source": "https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"}],
+  "Jason Powell": [{"year": 2001, "place": "qualifier", "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"}, {"year": 2002, "place": 5, "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"}, {"year": 2003, "place": 3, "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"}, {"year": 2004, "place": 1, "source": "https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"}],
+  "Tolly Thompson": [{"year": 1994, "place": "qualifier", "source": "https://nwhof.org/brackets/64#page=29"}, {"year": 1995, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio_by_name/tolly-thompson"}, {"year": 1996, "place": 3, "source": "https://nwhof.org/hall_of_fame/bio_by_name/tolly-thompson"}, {"year": 1997, "place": 3, "source": "https://nwhof.org/hall_of_fame/bio_by_name/tolly-thompson"}],
+
   "Jim Scherr": [{year:1981,place:0,source:"https://nwhof.org/brackets/51"},{year:1982,place:6,source:"https://huskers.com/nebraskas-national-champions"},{year:1983,place:"qualifier",source:"https://nwhof.org/brackets/53#page=23"},{year:1984,place:1,source:"https://nwhof.org/brackets/54#page=1"}],
   "Bill Scherr": [{year:1981,place:0,source:"https://nwhof.org/brackets/51"},{year:1982,place:4,source:"https://huskers.com/nebraskas-national-champions"},{year:1983,place:3,source:"https://huskers.com/nebraskas-national-champions"},{year:1984,place:1,source:"https://nwhof.org/brackets/54#page=1"}],
   "Mike Moreno Sr.": [{year:1989,place:"qualifier",source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=9"},{year:1990,place:"qualifier",source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=9"},{year:1991,place:0,source:"https://dailyiowan.lib.uiowa.edu/DI/1991/di1991-01-21.pdf#page=9"},{year:1992,place:7,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/4462"}],
@@ -199,6 +203,9 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Brad Vering": {wins:124,losses:26,source:"https://huskers.com/sports/wrestling/roster/season/1997-98/player/brad-vering"},
+  "Jason Powell": {wins:109,losses:24,source:"https://huskers.com/sports/wrestling/roster/season/2001-02/player/jason-powell"},
+  "Tolly Thompson": {wins:157,losses:21,source:"https://nwhof.org/hall_of_fame/bio_by_name/tolly-thompson"},
   "Jim Scherr": {wins:109,losses:25,ties:4,source:"https://huskers.com/nebraskas-national-champions"},
   "Bill Scherr": {wins:133,losses:18,source:"https://huskers.com/nebraskas-national-champions"},
   "Chris Taylor": {wins:87,losses:0,ties:1,source:"https://cyclones.com/news/2012/5/31/205435327"},
