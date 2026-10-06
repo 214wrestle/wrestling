@@ -66,6 +66,8 @@ export const HOLD_PLACES = {
 } as const;
 
 export const MOVES: Record<string, MoveDef> = {
+  liftedLegTrip: {id:'liftedLegTrip',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Lifted leg — outside trip'},impact:{at:0.7,strength:0.65},next:{kind:'mat',A:'A',frame:{x:0.3,z:0.8,yaw:-PI/2},sub:'ride',base:0.5}},
+  liftedLegDrive: {id:'liftedLegDrive',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Lifted leg — drive back'},impact:{at:0.7,strength:0.6},next:{kind:'mat',A:'A',frame:{x:0,z:1.1,yaw:PI},sub:'ride',base:0.55}},
   duckUnder: {id:'duckUnder',dur:1.3,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'duckUnder — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   superDuck: {id:'superDuck',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'superDuck — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   slideBy: {id:'slideBy',dur:1.25,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'slideBy — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},

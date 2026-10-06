@@ -193,7 +193,7 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
           <span><Key>U</Key> low single</span>
           <span><Key>I</Key> scramble</span>
           <span>
-            <Key>Shift</Key> level
+            <Key>Shift</Key> lower / cut
           </span>
           <span>
             <Key>H</Key> how to wrestle

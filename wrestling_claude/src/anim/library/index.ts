@@ -11,3 +11,7 @@ import './moves';
 import './solo';
 
 import './tieAttacks';
+
+import './legFinishes';
+
+import './legRide';

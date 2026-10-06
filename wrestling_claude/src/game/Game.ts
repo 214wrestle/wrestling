@@ -160,7 +160,7 @@ export class Game implements GameApi {
     private canvas: HTMLCanvasElement,
     private store: UiStore,
   ) {
-    const coarse = matchMedia('(pointer: coarse)').matches;
+    const coarse = matchMedia('(pointer: coarse)').matches || (import.meta.env.DEV && new URLSearchParams(location.search).has('touch'));
     const small = Math.min(window.innerWidth, window.innerHeight) < 600;
     this.quality = coarse && small ? 'low' : 'high';
     this.renderer = new Renderer(canvas, this.quality === 'low' ? 'medium' : 'high');
@@ -467,6 +467,8 @@ export class Game implements GameApi {
     if (state.shoot || state.fight || state.sprawl || state.x || state.y) this.store.set({ device: 'touch' });
   }
 
+  chooseTopRestart(cut: boolean): void { this.sim?.chooseTopRestart(cut); }
+
   skipIntros(): void {
     this.sim?.skipIntros();
   }
@@ -582,6 +584,10 @@ export class Game implements GameApi {
       moveZ: move.z,
       shoot: pad.shoot,
       sustainedEffort: pad.sustainedEffort,
+      legAction: pad.legAction,
+      legRide: pad.legRide,
+      closePockets: pad.closePockets,
+      catchLeg: pad.catchLeg,
       technique: pad.technique,
       lowSingle: pad.lowSingle,
       scramble: pad.scramble,
@@ -813,6 +819,7 @@ export class Game implements GameApi {
       top: sim.bout.top,
       position: read.position,
       prompts: read.prompts,
+      topRestartCut: sim.topRestartCut,
       meters: read.meters,
       nearFall: { active: pos.kind === 'mat' && pos.sub === 'exposed', timer: pos.kind === 'mat' ? pos.expo : 0 },
       stats: [{ ...a[0].stats }, { ...a[1].stats }],

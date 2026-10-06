@@ -71,6 +71,11 @@ const SCORE_POINTS: Record<ScoreKind, number> = {
 export const STALL_POINT_AT = 11;
 
 export class MatchSim {
+  private preWhistleCut = false;
+  get topRestartCut(): boolean { return this.preWhistleCut; }
+  chooseTopRestart(cut: boolean): void {
+    if (this.phase === 'setPosition' && this.bout.top === this.humanSide) this.preWhistleCut = cut;
+  }
   readonly wrestlers: [Wrestler, Wrestler];
   readonly bout: Bout;
 
@@ -154,6 +159,7 @@ export class MatchSim {
         if (this.phaseT >= this.phaseDur) this.requestPeriodChoice();
         break;
       case 'setPosition':
+        if (this.bout.position.kind === 'mat' && commands[this.bout.position.A].level) this.preWhistleCut = true;
         if (this.phaseT >= this.phaseDur) this.goWrestle();
         break;
       case 'wrestling':
@@ -232,6 +238,7 @@ export class MatchSim {
   }
 
   private resetToPosition(pos: StartPosition, top: Side): void {
+    this.preWhistleCut = false;
     this.restart = { pos, top };
     if (pos === 'neutral') {
       this.bout.setNeutral({ x: 0, z: 0 }, Math.PI / 2, 1.05);
@@ -239,12 +246,14 @@ export class MatchSim {
       this.bout.setReferee(top, { x: 0, z: 0 }, Math.PI / 2);
     }
     // Bodies settle onto the marks before the whistle.
-    this.setPhase('setPosition', pos === 'neutral' ? 1.3 : 1.6);
+    this.setPhase('setPosition', pos === 'neutral' ? 1.3 : 3);
   }
 
   private goWrestle(): void {
     this.setPhase('wrestling', Infinity);
     this.listeners.onWhistle?.('wrestle');
+    if (this.preWhistleCut && this.bout.top !== null) this.bout.cut(this.bout.top);
+    this.preWhistleCut = false;
     this.announce({ text: 'Wrestle!', tone: 'whistle', hold: 0.8 });
   }
 
@@ -382,6 +391,7 @@ export class MatchSim {
       top = p.A;
       pos = 'top';
     }
+    this.preWhistleCut = false;
     this.restart = { pos, top };
     this.announce({ text: reason === 'out' ? 'Out of bounds' : 'Stalemate', tone: 'whistle', hold: 1.1 });
     this.bout.setFree();

@@ -38,6 +38,10 @@ closes on your opponent**.
 | `L` | sprawl | sprawl hips / clear your head | ride tight, return to the mat | base up, fight off your back |
 | `Shift` | drop your level | | | |
 
+`Shift` cuts the bottom wrestler when on top (one escape); otherwise it lowers your stance. Before a mat restart, choose **Cut** or **Ride**. `I` scrambles only during contested engagement, including an unscored finish. On a single or high crotch, hold `E` to lift the leg, then `R` trips, `T` switches to a double, or `F` drives backwards. The phone shows the same choices contextually.
+
+`Q` works the legs in from top; bottom holds `Z` to close the elbow/hip pockets, or `G` to catch and clear a riding leg with the inside arm. Entries cost stamina and closed pockets reduce their success; securing a leg improves control without awarding points.
+
 `H` how to wrestle · `Esc` pause · `M` mute · `Enter` skip the introductions. Gamepads use
 A / X / B and the triggers; touch devices get a thumb stick and four buttons. The action
 pad in the corner always shows what each button does right now, lights up when the

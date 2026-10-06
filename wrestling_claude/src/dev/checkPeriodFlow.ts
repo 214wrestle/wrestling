@@ -9,7 +9,7 @@ for (let seed = 1; seed <= 100; seed++) {
   sim.startIntros(); sim.skipIntros(); tick(0); tick(2);
   check(sim.phase === 'setPosition' && sim.period === 1, 'handshake starts period one');
   check(!phases.includes('coinToss'), 'no prematch toss');
-  tick(2); sim.clock = 0; tick(0.01); tick(3);
+  tick(sim.phaseDur + 0.01); sim.clock = 0; tick(0.01); tick(3);
   check(sim.phase === 'coinToss' && sim.period === 1, 'toss after first period');
   const winner = sim.coinTossWinner;
   tick(2);
@@ -19,7 +19,7 @@ for (let seed = 1; seed <= 100; seed++) {
     check(sim.top === 1, 'bottom choice places opponent on top');
   }
   check(sim.period === 2 && sim.phase === 'setPosition', 'period two begins after choice');
-  tick(2); sim.clock = 0; tick(0.01); tick(3);
+  tick(sim.phaseDur + 0.01); sim.clock = 0; tick(0.01); tick(3);
   if (winner !== sim.humanSide) {
     check(sim.awaitingChoiceFrom === 0, 'other wrestler chooses period three');
     sim.choosePosition('neutral');

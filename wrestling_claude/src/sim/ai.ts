@@ -127,6 +127,10 @@ export class WrestlerAI {
       default:
         break;
     }
+    if (pos.kind === 'mat' && pos.A !== this.side && (pos.sub === 'ride' || pos.sub === 'flat') && (pos.legRide ?? 0) > 0.05) {
+      cmd.closePockets = (pos.legRide ?? 0) < 0.8;
+      cmd.catchLeg = (pos.legRide ?? 0) > 0.4;
+    }
     const name = `${bout.wrestlers[this.side].firstName} ${bout.wrestlers[this.side].lastName}`;
     if ((pos.kind === 'legs' || pos.kind === 'fhl' || pos.kind === 'mat') && isScrambleSpecialist(name) && this.rng.chance(dt * 0.3)) cmd.scramble = true;
     return this.edges(cmd);

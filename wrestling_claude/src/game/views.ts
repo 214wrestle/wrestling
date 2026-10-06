@@ -68,7 +68,7 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete]): AnimV
         frame: p.frame,
         mirror: p.mirror,
         u: 0,
-        progress: Math.max(0, Math.min(1, p.progress)),
+        progress: Math.max(0, Math.min(1, p.lifted ?? p.progress)),
         intensity: p.intensity,
         ...base,
       };
@@ -91,9 +91,12 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete]): AnimV
       else if (p.sub === 'flat') progress = Math.min(1, p.base / 0.68);
       else if (p.sub === 'standing') progress = p.escape;
       else progress = Math.min(1, p.pin);
+      const matLegs = p.sub === 'ride' || p.sub === 'flat';
+      const legClip = matLegs && (p.legCaught ?? 0) > 0.05 ? 'catchRidingLeg' : matLegs && (p.legRide ?? 0) > 0 ? 'legRide' : matLegs && (p.pockets ?? 0) > 0.3 ? 'closedPockets' : null;
+      if (legClip) progress = legClip === 'catchRidingLeg' ? p.legCaught! : legClip === 'closedPockets' ? p.pockets! : p.legRide!;
       return {
         mode: 'paired',
-        clip: HOLD_FOR_SUB[p.sub],
+        clip: legClip ?? HOLD_FOR_SUB[p.sub],
         hold: true,
         role: p.A === side ? 'A' : 'B',
         frame: p.frame,

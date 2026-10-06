@@ -103,6 +103,8 @@ export type Position =
       frame: Frame;
       progress: number;
       intensity: number;
+      lifted?: number;
+      legFinish?: 'trip' | 'double' | 'drive';
     }
   | { kind: 'fhl'; A: Side; t: number; frame: Frame; recover: number; intensity: number; cooldown: number }
   | {
@@ -111,6 +113,10 @@ export type Position =
       sub: MatSub;
       t: number;
       frame: Frame;
+      legRide?: number;
+      pockets?: number;
+      legCaught?: number;
+      legEntryCool?: number;
       /** Bottom man's base, 0 (flat) .. 1 (solid on all fours). */
       base: number;
       /** Top man's control, 0..1. */
@@ -140,6 +146,7 @@ export type Position =
       frame: Frame;
       awarded: boolean;
       impacted: boolean;
+      scrambleGuard?: number;
       /** Where each role starts, in the frame, for root placement. */
       startA: Place;
       startB: Place;
@@ -432,7 +439,21 @@ export class Bout {
 
   private requestScramble(a: Athlete): void {
     const s = this.position;
-    if (s.kind === 'free' || s.kind === 'move' || s.kind === 'shot' || s.kind === 'neutral' && (a.cooldown > 0 || a.act !== 'stance')) return;
+    if (s.kind === 'free' || s.kind === 'neutral') { this.scramblePending[a.side] = 0; return; }
+    if (s.kind === 'move') {
+      const def = MOVES[s.id];
+      if (s.awarded || !def.award || def.award.kind !== 'takedown') return;
+      const attacker = s.A;
+      if (a.side === attacker) { this.scramblePending[a.side] = 0; this.scrambleCool[a.side] = 1.4; this.spend(a, 0.07); s.scrambleGuard = 1.4; return; }
+      const chance = clamp(0.22 - (s.scrambleGuard ? 0.18 : 0) + this.wrestlers[a.side].attributes.quickness * 0.24 - this.wrestlers[otherSide(a.side)].attributes.quickness * 0.12, 0.1, 0.5);
+      this.scramblePending[a.side] = 0; this.scrambleCool[a.side] = 1.4; this.spend(a, 0.07);
+      if (a.side !== attacker && this.rng.chance(chance)) {
+        this.position = {kind:'legs', A:attacker, shot:'single', mirror:s.mirror, t:0, frame:s.frame, progress:0.48, intensity:1};
+        this.placeHold(); this.ev.announce?.('Scramble!', 'info', 'Finish disrupted — control still contested');
+      }
+      return;
+    }
+    if (s.kind === 'shot') return;
     this.scramblePending[a.side] = 0;
     const o = this.athletes[otherSide(a.side)];
     const w = this.wrestlers[a.side];
@@ -441,10 +462,7 @@ export class Bout {
     this.scrambleCool[a.side] = 1.4;
     this.spend(a, 0.07);
     this.ev.announce?.('Scramble!', 'info', 'Control is still contested');
-    if (s.kind === 'neutral') {
-      a.buffer.shoot = BOUT.buffer;
-      this.lowRequest[a.side] = true;
-    } else if (s.kind === 'legs') {
+    if (s.kind === 'legs') {
       // Hip separation and a corner change: no score until the finish wins control.
       const delta = 0.09 * skill * (0.5 + a.stamina) - 0.04 * this.wrestlers[o.side].attributes.defense;
       s.progress = clamp(s.progress + (s.A === a.side ? delta : -delta), 0.02, 0.98);
@@ -893,11 +911,22 @@ export class Bout {
     const sn = Math.sin(s.frame.yaw);
     const fwdA = ca.moveX * sn + ca.moveZ * c;
 
-    const driving = ca.shoot || fwdA > 0.3;
-    let rate = driving ? (0.10 + wa.strength * 0.12 + wa.quickness * 0.05) * (0.55 + 0.45 * A.stamina) : -0.14;
+    if (ca.legAction === 'lift' && (s.shot === 'single' || s.shot === 'highCrotch') && A.stamina > 0.15) {
+      s.lifted = Math.min(1, (s.lifted ?? 0) + dt * (0.6 + wa.strength * 0.5));
+      this.spend(A, dt * 0.045);
+    }
+    if ((s.lifted ?? 0) > 0.7 && ca.legAction && ca.legAction !== 'lift') s.legFinish = ca.legAction;
+    if (s.legFinish === 'double') { s.shot = 'double'; s.lifted = 0; s.legFinish = undefined; }
+    const driving = ca.shoot || fwdA > 0.3 || !!s.legFinish;
+    const lifting = ca.legAction === 'lift' && (s.shot === 'single' || s.shot === 'highCrotch');
+    if (s.legFinish === 'drive') { s.frame.x += sn * dt * 0.35; s.frame.z += c * dt * 0.35; }
+    if (s.legFinish === 'trip') s.frame.yaw += dt * (s.mirror ? -0.4 : 0.4);
+    let rate = lifting && !driving ? 0.015 : driving ? (0.10 + wa.strength * 0.12 + wa.quickness * 0.05) * (0.55 + 0.45 * A.stamina) : -0.14;
     if (cd.sprawl) rate -= 0.12;
     // A defended grip can remain contested instead of automatically snowballing.
     rate += (s.progress - 0.5) * 0.12;
+    if (s.legFinish) rate += 0.07 * (0.5 + A.stamina);
+    if (cd.fight && s.lifted) s.lifted = Math.max(0, s.lifted - dt * 0.18);
     s.progress += rate * dt;
     if (this.take(D, 'sprawl')) {
       s.progress -= 0.035 * (0.7 + wd.defense * 0.6) * (0.6 + 0.4 * D.stamina);
@@ -927,7 +956,7 @@ export class Bout {
     if (s.progress >= 1) {
       // A double won quickly, by a strong man with gas left, often goes up in the air.
       const lift = s.shot === 'double' && s.t < 1.2 && A.stamina > 0.4 && this.rng.chance(0.06 + wa.strength * 0.2);
-      this.startMove(s.shot === 'lowSingle' ? 'finishLowSingle' : s.shot === 'highCrotch' ? 'finishHighCrotch' : s.shot === 'single' ? 'finishSingle' : lift ? 'liftDouble' : 'finishDouble', s.A, s.frame, s.mirror);
+      this.startMove(s.legFinish === 'trip' ? 'liftedLegTrip' : s.legFinish === 'drive' ? 'liftedLegDrive' : s.shot === 'lowSingle' ? 'finishLowSingle' : s.shot === 'highCrotch' ? 'finishHighCrotch' : s.shot === 'single' ? 'finishSingle' : lift ? 'liftDouble' : 'finishDouble', s.A, s.frame, s.mirror);
       return;
     }
     if (s.progress <= 0) {
@@ -999,7 +1028,21 @@ export class Bout {
 
   /* ------------------------------------------------------------------ mat */
 
+  /** Voluntary release: one escape, never a takedown or a free neutral reset. */
+  cut(side: Side): boolean {
+    const s = this.position;
+    if (s.kind !== 'mat' || s.A !== side || s.sub === 'exposed' || s.sub === 'spladle') return false;
+    const bottom = otherSide(side);
+    this.athletes[bottom].stats.escapes += 1;
+    this.ev.score?.(bottom, 'escape', 'Voluntary release — cut');
+    if (this.position !== s) return true;
+    this.setNeutral({x:s.frame.x,z:s.frame.z}, s.frame.yaw, 1.1);
+    this.ev.announce?.('Cut', 'info', 'Escape awarded — both wrestlers neutral');
+    return true;
+  }
+
   private tickMat(dt: number, cmds: [Command, Command], s: Extract<Position, { kind: 'mat' }>): void {
+    if (cmds[s.A].level && !this.prev[s.A].level && this.cut(s.A)) return;
     s.t += dt;
     s.commit = Math.max(0, s.commit - dt);
     s.basing = Math.max(0, s.basing - dt);
@@ -1016,6 +1059,31 @@ export class Bout {
     if (s.sub === 'exposed' || s.sub === 'spladle') {
       this.tickExposed(dt, cmds, s, T, Bm);
       return;
+    }
+
+    if (s.sub === 'ride' || s.sub === 'flat') {
+      const cb = cmds[Bm.side];
+      s.pockets = clamp((s.pockets ?? 0.2) + dt * (cb.closePockets ? 0.65 * (0.5 + Bm.stamina) : -0.35), 0, 1);
+      if (cb.closePockets) this.spend(Bm, dt * 0.04);
+      s.legEntryCool = Math.max(0, (s.legEntryCool ?? 0) - dt);
+      if (ct.legRide && T.stamina > 0.12) {
+        this.spend(T, dt * 0.055);
+        // Open the elbow/hip pocket first; closed pockets impede that work.
+        const space = (0.12 + wt.mat * 0.12) * (0.5 + T.stamina) * (1 - s.pockets * 0.55);
+        s.legRide = clamp((s.legRide ?? 0) + dt * space, 0, 1);
+        if (s.legRide >= 0.65 && s.legRide < 0.8 && s.legEntryCool <= 0) {
+          const chance = clamp(0.6 + (wt.mat - wb.defense) * 0.25 - s.pockets * 0.5 - (cb.catchLeg ? 0.2 : 0), 0.08, 0.85);
+          if (this.rng.chance(chance)) { s.legRide = 1; this.ev.announce?.('Leg ride in', 'info', 'Leg threaded through the hip pocket'); }
+          else { s.legRide = 0.4; this.ev.announce?.('Leg entry denied', 'info', 'Bottom keeps the pocket closed'); }
+          s.legEntryCool = 1.2;
+        }
+      } else if ((s.legRide ?? 0) < 0.8) s.legRide = Math.max(0, (s.legRide ?? 0) - dt * 0.08);
+      if (cb.catchLeg && (s.legRide ?? 0) > 0.25 && Bm.stamina > 0.1) {
+        this.spend(Bm, dt * 0.052);
+        s.legCaught = clamp((s.legCaught ?? 0) + dt * (0.2 + wb.mat * 0.2) * (0.5 + Bm.stamina) - (ct.legRide ? dt * 0.1 * wt.mat : 0), 0, 1);
+        if (s.legCaught >= 0.75) { s.legRide = 0; s.legCaught = 0; s.legEntryCool = 1.2; s.control = Math.max(0, s.control - 0.15); this.ev.announce?.('Leg cleared', 'info', 'Inside arm catches and removes the leg'); }
+      } else s.legCaught = Math.max(0, (s.legCaught ?? 0) - dt * 0.1);
+      if ((s.legRide ?? 0) >= 0.8) { s.control = Math.min(1, s.control + dt * 0.07); s.base = Math.max(0, s.base - dt * 0.06); }
     }
 
     if (s.sub === 'ride') {
@@ -1298,6 +1366,7 @@ export class Bout {
 
   private tickMove(dt: number, m: Extract<Position, { kind: 'move' }>): void {
     m.t += dt;
+    m.scrambleGuard = Math.max(0, (m.scrambleGuard ?? 0) - dt);
     const def = MOVES[m.id];
     const u = Math.min(1, m.t / m.dur);
     if (def.impact && !m.impacted && u >= def.impact.at) {

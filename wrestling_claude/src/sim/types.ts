@@ -133,6 +133,10 @@ export type StartPosition = 'neutral' | 'top' | 'bottom';
 export interface Command {
   /** U / left bumper: ankle-level single. I / triangle: contest control. */
   /** Touch hold adds capped repeat effort only in sustained struggle positions. */
+  legRide?: boolean;
+  closePockets?: boolean;
+  catchLeg?: boolean;
+  legAction?: 'lift' | 'trip' | 'double' | 'drive';
   sustainedEffort?: boolean;
   technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry';
   lowSingle?: boolean;

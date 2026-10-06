@@ -78,6 +78,7 @@ export interface UiState {
   scoreLog: ScoreEvent[];
   result: MatchResult | null;
   awaitingChoice: boolean;
+  topRestartCut: boolean;
   introFocus: Side | null;
   showHelp: boolean;
   muted: boolean;
@@ -131,6 +132,7 @@ export const initialState: UiState = {
   scoreLog: [],
   result: null,
   awaitingChoice: false,
+  topRestartCut: false,
   introFocus: null,
   showHelp: false,
   muted: false,
@@ -178,4 +180,5 @@ export interface GameApi {
   toggleMute: () => void;
   setTouch: (state: import("../engine/Input").PadState) => void;
   skipIntros: () => void;
+  chooseTopRestart: (cut: boolean) => void;
 }

@@ -20,6 +20,13 @@ const KEY_MAP: Record<string, string> = {
   ArrowRight: 'right',
   KeyJ: 'shoot',
   KeyU: 'lowSingle',
+  KeyQ: 'legRide',
+  KeyZ: 'closePockets',
+  KeyG: 'catchLeg',
+  KeyE: 'liftLeg',
+  KeyR: 'tripLeg',
+  KeyT: 'doubleLeg',
+  KeyF: 'driveLeg',
   KeyI: 'scramble',
   KeyO: 'duckUnder',
   KeyB: 'superDuck',
@@ -45,6 +52,10 @@ export interface PadState {
   fight: boolean;
   sprawl: boolean;
   level: boolean;
+  legRide?: boolean;
+  closePockets?: boolean;
+  catchLeg?: boolean;
+  legAction?: 'lift' | 'trip' | 'double' | 'drive';
   sustainedEffort?: boolean;
   technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry';
   lowSingle?: boolean;
@@ -176,7 +187,7 @@ export class Input {
       y /= len;
     }
     const technique = (['duckUnder','superDuck','slideBy','firemansCarry'] as const).find(k=>this.held.has(k)) ?? this.touch.technique ?? (pad?.buttons[12]?.pressed ? 'duckUnder' : pad?.buttons[13]?.pressed ? 'superDuck' : pad?.buttons[14]?.pressed ? 'slideBy' : pad?.buttons[15]?.pressed ? 'firemansCarry' : undefined);
-    return { x, y, shoot, fight, sprawl, level, technique, sustainedEffort: this.touch.shoot || this.touch.fight || this.touch.sprawl, lowSingle: this.held.has('lowSingle') || !!this.touch.lowSingle || !!pad?.buttons[4]?.pressed, scramble: this.held.has('scramble') || !!this.touch.scramble || !!pad?.buttons[3]?.pressed };
+    return { x, y, shoot, fight, sprawl, level, technique, legRide: this.held.has('legRide') || this.touch.legRide, closePockets: this.held.has('closePockets') || this.touch.closePockets, catchLeg: this.held.has('catchLeg') || this.touch.catchLeg, legAction: this.held.has('liftLeg') ? 'lift' : this.held.has('tripLeg') ? 'trip' : this.held.has('doubleLeg') ? 'double' : this.held.has('driveLeg') ? 'drive' : this.touch.legAction, sustainedEffort: this.touch.shoot || this.touch.fight || this.touch.sprawl, lowSingle: this.held.has('lowSingle') || !!this.touch.lowSingle || !!pad?.buttons[4]?.pressed, scramble: this.held.has('scramble') || !!this.touch.scramble || !!pad?.buttons[3]?.pressed };
   }
 
   /** A short controller buzz for impacts and scores. */

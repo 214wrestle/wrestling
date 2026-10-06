@@ -81,7 +81,7 @@ export function readPrompts(sim: MatchSim, me: Side): PromptRead {
               fight: P(pos.shot !== 'double' ? 'Whizzer' : 'Down block', 'mash'),
               sprawl: P('Sprawl hips', 'mash'),
             },
-        meters: [{ label: 'Finish', value: pos.progress, tone: attacking ? 'you' : 'them' }],
+        meters: [{ label: (pos.lifted ?? 0) > 0 ? 'Leg lift' : 'Finish', value: (pos.lifted ?? 0) > 0 ? pos.lifted! : pos.progress, tone: attacking ? 'you' : 'them' }],
       };
     }
     case 'fhl': {
@@ -141,7 +141,7 @@ export function readPrompts(sim: MatchSim, me: Side): PromptRead {
               fight: P('Switch', pos.commit > 0 ? 'hot' : 'idle'),
               sprawl: P('Base up', pos.base < 0.5 ? 'hot' : 'idle'),
             },
-        meters: [{ label: 'Base', value: pos.base, tone: top ? 'them' : 'you', mark: 0.35 }],
+        meters: [{ label: 'Base', value: pos.base, tone: top ? 'them' : 'you', mark: 0.35 }, ...((pos.legRide ?? 0) > 0 ? [{label:(pos.legRide ?? 0) >= 0.8 ? 'Leg ride secured' : 'Opening the pocket',value:pos.legRide!,tone:top ? 'you' as const : 'them' as const}] : []), ...((pos.pockets ?? 0) > 0.3 ? [{label:'Pockets closed',value:pos.pockets!,tone:top ? 'them' as const : 'you' as const}] : []), ...((pos.legCaught ?? 0) > 0 ? [{label:'Clearing the leg',value:pos.legCaught!,tone:top ? 'them' as const : 'you' as const}] : [])],
       };
     }
     default:

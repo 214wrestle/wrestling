@@ -1,0 +1,15 @@
+# Positional controls and leg rides
+
+Owner requests: phone effort, voluntary cuts, Cut/Ride before the whistle, engaged scrambles, elevated singles/high crotches, leg rides and closed-pocket defense; standing Level label becomes Lower.
+
+- Shift / contextual Cut releases the bottom wrestler for exactly one escape and returns neutral. Before a mat restart, the top human gets Cut/Ride buttons, default Ride; Cut scores at the whistle, never during the setup. The setup now lasts three seconds.
+- Scramble no longer creates a low single from neutral. It remains available in contested leg grips, front headlocks and mat control; during an unscored takedown finish a defensive scramble can interrupt the finish. The attacker can counter-scramble to protect control. Effort costs stamina, cooldowns prevent held-button repetition, and awarded points are not revoked.
+- E / Lift leg elevates a single or high crotch without needing a simultaneous Drive press. R / Trip, T / Switch double and F / Drive back become useful once the leg is elevated. Trip and drive have separate paired clips. The defender can still sprawl, whizzer or scramble; lifting does not guarantee points.
+- Q / Work legs in opens an elbow/hip pocket and attempts a riding-leg entry. Z / Close pockets reduces both space creation and entry probability. G / Catch / clear leg uses the inside arm to remove the riding leg. Sustained actions cost net stamina. An established ride improves control and limits bottom's base but awards no points by itself. AI bottom responds to attempted legs by closing pockets and catching the leg; automatic AI leg-entry selection remains future style work.
+- Phone controls are contextual. Standing techniques are grouped in a drawer; a neutral Scramble button is hidden. Position changes clear obsolete auxiliary holds. Lower is the standing button label; Cut appears on top.
+
+Validation: typecheck, build, clip coverage, touch effort, scramble and 100-seed period flow passed. New control checks cover cut ownership and duplicate scoring, pre-whistle timing, neutral scramble rejection, leg elevation without Drive, the three finish branches, defensive entry and inside-arm clearance. Controlled 20-second leg-entry trials with 100 dispersed identical seeds: open pockets 100 secured rides; closed pockets 53. Controlled finish trials: 29 disruptions without a counter-scramble, 15 with one. These are mechanic checks, not NCAA outcome calibration.
+
+The 40-starter-legends diagnostic before/after was identical because the new ride/finish inputs are predominantly manual and the AI has not adopted new automatic attack choices. Numerical finish scoring remains above the supplied NCAA target; no scoring calibration claim is made.
+
+Visual review: leg-ride progression and inside-arm catch were inspected at six progress samples. Outside-trip and drive-back clips have separate contact/landing paths. Anatomy and animation remain prototypes; this does not establish lifelike athlete likenesses or UFC-quality motion.

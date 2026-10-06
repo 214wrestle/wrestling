@@ -1904,3 +1904,14 @@ button:focus-visible {
 
 .tile__name-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .tile__rating { display: inline-block; border: 1px solid var(--accent); border-radius: 4px; padding: 0.2em 0.45em; font: 700 0.8rem/1 var(--body); color: var(--ink); white-space: nowrap; }
+
+.top-restart {position:absolute;top:28%;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;pointer-events:auto;background:#171b24;padding:14px;border-radius:12px;color:white;}
+.top-restart button {padding:12px;background:#283b52;color:white;border:1px solid #8298ad;border-radius:8px;}
+
+.top-restart button[aria-pressed="true"] {border-color:#f2c36b;background:#66502e;}
+
+.touch__btn[hidden] {display:none;}
+.touch__btn--small {height:2.8rem;}
+.touch__techniques {position:relative;}
+.touch__techniques summary {display:flex;align-items:center;justify-content:center;cursor:pointer;list-style:none;}
+.touch__techniques > div {position:absolute;bottom:calc(100% + 8px);right:0;display:grid;grid-template-columns:repeat(2,auto);gap:8px;padding:8px;background:#141b29;border-radius:12px;z-index:4;}

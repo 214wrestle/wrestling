@@ -241,6 +241,7 @@ export function Hud({ state, api }: { state: UiState; api: GameApi }) {
       <Scorebug state={state} />
       {live && <PlayerCard state={state} />}
       {live && <ActionPad state={state} />}
+      {state.phase === 'setPosition' && state.top === state.humanSide && <div className="top-restart"><strong>At the whistle</strong><button aria-pressed={state.topRestartCut} onClick={() => api.chooseTopRestart(true)}>Cut · give 1</button><button aria-pressed={!state.topRestartCut} onClick={() => api.chooseTopRestart(false)}>Ride</button></div>}
       <ScoreBanner state={state} />
       <Nameplate state={state} />
       {state.announcement && (

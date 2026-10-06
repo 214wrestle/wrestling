@@ -18,7 +18,7 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
       { key: 'J', move: 'Shoot', note: 'From about an arm’s length. Square up for a double, come off an angle for a single. Out of range it is a fake that can pull his sprawl.' },
       { key: 'K', move: 'Hand fight', note: 'Win ties for wrist control, then a collar tie. With the collar, K snaps him down — best when he is leaning on you or standing tall.' },
       { key: 'L', move: 'Sprawl', note: 'Hips back the instant he shoots. Early is fine, late gets you taken down. Sprawling at nothing leaves you open.' },
-      { key: 'Shift', move: 'Level', note: 'Sink your hips: better shots and a stronger sprawl, slower feet.' },
+      { key: 'Shift', move: 'Lower', note: 'Sink your hips: better shots and a stronger sprawl, slower feet.' },
     ],
   },
   {
@@ -90,7 +90,7 @@ export function HelpPanel({ api }: { api: GameApi }) {
           <span>Riding time 1 (a minute net)</span>
           <span>Tech fall at 15</span>
           <span>Fall: shoulders down, one second</span>
-          <span>Gamepad: A shoot · X hand fight · B sprawl · triggers level</span>
+          <span>Gamepad: A shoot · X hand fight · B sprawl · triggers lower / cut</span>
         </div>
       </div>
     </div>
