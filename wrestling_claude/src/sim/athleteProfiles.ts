@@ -111,6 +111,7 @@ export function heavyweightActivity(w: Pick<Wrestler, 'firstName' | 'lastName' |
 
 /** Owner-confirmed specialty; percentages are provisional attack selection weights. */
 export const ATHLETE_MOTION_OVERRIDES: Record<string, WrestlingStyle> = {
+  'Royce Alger': {...DEFAULT_MOTION, tempo:1.25,handActivity:1.45,pressure:1.3,circle:0.85,attackRate:1.2},
   'Brent Metcalf': {...DEFAULT_MOTION, highCrotchHand: 'left',
     shots: {double: 0.2, single: 0.15, highCrotch: 0.65}},
 };

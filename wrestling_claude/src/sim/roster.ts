@@ -255,7 +255,8 @@ export const OFFICIAL: Wrestler = {
 
 for (const w of ROSTER) {
   const motion = ATHLETE_MOTION_OVERRIDES[`${w.firstName} ${w.lastName}`];
-  if (motion) {w.motion = motion; w.style = 'Left-handed high-crotch specialist';}
+  if (motion) {w.motion = motion; w.style = w.lastName === 'Alger' ? 'Relentless grinder — elite hand fighting, forward pressure and exceptional gas tank' : 'Left-handed high-crotch specialist';}
+  if (w.firstName === 'Royce' && w.lastName === 'Alger') w.attributes.conditioning = 0.98;
 }
 
 for (const w of ROSTER) {

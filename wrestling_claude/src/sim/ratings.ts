@@ -40,6 +40,7 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Royce Alger': [{year:1985,place:0,source:'https://nwhof.org/brackets/55'},{year:1986,place:5,source:'https://api.nwhof.org/national-wrestling-hall-of-fame-dan-gable-museum/bio/12791'},{year:1987,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame-dan-gable-museum/bio/12791'},{year:1988,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame-dan-gable-museum/bio/12791'}],
   'Chris Barnes': [{year:1987,place:'qualifier',source:'https://nwhof.org/brackets/57#page=23'},{year:1988,place:4,source:'https://nwhof.org/hall_of_fame/bio/6587'},{year:1989,place:1,source:'https://nwhof.org/hall_of_fame/bio/6587'},{year:1990,place:1,outstandingWrestler:true,source:'https://okstate.com/documents/download/2021/3/16/OklahomaStateNotes.pdf#page=29'}],
   'Steve Barrett': [{year:1974,place:'qualifier',source:'https://nwhof.org/brackets/44#page=8'},{year:1975,place:5,source:'https://nwhof.org/hall_of_fame/bio/14586'},{year:1976,place:3,source:'https://nwhof.org/hall_of_fame/bio/14586'},{year:1977,place:1,source:'https://nwhof.org/hall_of_fame/bio/14586'}],
   'Kendall Cross': [{year:1987,place:'qualifier',source:'https://nwhof.org/brackets/57#page=5'},{year:1988,place:6,source:'https://nwhof.org/hall_of_fame/bio/771'},{year:1989,place:1,source:'https://nwhof.org/hall_of_fame/bio/771'},{year:1990,place:3,source:'https://nwhof.org/hall_of_fame/bio/771'}],
@@ -226,6 +227,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Eric Wais': {wins:89,losses:6,ties:2,source:'https://okstate.com/news/2025/4/14/cowboy-wrestling-mourns-the-loss-of-eric-wais'},
+  'Royce Alger': {wins:131,losses:11,ties:2,source:'https://api.nwhof.org/national-wrestling-hall-of-fame-dan-gable-museum/bio/12791'},
   'Chris Barnes': {wins:119,losses:27,ties:3,source:'https://okstate.com/documents/download/2021/3/16/OklahomaStateNotes.pdf#page=4'},
   'Steve Barrett': {wins:87,losses:11,ties:2,source:'https://nwhof.org/hall_of_fame/bio/14586'},
   'Kendall Cross': {wins:111,losses:27,ties:3,source:'https://okstate.com/documents/download/2021/3/16/OklahomaStateNotes.pdf#page=4'},
