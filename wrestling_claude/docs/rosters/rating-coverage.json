@@ -1,9 +1,9 @@
 {
-  "generated": "2026-10-06T12:53:51.649Z",
+  "generated": "2026-10-06T13:26:56.308Z",
   "rosterSlots": 451,
-  "verifiedSlots": 128,
-  "pendingSlots": 323,
-  "verifiedCareers": 127,
+  "verifiedSlots": 130,
+  "pendingSlots": 321,
+  "verifiedCareers": 129,
   "athletes": [
     {
       "id": "penn-state-118-starter-jeff-prescott",
@@ -3121,9 +3121,30 @@
       "school": "OKLAHOMA STATE",
       "weight": 118,
       "role": "starter",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 86,
+      "countedSeasons": [
+        {
+          "year": 1998,
+          "place": 1,
+          "source": "https://nwhof.org/hall_of_fame/bio/6199"
+        },
+        {
+          "year": 1999,
+          "place": 3,
+          "source": "https://nwhof.org/hall_of_fame/bio/6199"
+        },
+        {
+          "year": 1997,
+          "place": 4,
+          "source": "https://nwhof.org/hall_of_fame/bio/6199"
+        },
+        {
+          "year": 1996,
+          "place": "qualifier",
+          "source": "https://nwhof.org/brackets/66#page=2"
+        }
+      ],
       "excludedSeasons": []
     },
     {
@@ -3378,9 +3399,30 @@
       "school": "OKLAHOMA STATE",
       "weight": 197,
       "role": "starter",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 81,
+      "countedSeasons": [
+        {
+          "year": 2001,
+          "place": 1,
+          "source": "https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6075"
+        },
+        {
+          "year": 2000,
+          "place": 3,
+          "source": "https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6075"
+        },
+        {
+          "year": 1999,
+          "place": "qualifier",
+          "source": "https://nwhof.org/brackets/69#page=23"
+        },
+        {
+          "year": 1998,
+          "place": "qualifier",
+          "source": "https://nwhof.org/brackets/68#page=23"
+        }
+      ],
       "excludedSeasons": []
     },
     {

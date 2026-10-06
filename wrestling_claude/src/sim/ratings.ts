@@ -40,6 +40,8 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Mark Muñoz': [{year:1998,place:'qualifier',source:'https://nwhof.org/brackets/68#page=23'},{year:1999,place:'qualifier',source:'https://nwhof.org/brackets/69#page=23'},{year:2000,place:3,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6075'},{year:2001,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6075'}],
+  'Teague Moore': [{year:1996,place:'qualifier',source:'https://nwhof.org/brackets/66#page=2'},{year:1997,place:4,source:'https://nwhof.org/hall_of_fame/bio/6199'},{year:1998,place:1,source:'https://nwhof.org/hall_of_fame/bio/6199'},{year:1999,place:3,source:'https://nwhof.org/hall_of_fame/bio/6199'}],
   'Jimmy Jackson': [{year:1975,place:'qualifier',source:'https://nwhof.org/brackets/45#page=29'},{year:1976,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=7365'},{year:1977,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=7365'},{year:1978,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=7365'}],
   'Paul Donahoe': [{year:2006,place:'qualifier',source:'https://huskers.com/sports/wrestling/roster/player/paul-donahoe'},{year:2007,place:1,source:'https://huskers.com/sports/wrestling/roster/player/paul-donahoe'},{year:2008,place:3,source:'https://huskers.com/sports/wrestling/roster/player/paul-donahoe'},{year:2009,place:2,source:'https://gofightingscots.com/news/2012/8/1/GEN_25541.aspx?path=wlax'}],
   'Al Freeman': [{year:1979,place:0,source:'https://huskers.com/sports/wrestling/roster/player/al-freeman'},{year:1980,place:0,source:'https://huskers.com/sports/wrestling/roster/player/al-freeman'},{year:1981,place:8,source:'https://huskers.com/sports/wrestling/roster/player/al-freeman'},{year:1983,place:2,source:'https://huskers.com/sports/wrestling/roster/player/al-freeman'}],
@@ -219,6 +221,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Mark Muñoz': {wins:111,losses:27,ties:0,source:'https://okstate.com/documents/download/2013/1/30/release_20130130aaa.pdf'},
+  'Teague Moore': {wins:113,losses:25,ties:0,source:'https://okstate.com/documents/download/2013/1/30/release_20130130aaa.pdf'},
   'Jimmy Jackson': {wins:87,losses:9,ties:2,source:'https://okstate.com/news/2023/6/3/cowboy-wrestling-jimmy-jackson-inducted-into-national-wrestling-hall-of-fame'},
   'Paul Donahoe': {wins:121,losses:19,source:'https://gofightingscots.com/news/2012/8/1/GEN_25541.aspx?path=wlax'},
   'Tony Purler': {wins:115,losses:28,source:'https://huskers.com/nebraskas-100-win-club'},
