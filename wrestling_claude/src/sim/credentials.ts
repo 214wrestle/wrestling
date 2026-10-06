@@ -10,7 +10,9 @@ function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
   // Penn State verifies five AA honors for Brooks, including the cancelled
   // 2020 season. This bio-only honor never becomes an NCAA placement or points.
   // https://gopsusports.com/news/2024/04/3/penn-state-wrestling-season-in-review
-  if(champs)return `${champs}x National Champ${name==='Aaron Brooks'?' · 5x AA':''}`;
+  // Minnesota verifies five Steveson AA honors, including bio-only 2020 NWCA honor.
+  // https://gophersports.com/sports/wrestling/roster/gable-steveson/22871
+  if(champs)return `${champs}x National Champ${['Aaron Brooks','Gable Steveson'].includes(name ?? '')?' · 5x AA':''}`;
   const aa=seasons.filter(s=>typeof s.place==='number' && s.place>=1 && s.place<=8).length;
   if(aa)return `${aa}x AA`;
   const qualifiers=seasons.filter(s=>s.place==='qualifier').length;

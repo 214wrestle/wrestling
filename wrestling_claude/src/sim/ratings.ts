@@ -42,6 +42,15 @@ const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
   'Melvin Douglas': [{year:1983,place:'qualifier',source:'https://nwhof.org/brackets/53#page=20'},{year:1984,place:'qualifier',source:'https://nwhof.org/brackets/54#page=20'},{year:1985,place:1,source:'https://nwhof.org/hall_of_fame/bio/2938'},{year:1986,place:1,source:'https://nwhof.org/hall_of_fame/bio/2938'}],
   'Steve "Dr. Death" Williams': [{year:1979,place:6,source:'https://nwhof.org/hall_of_fame/bio/12564'},{year:1980,place:5,source:'https://nwhof.org/hall_of_fame/bio/12564'},{year:1981,place:3,source:'https://nwhof.org/hall_of_fame/bio/12564'},{year:1982,place:2,source:'https://nwhof.org/hall_of_fame/bio/12564'}],
+  'Gable Steveson': [{year:2019,place:3,source:'https://gophersports.com/sports/wrestling/roster/gable-steveson/22871'},{year:2021,place:1,source:'https://gophersports.com/sports/wrestling/roster/gable-steveson/22871'},{year:2022,place:1,source:'https://gophersports.com/sports/wrestling/roster/gable-steveson/22871'},{year:2025,place:2,source:'https://gophersports.com/sports/wrestling/roster/gable-steveson/22871'}],
+  'Brock Lesnar': [{year:1999,place:2,source:'https://nwhof.org/brackets/69#page=1'},{year:2000,place:1,source:'https://gophersports.com/news/2001/10/2/BROCK_LESNAR_RETURNS_TO_MINNESOTA_WITH_THE_WORLD_WRESTLING_FEDERATION'}],
+  'Evan Johnson': [{year:1973,place:'qualifier',source:'https://nwhof.org/brackets/43#page=26'},{year:1974,place:'qualifier',source:'https://nwhof.org/brackets/44#page=26'},{year:1976,place:1,source:'https://nwhof.org/brackets/46#page=1'},{year:1977,place:2,source:'https://nwhof.org/brackets/47#page=1'}],
+  'Dustin Schlatter': [{year:2006,place:1,source:'https://nwhof.org/hall_of_fame/bio/1618'},{year:2007,place:3,source:'https://nwhof.org/hall_of_fame/bio/1618'},{year:2008,place:7,source:'https://nwhof.org/hall_of_fame/bio/1618'},{year:2010,place:'qualifier',source:'https://gophersports.com/news/2010/4/19/ness_and_schlatter_share_mvp_honors'}],
+  'Marty Morgan': [{year:1987,place:'qualifier',source:'https://nwhof.org/brackets/57#page=20'},{year:1989,place:6,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/4320'},{year:1990,place:2,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/4320'},{year:1991,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/4320'}],
+  'Jacob Volkmann': [{year:2001,place:4,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/5926'},{year:2002,place:'qualifier',source:'https://nwhof.org/brackets/72#page=20'},{year:2003,place:3,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/5926'},{year:2004,place:4,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/5926'}],
+  'Jason Davids': [{year:1995,place:'qualifier',source:'https://nwhof.org/brackets/65#page=8'},{year:1996,place:5,source:'https://nwhof.org/hall_of_fame/bio/6228'},{year:1997,place:3,source:'https://nwhof.org/hall_of_fame/bio/6228'},{year:1998,place:4,source:'https://nwhof.org/hall_of_fame/bio/6228'}],
+  'Brandon Eggum': [{year:1997,place:'qualifier',source:'https://nwhof.org/brackets/67#page=23'},{year:1998,place:5,source:'https://api.nwhof.org/hall_of_fame/bio/6144'},{year:1999,place:2,source:'https://api.nwhof.org/hall_of_fame/bio/6144'},{year:2000,place:3,source:'https://api.nwhof.org/hall_of_fame/bio/6144'}],
+  'Tim Hartung': [{year:1996,place:'qualifier',source:'https://nwhof.org/brackets/66#page=23'},{year:1997,place:3,source:'https://nwhof.org/hall_of_fame/bio/6192'},{year:1998,place:1,source:'https://nwhof.org/hall_of_fame/bio/6192'},{year:1999,place:1,source:'https://nwhof.org/hall_of_fame/bio/6192'}],
   'David Kjeldgaard': [{year:1998,place:0,source:'https://nwhof.org/brackets/68'},{year:1999,place:'qualifier',source:'https://nwhof.org/brackets/69#page=14'},{year:2000,place:'qualifier',source:'https://nwhof.org/brackets/70#page=14'},{year:2001,place:0,source:'https://soonersports.com/news/2001/1/31/208401975'}],
   'Leonce Crump': [{year:2001,place:4,source:'https://nwhof.org/brackets/71#page=1'},{year:2002,place:'qualifier',source:'https://nwhof.org/brackets/72#page=29'},{year:2003,place:0,source:'https://soonersports.com/news/2003/11/25/208394842'},{year:2004,place:3,source:'https://nwhof.org/brackets/74#page=1'}],
   'John Kading': [{year:1994,place:6,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6283'},{year:1995,place:5,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6283'},{year:1996,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6283'},{year:1997,place:2,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6283'}],
@@ -231,7 +240,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Brock Lesnar': 2, 'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -245,6 +254,14 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Gable Steveson': {wins:103,losses:3,source:'https://gophersports.com/sports/wrestling/roster/gable-steveson/22871'},
+  'Brock Lesnar': {wins:55,losses:3,source:'https://gophersports.com/news/2001/10/2/BROCK_LESNAR_RETURNS_TO_MINNESOTA_WITH_THE_WORLD_WRESTLING_FEDERATION'},
+  'Dustin Schlatter': {wins:114,losses:10,source:'https://gophersports.com/sports/2018/5/21/sports-m-wrestl-spec-rel-minn-m-wrestl-career-records-html'},
+  'Marty Morgan': {wins:134,losses:24,ties:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/bio/4320'},
+  'Jacob Volkmann': {wins:127,losses:36,source:'https://gophersports.com/sports/2018/5/21/sports-m-wrestl-spec-rel-minn-m-wrestl-career-records-html'},
+  'Jason Davids': {wins:132,losses:27,source:'https://gophersports.com/sports/2018/5/21/sports-m-wrestl-spec-rel-minn-m-wrestl-career-records-html'},
+  'Brandon Eggum': {wins:115,losses:23,source:'https://gophersports.com/news/2004/8/31/Wrestling_Hires_Eggum_and_Roberts_as_Assistant_Coaches'},
+  'Tim Hartung': {wins:133,losses:21,source:'https://nwhof.org/hall_of_fame/bio/6192'},
   'Leonce Crump': {wins:117,losses:16,source:'https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/utc.sidearmsports.com/documents/2020/4/14/2005_06_media_guide.pdf'},
   'John Kading': {wins:104,losses:22,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6283'},
   'Dan Chaid': {wins:151,losses:18,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/6874'},
