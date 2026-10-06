@@ -40,6 +40,13 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Trevor Brandvold': [{year:2007,place:'qualifier',source:'https://uwbadgers.com/staff-directory/Trevor-Brandvold/430'},{year:2008,place:'qualifier',source:'https://uwbadgers.com/staff-directory/Trevor-Brandvold/430'},{year:2010,place:6,source:'https://uwbadgers.com/staff-directory/Trevor-Brandvold/430'},{year:2011,place:4,source:'https://uwbadgers.com/staff-directory/Trevor-Brandvold/430'}],
+  'Trent Hillger': [{year:2019,place:8,source:'https://uwbadgers.com/sports/wrestling/roster/trent-hillger/11280'},{year:2021,place:6,source:'https://uwbadgers.com/sports/wrestling/roster/trent-hillger/11280'},{year:2022,place:'qualifier',source:'https://uwbadgers.com/sports/wrestling/roster/trent-hillger/11280'},{year:2023,place:8,source:'https://uwbadgers.com/sports/wrestling/roster/trent-hillger/11280'}],
+  'Connor Medbery': [{year:2013,place:'qualifier',source:'https://uwbadgers.com/sports/wrestling/roster/connor-medbery/4273'},{year:2014,place:'qualifier',source:'https://uwbadgers.com/sports/wrestling/roster/connor-medbery/4273'},{year:2015,place:4,source:'https://uwbadgers.com/sports/wrestling/roster/connor-medbery/4273'},{year:2017,place:2,source:'https://uwbadgers.com/sports/wrestling/roster/connor-medbery/4273'}],
+  'Seth Gross': [{year:2016,place:'qualifier',source:'https://uwbadgers.com/sports/wrestling/roster/seth-gross/7497'},{year:2017,place:2,source:'https://uwbadgers.com/sports/wrestling/roster/seth-gross/7497'},{year:2018,place:1,source:'https://uwbadgers.com/sports/wrestling/roster/seth-gross/7497'}],
+  'Andrew Howe': [{year:2009,place:2,source:'https://soonersports.com/news/2014/3/22/209441653'},{year:2010,place:1,source:'https://soonersports.com/news/2014/3/22/209441653'},{year:2011,place:3,source:'https://soonersports.com/news/2014/3/22/209441653'},{year:2014,place:2,source:'https://soonersports.com/news/2014/3/22/209441653'}],
+  'Donny Pritzlaff': [{year:1998,place:6,source:'https://scarletknights.com/sports/wrestling/roster/coaches/donny-pritzlaff/4480'},{year:1999,place:5,source:'https://scarletknights.com/sports/wrestling/roster/coaches/donny-pritzlaff/4480'},{year:2000,place:1,source:'https://scarletknights.com/sports/wrestling/roster/coaches/donny-pritzlaff/4480'},{year:2001,place:1,source:'https://scarletknights.com/sports/wrestling/roster/coaches/donny-pritzlaff/4480'}],
+  'Lee Kemp': [{year:1975,place:2,source:'https://uwwsports.com/sports/wrestling/roster/coaches/lee-kemp/731'},{year:1976,place:1,source:'https://uwwsports.com/sports/wrestling/roster/coaches/lee-kemp/731'},{year:1977,place:1,source:'https://uwwsports.com/sports/wrestling/roster/coaches/lee-kemp/731'},{year:1978,place:1,source:'https://uwwsports.com/sports/wrestling/roster/coaches/lee-kemp/731'}],
   'Jack Barden': [{year:1961,place:0,source:'https://nwhof.org/brackets/32'},{year:1962,place:0,source:'https://nwhof.org/brackets/33'},{year:1963,place:1,source:'https://nwhof.org/brackets/34'}],
   'Jacob Cardenas': [{year:2022,place:'qualifier',source:'https://mgoblue.com/sports/wrestling/roster/jacob-cardenas/26081'},{year:2023,place:8,source:'https://mgoblue.com/sports/wrestling/roster/jacob-cardenas/26081'},{year:2024,place:4,source:'https://mgoblue.com/sports/wrestling/roster/jacob-cardenas/26081'},{year:2025,place:4,source:'https://mgoblue.com/sports/wrestling/roster/jacob-cardenas/26081'}],
   'Stevan Micic': [{year:2017,place:4,source:'https://mgoblue.com/sports/wrestling/roster/stevan-micic/22814'},{year:2018,place:2,source:'https://mgoblue.com/sports/wrestling/roster/stevan-micic/22814'},{year:2019,place:3,source:'https://mgoblue.com/sports/wrestling/roster/stevan-micic/22814'},{year:2022,place:'qualifier',source:'https://mgoblue.com/sports/wrestling/roster/stevan-micic/22814'}],
@@ -294,7 +301,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Jack Barden': 3, 'Dave Schultz': 3, 'Jeff Smith': 2, 'Ben Lewis': 3, 'Jack Zindel': 3, 'Mike Bradley': 3, 'Gerry Malecek': 3, 'Dale Carr': 3, 'Greg Johnson': 3, 'Kollin Moore': 3, 'Frank Romano': 3, 'Dave Reinbolt': 3, 'Brock Lesnar': 2, 'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Seth Gross': 3, 'Jack Barden': 3, 'Dave Schultz': 3, 'Jeff Smith': 2, 'Ben Lewis': 3, 'Jack Zindel': 3, 'Mike Bradley': 3, 'Gerry Malecek': 3, 'Dale Carr': 3, 'Greg Johnson': 3, 'Kollin Moore': 3, 'Frank Romano': 3, 'Dave Reinbolt': 3, 'Brock Lesnar': 2, 'Mike Grant': 3, 'Joe McDaniel': 3, 'Alan Fried': 3, 'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -308,6 +315,13 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Trevor Brandvold': {wins:82,losses:31,source:'https://uwbadgers.com/staff-directory/Trevor-Brandvold/430'},
+  'Trent Hillger': {wins:96,losses:41,source:'https://uwbadgers.com/sports/wrestling/roster/trent-hillger/11280'},
+  'Connor Medbery': {wins:112,losses:23,source:'https://uwbadgers.com/sports/wrestling/roster/connor-medbery/4273'},
+  'Seth Gross': {wins:117,losses:19,source:'https://uwbadgers.com/documents/download/2020/3/11/Gross_Seth_Match_by_Match.pdf'},
+  'Andrew Howe': {wins:122,losses:10,source:'https://soonersports.com/sports/wrestling/roster/hayley-redwine/651'},
+  'Donny Pritzlaff': {wins:135,losses:16,source:'https://uwbadgers.com/news/2010/9/5/Hall_of_Fame_Class_of_2010_Donny_Pritzlaff'},
+  'Lee Kemp': {wins:143,losses:6,ties:1,source:'https://uwwsports.com/sports/wrestling/roster/coaches/lee-kemp/731'},
   'Jack Barden': {wins:31,losses:4,ties:4,source:'https://mgoblue.com/documents/download/2015/8/17/wrm-record-book.pdf'},
   'Jacob Cardenas': {wins:95,losses:25,source:'https://mgoblue.com/sports/wrestling/roster/jacob-cardenas/26081'},
   'Stevan Micic': {wins:87,losses:19,source:'https://mgoblue.com/sports/wrestling/roster/stevan-micic/22814'},

@@ -14,11 +14,13 @@ function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
   // https://gophersports.com/sports/wrestling/roster/gable-steveson/22871
   // Michigan verifies Parris's fourth honor through the 2020 NWCA recognition.
   // https://mgoblue.com/sports/wrestling/roster/mason-parris/23669
-  if(champs)return `${champs}x National Champ${['Aaron Brooks','Gable Steveson'].includes(name ?? '')?' · 5x AA':name === 'Mason Parris'?' · 4x AA':''}`;
+  // Gross: third AA is bio-only 2020 NWCA recognition, not a NCAA result.
+  // https://uwbadgers.com/news/2020/4/17/wrestling-four-wisconsin-wrestlers-named-nwca-all-americans
+  if(champs)return `${champs}x National Champ${['Aaron Brooks','Gable Steveson'].includes(name ?? '')?' · 5x AA':name === 'Mason Parris'?' · 4x AA':name === 'Seth Gross'?' · 3x AA':''}`;
   const aa=seasons.filter(s=>typeof s.place==='number' && s.place>=1 && s.place<=8).length;
   // Verified bio-only 2020 NWCA first-team recognition adds no rating points.
   // https://ohiostatebuckeyes.com/news/2020/4/18/six-buckeyes-earn-nwca-all-america-recognition
-  if(aa)return `${aa + (name === 'Kollin Moore' ? 1 : 0)}x AA`;
+  if(aa)return `${aa + (['Kollin Moore','Trent Hillger'].includes(name ?? '') ? 1 : 0)}x AA`;
   const qualifiers=seasons.filter(s=>s.place==='qualifier').length;
   if(qualifiers)return `${qualifiers}x NCAA Qualifier${name === 'Cameron Caffey' ? ' · 2020 NWCA All-American' : ''}`;
 }
