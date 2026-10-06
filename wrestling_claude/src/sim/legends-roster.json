@@ -866,7 +866,7 @@
           "source": "HWT — Steve \"Dr. Death\" Williams"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nDavid Kjeldgaard — 157\nLeonce Crump — HWT",
+      "notesAndChoices": "Coach's Choice:\nDavid Kjeldgaard — 157\nLeonce Crump — HWT\nDan Hodge — 174",
       "id": "oklahoma",
       "choices": [
         {
@@ -878,6 +878,11 @@
           "name": "Leonce Crump",
           "weight": "HWT",
           "source": "Leonce Crump — HWT"
+        },
+        {
+          "name": "Dan Hodge",
+          "weight": "174",
+          "source": "Dan Hodge — 174 [owner addition; historical NCAA titles at 177]"
         }
       ]
     },

@@ -40,6 +40,8 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Dan Hodge": [{"year": 1955, "place": 1, "source": "https://nwhof.org/brackets/26#page=1"}, {"year": 1956, "place": 1, "source": "https://nwhof.org/brackets/27#page=1", "outstandingWrestler": true}, {"year": 1957, "place": 1, "source": "https://nwhof.org/brackets/28#page=1", "outstandingWrestler": true}],
+  "Jeff Prescott": [{"year": 1989, "place": 0, "source": "https://nwhof.org/brackets/59#page=2"}, {"year": 1990, "place": 5, "source": "https://nwhof.org/hall_of_fame/bio/6532"}, {"year": 1991, "place": 1, "outstandingWrestler": true, "source": "https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/nwca.sidearmsports.com/documents/2023/11/14/NCAA_Championship_1991.pdf"}, {"year": 1992, "place": 1, "source": "https://nwhof.org/hall_of_fame/bio/6532"}],
   "Quentin Wright": [{"year": 2009, "place": 6, "source": "https://gopsusports.com/news/2013/03/24/nittany-lions-win-third-straight-ncaa-wrestling-crown"}, {"year": 2011, "place": 1, "source": "https://gopsusports.com/news/2013/03/24/nittany-lions-win-third-straight-ncaa-wrestling-crown"}, {"year": 2012, "place": 2, "source": "https://gopsusports.com/news/2013/03/24/nittany-lions-win-third-straight-ncaa-wrestling-crown"}, {"year": 2013, "place": 1, "source": "https://gopsusports.com/news/2013/03/24/nittany-lions-win-third-straight-ncaa-wrestling-crown"}],
   "Roman Bravo-Young": [{"year": 2019, "place": 8, "source": "https://gopsusports.com/news/2019/03/23/nittany-lion-wrestlers-clinch-2019-ncaa-national-championship"}, {"year": 2021, "place": 1, "source": "https://gopsusports.com/news/2021/03/21/penn-state-perfect-in-the-ncaa-finals"}, {"year": 2022, "place": 1, "source": "https://gopsusports.com/news/2022/03/20/penn-state-perfect-nittany-lions-cap-off-team-title-with-5-0-run-in-ncaa-finals"}, {"year": 2023, "place": 2, "source": "https://gopsusports.com/news/2023/03/19/starocci-and-brooks-win-individual-titles-for-national-champion-wrestling-team"}],
   "Nick Lee": [{"year": 2018, "place": 5, "source": "https://gopsusports.com/staff/nick-lee"}, {"year": 2019, "place": 5, "source": "https://gopsusports.com/staff/nick-lee"}, {"year": 2021, "place": 1, "source": "https://gopsusports.com/staff/nick-lee"}, {"year": 2022, "place": 1, "source": "https://gopsusports.com/staff/nick-lee"}],
@@ -142,7 +144,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 3 | 4> = {'Dan Gable': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 3 | 4> = {'Dan Gable': 3, 'Dan Hodge': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -156,6 +158,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Dan Hodge": {wins:46,losses:0,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/6"},
+  "Jeff Prescott": {wins:88,losses:15,ties:2,source:"https://nwhof.org/hall_of_fame/bio/6532"},
   "Quentin Wright": {wins:116,losses:23,source:"https://gopsusports.com/news/2013/03/24/nittany-lions-win-third-straight-ncaa-wrestling-crown"},
   "Nick Lee": {wins:118,losses:13,source:"https://gopsusports.com/staff/nick-lee"},
   "Cary Kolat": {wins:111,losses:7,source:"https://navysports.com/news/2020/3/20/cary-kolat-named-navy-head-wrestling-coach.aspx?path=me"},

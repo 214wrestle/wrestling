@@ -1,0 +1,5 @@
+# Dan Hodge — owner addition
+
+Oklahoma 174 Coach’s Choice; Mark Schultz remains starter. Historical titles at 177 in 1955/56/57 and NCAA OW in 1956/57 verified in NWHOF brackets 26/27/28. Era-normalized three sophomore-through-senior competition seasons, not an invented freshman zero. Rating capped at 96 under owner three-title rule; Gable/Sanderson alone 99. Hodge was award namesake, not recipient. NWHOF https://nwhof.org/national-wrestling-hall-of-fame/bio/6 verifies 46–0, 36 falls, and apple-crushing grip; Easter egg appears on selection/introduction through bioNote. No remote dependency.
+
+Ratings, roster, typecheck and full-site build pass. Browser confirms selectable Dan Hodge 96 and apple Easter egg; screenshot outputs/dan-hodge-174.jpg. Expanded 448-slot simulation: 16.5 combined points,15% mat share,14.3-second ride,328 regulation decisions,53 overtime decisions,58 majors,8 techs,1 fall. Adding a slot changes fixtures; not a direct same-opponent balance comparison or completed NCAA calibration.
