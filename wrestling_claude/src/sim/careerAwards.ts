@@ -32,6 +32,7 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  "Aaron Brooks": {falls:16,bouts:92,source:"https://gopsusports.com/news/2024/06/17/brooks-nemeth-named-penn-state-athletes-of-the-year"},
   "Dan Hodge": {falls:36,bouts:46,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/6"},
   "Jeff Prescott": {falls:21,bouts:105,source:"https://nwhof.org/hall_of_fame/bio/6532"},
   "Quentin Wright": {falls:37,bouts:139,source:"https://gopsusports.com/news/2013/03/24/nittany-lions-win-third-straight-ncaa-wrestling-crown"},
