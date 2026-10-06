@@ -57,3 +57,8 @@ for (const [name,seasons] of Object.entries(CAREER_RECORDS)) {
 }
 assert(overallRating('Dan Gable',gable) === 99);
 console.log('Championship tiers and three-title 96 ceiling passed');
+
+// Brackets resolve misleading summary rows: Jim was absent in 1981 and qualified in 1983.
+assert(CAREER_RECORDS["Jim Scherr"].find(s=>s.year===1981)?.place===0);
+assert(CAREER_RECORDS["Jim Scherr"].find(s=>s.year===1983)?.place==="qualifier");
+assert(COLLEGE_RECORDS["Bill Scherr"].losses===18);

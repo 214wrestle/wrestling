@@ -40,6 +40,8 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Jim Scherr": [{year:1981,place:0,source:"https://nwhof.org/brackets/51"},{year:1982,place:6,source:"https://huskers.com/nebraskas-national-champions"},{year:1983,place:"qualifier",source:"https://nwhof.org/brackets/53#page=23"},{year:1984,place:1,source:"https://nwhof.org/brackets/54#page=1"}],
+  "Bill Scherr": [{year:1981,place:0,source:"https://nwhof.org/brackets/51"},{year:1982,place:4,source:"https://huskers.com/nebraskas-national-champions"},{year:1983,place:3,source:"https://huskers.com/nebraskas-national-champions"},{year:1984,place:1,source:"https://nwhof.org/brackets/54#page=1"}],
   "Mike Moreno Sr.": [{year:1989,place:"qualifier",source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=9"},{year:1990,place:"qualifier",source:"https://cyclones.com/documents/download/2023/6/12/Record_Book.pdf#page=9"},{year:1991,place:0,source:"https://dailyiowan.lib.uiowa.edu/DI/1991/di1991-01-21.pdf#page=9"},{year:1992,place:7,source:"https://nwhof.org/national-wrestling-hall-of-fame/bio/4462"}],
   "Chris Taylor": [{year:1972,place:1,source:"https://cyclones.com/news/2012/5/31/205435327"},{year:1973,place:1,source:"https://cyclones.com/news/2012/5/31/205435327"}],
   "Aaron Holker": [{year:1999,place:7,source:"https://nwhof.org/hall_of_fame/bio/5860"},{year:2000,place:"qualifier",source:"https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/nwca.sidearmsports.com/documents/2023/11/14/NCAA_Championship_2000.pdf"},{year:2002,place:1,source:"https://nwhof.org/hall_of_fame/bio/5860"},{year:2003,place:7,source:"https://nwhof.org/hall_of_fame/bio/5860"}],
@@ -197,6 +199,8 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Jim Scherr": {wins:109,losses:25,ties:4,source:"https://huskers.com/nebraskas-national-champions"},
+  "Bill Scherr": {wins:133,losses:18,source:"https://huskers.com/nebraskas-national-champions"},
   "Chris Taylor": {wins:87,losses:0,ties:1,source:"https://cyclones.com/news/2012/5/31/205435327"},
   "Aaron Holker": {wins:102,losses:31,source:"https://nwhof.org/hall_of_fame/bio/5860"},
   "Carl Adams": {wins:77,losses:9,ties:4,source:"https://nwhof.org/hall_of_fame/bio/4679"},

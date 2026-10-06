@@ -1,9 +1,9 @@
 {
-  "generated": "2026-10-06T10:53:55.542Z",
+  "generated": "2026-10-06T11:10:08.303Z",
   "rosterSlots": 451,
-  "verifiedSlots": 109,
-  "pendingSlots": 342,
-  "verifiedCareers": 108,
+  "verifiedSlots": 111,
+  "pendingSlots": 340,
+  "verifiedCareers": 110,
   "athletes": [
     {
       "id": "penn-state-118-starter-jeff-prescott",
@@ -1516,9 +1516,30 @@
       "school": "NEBRASKA",
       "weight": 174,
       "role": "starter",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 77,
+      "countedSeasons": [
+        {
+          "year": 1984,
+          "place": 1,
+          "source": "https://nwhof.org/brackets/54#page=1"
+        },
+        {
+          "year": 1982,
+          "place": 6,
+          "source": "https://huskers.com/nebraskas-national-champions"
+        },
+        {
+          "year": 1983,
+          "place": "qualifier",
+          "source": "https://nwhof.org/brackets/53#page=23"
+        },
+        {
+          "year": 1981,
+          "place": 0,
+          "source": "https://nwhof.org/brackets/51"
+        }
+      ],
       "excludedSeasons": []
     },
     {
@@ -1538,9 +1559,30 @@
       "school": "NEBRASKA",
       "weight": 190,
       "role": "starter",
-      "status": "pending",
-      "rating": null,
-      "countedSeasons": [],
+      "status": "verified",
+      "rating": 86,
+      "countedSeasons": [
+        {
+          "year": 1984,
+          "place": 1,
+          "source": "https://nwhof.org/brackets/54#page=1"
+        },
+        {
+          "year": 1983,
+          "place": 3,
+          "source": "https://huskers.com/nebraskas-national-champions"
+        },
+        {
+          "year": 1982,
+          "place": 4,
+          "source": "https://huskers.com/nebraskas-national-champions"
+        },
+        {
+          "year": 1981,
+          "place": 0,
+          "source": "https://nwhof.org/brackets/51"
+        }
+      ],
       "excludedSeasons": []
     },
     {
