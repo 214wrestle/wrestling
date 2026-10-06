@@ -32,6 +32,8 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  "Alan Waters": {falls:27,bouts:150,source:"https://mutigers.com/sports/wrestling/roster/player/alan-waters"},
+  "Mark Ellis": {falls:30,bouts:129,source:"https://mutigers.com/honors/hall-of-fame/mark-ellis/211/kiosk"},
   "Keegan O'Toole": {falls:31,bouts:113,source:"https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"},
   "Drake Houdashelt": {falls:18,bouts:157,source:"https://mutigers.com/sports/wrestling/roster/player/drake-houdashelt"},
   "Brent Metcalf": {falls:47,bouts:111,source:"https://hawkeyesports.com/sports/wrestling/roster/season/2009-10/player/brent-metcalf"},

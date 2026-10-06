@@ -40,6 +40,10 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  "Michael Chandler": [{"year": 2006, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/michael-chandler"}, {"year": 2007, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/michael-chandler"}, {"year": 2008, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/season/2008-09/player/michael-chandler"}, {"year": 2009, "place": 5, "source": "https://mutigers.com/news/2013/01/17/mizzou-alum-and-mma-lightweight-champion-michael-chandler-to-defend-title-tonight"}],
+  "Alan Waters": [{"year": 2011, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/player/alan-waters"}, {"year": 2012, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/player/alan-waters"}, {"year": 2013, "place": 4, "source": "https://mutigers.com/sports/wrestling/roster/player/alan-waters"}, {"year": 2015, "place": 3, "source": "https://mutigers.com/news/2015/03/21/waters-takes-third-cox-takes-fifth-at-ncaa-championships-session-5"}],
+  "Mark Ellis": [{"year": 2007, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/player/mark-ellis"}, {"year": 2008, "place": "qualifier", "source": "https://mutigers.com/sports/wrestling/roster/player/mark-ellis"}, {"year": 2009, "place": 1, "source": "https://mutigers.com/honors/hall-of-fame/mark-ellis/211/kiosk"}, {"year": 2010, "place": 6, "source": "https://mutigers.com/honors/hall-of-fame/mark-ellis/211/kiosk"}],
+
   "J'den Cox": [{"year": 2014, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/player/jden-cox"}, {"year": 2015, "place": 5, "source": "https://mutigers.com/news/2016/3/20/wrestling-cox-becomes-second-ever-two-time-national-champion-in-program-history"}, {"year": 2016, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/player/jden-cox"}, {"year": 2017, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/player/jden-cox"}],
   "Keegan O'Toole": [{"year": 2021, "place": 3, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"}, {"year": 2022, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"}, {"year": 2023, "place": 1, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"}, {"year": 2024, "place": 3, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"}, {"year": 2025, "place": 2, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"}],
 
@@ -175,6 +179,10 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  "Michael Chandler": {wins:100,losses:40,source:"https://mutigers.com/news/2013/01/17/mizzou-alum-and-mma-lightweight-champion-michael-chandler-to-defend-title-tonight"},
+  "Alan Waters": {"wins": 136, "losses": 14, "source": "https://mutigers.com/sports/wrestling/roster/player/alan-waters"},
+  "Mark Ellis": {"wins": 90, "losses": 39, "source": "https://mutigers.com/honors/hall-of-fame/mark-ellis/211/kiosk"},
+
   "J'den Cox": {"wins": 136, "losses": 5, "source": "https://mutigers.com/sports/wrestling/roster/player/jden-cox"},
   "Keegan O'Toole": {"wins": 108, "losses": 5, "source": "https://mutigers.com/sports/wrestling/roster/season/2023-24/player/keegan-otoole"},
 
