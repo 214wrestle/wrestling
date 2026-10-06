@@ -11,6 +11,8 @@ export interface HistoricalMeeting {
 }
 /** Verified historical bouts; game roster weights do not rewrite history. */
 export const NCAA_MEETINGS: readonly HistoricalMeeting[] = [
+  {winner:'Steve Mocco',loser:'Cole Konrad',year:2005,round:'final',weight:285,result:'3–1 in sudden victory',source:'https://www.themat.com/news/2005/march/19/cowboys-crown-five-champions---12039'},
+  {winner:"John Smith",loser:"Gil Sanchez",year:1987,round:"final",weight:134,result:"18–4",source:"https://nwhof.org/brackets/57#page=1"},
   {winner:"Jim Scherr",loser:"Duane Goldman",year:1984,round:"final",weight:177,result:"3–2",source:"https://nwhof.org/brackets/54#page=1"},
   {winner:"J'den Cox",loser:"Nick Heflin",year:2014,round:"final",weight:197,result:"2–1",source:"https://ohiostatebuckeyes.com/news/2014/3/25/ohio-state-athletics-good-stuff-28"},
   {winner:"Vito Arujau",loser:"Roman Bravo-Young",year:2023,round:"final",weight:133,result:"10–4",source:"https://gopsusports.com/news/2023/03/19/starocci-and-brooks-win-individual-titles-for-national-champion-wrestling-team"},
@@ -53,11 +55,14 @@ export function smithPerryFamilyNote(w: Wrestler): string | undefined {
   if (name === 'Mark Perry' && w.school.id === 'iowa') {
     return 'Family across the rivalry: Iowa’s Mark Perry is the nephew of Oklahoma State brothers John and Pat Smith.';
   }
-  if (w.school.id === 'oklahoma-state' && (name === 'John Smith' || name === 'Pat Smith')) {
-    return 'Smith–Perry family connection: John and Pat Smith are brothers, and both are uncles of Iowa’s Mark Perry.';
+  if (w.school.id === 'oklahoma-state' && (name === 'John Smith' || name === 'Pat Smith' || name === 'Lee Roy Smith')) {
+    return 'Smith family: Lee Roy, John and Pat Smith are brothers. Their sister Margaret is the mother of Phillies catcher J.T. Realmuto, their nephew. John and Pat are also uncles of Iowa’s Mark Perry.';
   }
 }
 export function wrestlerFamilyNote(w: Wrestler): string | undefined {
+  const name = `${w.firstName} ${w.lastName}`;
+  if (name === 'Steve Mocco') return 'Mocco family specialty: Steve is Michael Mocco’s father. Both bring a signature foot sweep to the mat.';
+  if (name === 'Michael Mocco') return 'Mocco family specialty: Michael is Steve Mocco’s son. Their shared signature is the foot sweep.';
   if (w.school.id === 'nebraska' && ['Jim Scherr','Bill Scherr'].includes(`${w.firstName} ${w.lastName}`)) return 'Twin champions: Nebraska’s Jim and Bill Scherr both won NCAA titles in 1984, at 177 and 190 pounds, respectively.';
   return smithPerryFamilyNote(w) ?? morenoFamilyNote(w);
 }

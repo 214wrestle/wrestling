@@ -40,6 +40,11 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+  'Chris Barnes': [{year:1987,place:'qualifier',source:'https://nwhof.org/brackets/57#page=23'},{year:1988,place:4,source:'https://nwhof.org/hall_of_fame/bio/6587'},{year:1989,place:1,source:'https://nwhof.org/hall_of_fame/bio/6587'},{year:1990,place:1,outstandingWrestler:true,source:'https://okstate.com/documents/download/2021/3/16/OklahomaStateNotes.pdf#page=29'}],
+  'Steve Barrett': [{year:1974,place:'qualifier',source:'https://nwhof.org/brackets/44#page=8'},{year:1975,place:5,source:'https://nwhof.org/hall_of_fame/bio/14586'},{year:1976,place:3,source:'https://nwhof.org/hall_of_fame/bio/14586'},{year:1977,place:1,source:'https://nwhof.org/hall_of_fame/bio/14586'}],
+  'Kendall Cross': [{year:1987,place:'qualifier',source:'https://nwhof.org/brackets/57#page=5'},{year:1988,place:6,source:'https://nwhof.org/hall_of_fame/bio/771'},{year:1989,place:1,source:'https://nwhof.org/hall_of_fame/bio/771'},{year:1990,place:3,source:'https://nwhof.org/hall_of_fame/bio/771'}],
+  'Yojiro Uetake': [{year:1964,place:1,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/41'},{year:1965,place:1,outstandingWrestler:true,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/41'},{year:1966,place:1,outstandingWrestler:true,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/41'}],
+  'Lee Roy Smith': [{year:1977,place:5,source:'https://okstate.com/documents/download/2021/3/16/OklahomaStateNotes.pdf#page=33'},{year:1978,place:'qualifier',source:'https://nwhof.org/brackets/48#page=8'},{year:1979,place:4,source:'https://okstate.com/documents/download/2021/3/16/OklahomaStateNotes.pdf#page=33'},{year:1980,place:1,source:'https://okstate.com/documents/download/2021/3/16/OklahomaStateNotes.pdf#page=33'}],
   'Mark Muñoz': [{year:1998,place:'qualifier',source:'https://nwhof.org/brackets/68#page=23'},{year:1999,place:'qualifier',source:'https://nwhof.org/brackets/69#page=23'},{year:2000,place:3,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6075'},{year:2001,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=6075'}],
   'Teague Moore': [{year:1996,place:'qualifier',source:'https://nwhof.org/brackets/66#page=2'},{year:1997,place:4,source:'https://nwhof.org/hall_of_fame/bio/6199'},{year:1998,place:1,source:'https://nwhof.org/hall_of_fame/bio/6199'},{year:1999,place:3,source:'https://nwhof.org/hall_of_fame/bio/6199'}],
   'Jimmy Jackson': [{year:1975,place:'qualifier',source:'https://nwhof.org/brackets/45#page=29'},{year:1976,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=7365'},{year:1977,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=7365'},{year:1978,place:1,source:'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=7365'}],
@@ -207,7 +212,7 @@ export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
 };
 
 /** Explicit verified eligibility; never infer from a missing season. */
-export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
+export const ELIGIBILITY_SEASONS: Record<string, 2 | 3 | 4> = {'Yojiro Uetake': 3, 'Mike Nissen': 3, 'Chris Taylor': 2, 'Dan Gable': 3, 'Dan Hodge': 3, 'Brent Metcalf': 3, 'Vincenzo Joseph': 3, 'Jay Borschel': 3, 'T.J. Williams': 3};
 
 /** Provisional anchors; interpolate between average placement point levels. */
 export function placementRating(average: number): number {
@@ -221,6 +226,11 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+  'Chris Barnes': {wins:119,losses:27,ties:3,source:'https://okstate.com/documents/download/2021/3/16/OklahomaStateNotes.pdf#page=4'},
+  'Steve Barrett': {wins:87,losses:11,ties:2,source:'https://nwhof.org/hall_of_fame/bio/14586'},
+  'Kendall Cross': {wins:111,losses:27,ties:3,source:'https://okstate.com/documents/download/2021/3/16/OklahomaStateNotes.pdf#page=4'},
+  'Yojiro Uetake': {wins:58,losses:0,ties:0,source:'https://okstate.com/news/2014/12/2/Catching_Up_With_Yojiro_Uetake'},
+  'Lee Roy Smith': {wins:114,losses:13,ties:4,source:'https://okstate.com/documents/download/2021/3/16/OklahomaStateNotes.pdf#page=4'},
   'Mark Muñoz': {wins:111,losses:27,ties:0,source:'https://okstate.com/documents/download/2013/1/30/release_20130130aaa.pdf'},
   'Teague Moore': {wins:113,losses:25,ties:0,source:'https://okstate.com/documents/download/2013/1/30/release_20130130aaa.pdf'},
   'Jimmy Jackson': {wins:87,losses:9,ties:2,source:'https://okstate.com/news/2023/6/3/cowboy-wrestling-jimmy-jackson-inducted-into-national-wrestling-hall-of-fame'},
@@ -361,5 +371,7 @@ export function overallRating(name: string, career: CareerScore, record?: Colleg
   if (name === 'Dan Gable' || name === 'Cael Sanderson') return 99;
   // Owner-approved exception: Taylor's finals opposition included Kyle Dake.
   if (name === 'David Taylor') return 96;
+  // Owner-approved all-time exception, 2026-10-06; only Gable/Sanderson are 99.
+  if (name === 'Yojiro Uetake') return 98;
   return Math.min(championshipCeiling(career.counted), Math.max(0, Math.round(placementRating(career.averagePlacementPoints) + career.bonusPoints + (HODGE_AWARDS[name]?.years.length ?? 0) + (record ? recordAdjustment(record) : 0))));
 }

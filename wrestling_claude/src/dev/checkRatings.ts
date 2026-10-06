@@ -54,7 +54,7 @@ for (let titles = 0; titles <= 4; titles++) {
   assert(overallRating('Other athlete',career,{wins:100,losses:0,source:'test'}) <= 90 + 2*titles);
 }
 for (const [name,seasons] of Object.entries(CAREER_RECORDS)) {
-  if (seasons.filter(s=>s.place===1).length === 3) assert(overallRating(name,scoreCareer(seasons),COLLEGE_RECORDS[name]) <= 96);
+  if (name !== 'Yojiro Uetake' && seasons.filter(s=>s.place===1).length === 3) assert(overallRating(name,scoreCareer(seasons),COLLEGE_RECORDS[name]) <= 96);
 }
 assert(overallRating('Dan Gable',gable) === 99);
 console.log('Championship tiers and three-title 96 ceiling passed');
@@ -79,3 +79,5 @@ assert(starocci.counted.length===4 && starocci.excluded.length===1 && starocci.p
 const brooks=scoreCareer(CAREER_RECORDS['Aaron Brooks']);
 assert(careerCredentials(brooks,'Aaron Brooks')==='4x National Champ · 5x AA');
 assert(brooks.counted.length===4 && brooks.placementPoints===40);
+
+assert(overallRating('Yojiro Uetake',scoreCareer(CAREER_RECORDS['Yojiro Uetake'],3),COLLEGE_RECORDS['Yojiro Uetake'])===98);
