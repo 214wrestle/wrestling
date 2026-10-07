@@ -5,12 +5,13 @@ export interface HistoricalMeeting {
   loser: string;
   year: number;
   round: string;
-  weight: number;
+  weight: number | 'unlimited';
   result: string;
   source: string;
 }
 /** Verified historical bouts; game roster weights do not rewrite history. */
 export const NCAA_MEETINGS: readonly HistoricalMeeting[] = [
+  {winner:'Steve "Dr. Death" Williams',loser:'Lou Banach',year:1982,round:'semifinal',weight:'unlimited',result:'7–4',source:'https://nwhof.org/brackets/52#page=29'},
   {winner:'Mark Kerr',loser:'Randy Couture',year:1992,round:'final',weight:190,result:'12–4',source:'https://nwhof.org/brackets/62#page=1'},
   {winner:'Terry Brands',loser:'Shawn Charles',year:1992,round:'final',weight:126,result:'8–5',source:'https://nwhof.org/brackets/62#page=1'},
   {winner:'Tom Brands',loser:'Alan Fried',year:1992,round:'final',weight:134,result:'6–2',source:'https://nwhof.org/brackets/62#page=1'},
@@ -34,7 +35,8 @@ export function ncaaMatchupNotes(a: Wrestler, b: Wrestler): HistoricalMeeting[] 
 }
 
 export function historicalMeetingText(m: HistoricalMeeting): string {
-  return `These two met in the ${m.year} NCAA tournament ${m.round} at ${m.weight} lbs. ${m.winner} defeated ${m.loser}, ${m.result}.`;
+  const weight = m.weight === 'unlimited' ? 'unlimited heavyweight' : `${m.weight} lbs` ;
+  return `These two met in the ${m.year} NCAA tournament ${m.round} at ${weight}. ${m.winner} defeated ${m.loser}, ${m.result}.`;
 }
 
 export function morenoFamilyNote(w: Wrestler): string | undefined {

@@ -1,0 +1,15 @@
+import { TouchGestures } from '../engine/TouchGestures';
+const ok=(v:unknown,m:string)=>{if(!v)throw Error(m)};
+const g = new TouchGestures();
+g.begin(1,'fight',true);g.begin(2,'fight',true);
+ok(g.state().fight,'two fingers engage effort');
+ok(g.end(1)==='fight' && g.state().fight,'releasing first finger retains second hold');
+ok(g.end(1)===undefined && g.state().fight,'duplicate lost-capture does not release another finger');
+g.end(2);ok(!g.state().fight,'final finger release ends effort');
+g.begin(3,'fight',true);g.begin(4,'sprawl',true);g.end(3);
+ok(!g.state().fight && g.state().sprawl,'distinct held controls are independent');
+g.begin(5,'legAction','lift');g.begin(6,'legAction','trip');
+ok(g.state().legAction==='trip','latest selected leg action takes priority');
+g.end(6);ok(g.state().legAction==='lift','releasing latest selection restores still-held lift');
+g.clear();ok(g.size===0 && Object.keys(g.state()).length===0,'blur/position/unmount clear every gesture');
+console.log('Pointer ownership, duplicate capture loss, simultaneous effort and reset verified');

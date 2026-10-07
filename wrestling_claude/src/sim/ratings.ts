@@ -557,6 +557,13 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; evidenceStatus?: 'provisional-reconstruction'; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+'Richard Figueroa': {wins:48,losses:16,evidenceStatus:'provisional-reconstruction',source:'https://thesundevils.com/sports/wrestling/roster/player/richard-figueroa ; https://okstate.com/documents/download/2026/1/7/6_-_Oklahoma.pdf#page=11 ; https://okstate.com/documents/2026/9/29/2025-26_Final_Stats_Corrected.pdf'},
+'Mark Miller': {wins:82,losses:24,source:'https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/vatech.sidearmsports.com/documents/2018/4/30/wr07mg.pdf#page=21'},
+'Kevin Jackson': {wins:135,losses:17,ties:1,source:'https://ncaanewsarchive.s3.amazonaws.com/1986/19861103.pdf#page=5 ; https://cyclones.com/sports/2015/3/2/GEN_20140101210'},
+'Shawn Charles': {wins:103,losses:31,ties:6,source:'https://dailyiowan.lib.uiowa.edu/DI/1993/di1993-09-23.pdf#page=10'},
+// School final win total; losses reconstructed from contemporary pre-NCAA report + final loss.
+'Brandon Slay': {wins:110,losses:25,evidenceStatus:'provisional-reconstruction',source:'https://thepenngazette.com/three-peat-for-penns-wrestlers/ ; https://nwhof.org/brackets/68#page=20 ; https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/penn.sidearmsports.com/documents/2017/12/6/Wrestling_history_record_book.pdf'},
+'Eric Akin': {wins:126,losses:27,ties:4,source:'https://cyclones.com/documents/download/2025/5/14/Record_Book_25_26.pdf#page=26'},
 // Reconstructed school aggregate; excludes 2000 NWCA exhibition. Earlier redshirt scope unresolved; see research reconciliation.
 'Nick Muzashvili': {wins:110,losses:42,evidenceStatus:'provisional-reconstruction',source:'https://msuspartans.com/news/2000/2/16/Muzashvili_Selected_As_Big_Ten_Wrestler_Of_The_Week ; https://msuspartans.com/news/2000/3/5/Wrestlers_Finish_Fourth_At_Big_Ten_Championships ; https://msuspartans.com/sports/2018/7/20/sports-m-wrestl-spec-rel-ncaa-history-html'},
 // Michigan 56–18 (contemporary UNC profile) plus UNC 74–4 (school record book).

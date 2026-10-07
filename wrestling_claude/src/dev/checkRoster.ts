@@ -1,5 +1,5 @@
 import { PROVISIONAL_RATINGS } from '../sim/provisionalRatings';
-import { morenoFamilyNote, morenoMatchupNote, smithPerryFamilyNote } from '../sim/easterEggs';
+import { morenoFamilyNote, morenoMatchupNote, smithPerryFamilyNote, ncaaMatchupNotes, historicalMeetingText } from '../sim/easterEggs';
 import { ROSTER, LEGENDS_TEAMS, LEGENDS_WEIGHTS, byId, DEFAULT_MATCHUP } from '../sim/roster';
 import { HIGH_PACE_NAMES } from '../sim/athleteProfiles';
 const check = (ok: boolean, label: string) => { if (!ok) throw new Error(label); };
@@ -100,3 +100,13 @@ for (const [name,rating] of Object.entries({'Michael Mocco':75,'Dreshaun Ross':8
  check(entries.length === 1 && entries[0].rating === rating && !entries[0].ncaaCareer, `Owner developmental rating and unique slot: ${name}`);
 }
 check(byId('iowa-state-285-choice-coby-merrill').legends?.role === 'choice', 'Coby Merrill ISU heavyweight choice');
+
+// Historic unlimited bouts must work with the roster's nickname-bearing identity
+// in either corner, without rewriting the original weight to modern 285.
+const drDeath = ROSTER.find(w => `${w.firstName} ${w.lastName}` === 'Steve "Dr. Death" Williams')!;
+const louBanach = ROSTER.find(w => `${w.firstName} ${w.lastName}` === 'Lou Banach')!;
+check(!!drDeath && !!louBanach, 'Williams and Banach remain selectable');
+for (const [a,b] of [[drDeath,louBanach],[louBanach,drDeath]]) {
+ const meeting = ncaaMatchupNotes(a,b).find(m => m.year === 1982);
+ check(!!meeting && historicalMeetingText(meeting).includes('unlimited heavyweight') && meeting.result === '7–4', '1982 heavyweight history works in either corner');
+}

@@ -1,4 +1,4 @@
-import { Matrix4, Vector3 } from 'three';
+import { Matrix4, Quaternion, Vector3 } from 'three';
 import type { CharacterRig } from '../body/Character';
 import type { BoneName } from '../body/skeleton';
 import { Solver } from './solver';
@@ -12,6 +12,9 @@ import { Footwork } from './footwork';
 import { moveClip, sampleHold, sampleMove } from './clips';
 import type { ActiveContact, Role } from './clips';
 import { hasSolo, sampleSolo } from './solo';
+import { applyRideEffort } from './matEffort';
+import { EffortPulse } from './effortPulse';
+import type { EffortResult } from './effortPulse';
 
 /**
  * One body's animation.
@@ -35,6 +38,7 @@ export type AnimView =
       lean: number;
       lead: 1 | -1;
       act: string;
+      attemptedTechnique?: string;
       actT: number;
       actDur: number;
       /** My hand-fight control and his, 0..1. */
@@ -102,16 +106,30 @@ export class Animator {
   private feetDesired: Posture = createPosture();
   readonly footwork = new Footwork();
   private footW = 0;
+  private walkingOverlay = 0;
+  private walkingStride = 0;
   private gazeTarget = new Vector3();
   private phase = Math.random() * 10;
   private breath = Math.random() * 6;
   private contacts: ActiveContact[] = [];
   private gripW = { L: 0, R: 0 };
+  private cradleClaspLocked=false;
   private gripBone: { L: BoneName | null; R: BoneName | null } = { L: null, R: null };
   private gripAt = { L: new Vector3(), R: new Vector3() };
   private lastMode = '';
+  private gaitRotation = new Quaternion();
+  private gaitYaw = new Quaternion();
+  private gaitAxis = new Vector3(0, 1, 0);
+  private lastClipU = 0;
+  private contactAcquireRate = 16;
+  private contactReleaseRate = 10;
   private halfLife = 0.08;
   private time = 0;
+  private effortPulse = new EffortPulse();
+  /** A consumed effort has a physical attempt even when it cannot advance control. */
+  effort(button: string, reaction = false, result: EffortResult = 'ok', force = false): void {
+    this.effortPulse.trigger(button, reaction, result, force);
+  }
   private frameDt = 1 / 60;
   /** Hand-fight jitter seeds. */
   private seed = Math.random() * 100;
@@ -141,11 +159,23 @@ export class Animator {
 
   update(dt: number, view: AnimView, opp: Animator | null): void {
     this.time += dt;
+    const bottomRise = view.mode === 'paired' && view.clip === 'ride'
+      && (view.role === 'B' ? !this.effortPulse.reaction : this.effortPulse.reaction)
+      && this.effortPulse.button === 'shoot' && this.effortPulse.result === 'lost';
+    this.effortPulse.advance(dt, bottomRise ? .65 : .42);
     this.frameDt = dt;
     this.contacts = [];
     const modeKey = view.mode + (view.mode === 'paired' ? view.clip : view.mode === 'solo' ? view.clip : '');
     const changed = modeKey !== this.lastMode;
     this.lastMode = modeKey;
+    // Authored contact windows are normalized to the move. Preserve that timing
+    // on fast entries instead of adding the same long grip lag to every shot.
+    const clipRate = view.mode === 'paired' && !view.hold && !changed && dt > 0
+      ? Math.max(0, (view.u - this.lastClipU) / dt) : 1;
+    this.contactAcquireRate = Math.max(16, Math.min(96, 16 * clipRate));
+    this.contactReleaseRate = Math.max(10, Math.min(60, 10 * clipRate));
+    this.lastClipU = view.mode === 'paired' ? view.u : 0;
+    if (changed) this.effortPulse.clearQueued();
 
     let footTarget = 0;
     switch (view.mode) {
@@ -153,6 +183,7 @@ export class Animator {
         this.buildStance(view, opp);
         footTarget = view.act === 'sprawl' || view.act === 'sprawlRecover' ? 0 : 1;
         this.halfLife = view.act === 'sprawl' ? 0.045 : view.act === 'snap' ? 0.05 : 0.075;
+        if (view.act === 'stance') this.halfLife += .025 * this.walkingOverlay;
         break;
       case 'walk':
         this.buildWalk(view, opp);
@@ -161,8 +192,13 @@ export class Animator {
         break;
       case 'paired':
         this.buildPaired(view, opp);
-        footTarget = 0;
-        this.halfLife = view.hold ? 0.09 : changed ? 0.06 : 0.035;
+        // Standing control keeps live foot plants as the defender turns out.
+        // Throws and mat returns retain their authored airborne trajectories.
+        footTarget = view.hold && view.clip === 'standing' ? 1 : 0;
+        // Preserve the authored timing on fast moves; a fixed pose delay can
+        // otherwise leave a defensive post airborne after its grip releases.
+        this.halfLife = view.hold ? 0.09 : changed ? 0.06
+          : 0.035 / Math.max(1, Math.min(4, clipRate));
         break;
       case 'solo':
         this.buildSolo(view, opp);
@@ -188,15 +224,52 @@ export class Animator {
     this.applyMass(dt);
 
     // Footwork takes the feet whenever the body is on its feet and free.
+    // Procedural arm/hip motion lives after the pose spring, so it needs its
+    // own transition envelope when the wrestler lowers into a working stance.
+    this.walkingOverlay += ((view.mode === 'walk' ? 1 : 0) - this.walkingOverlay) * (1 - Math.exp(-dt / .1));
     const wasPlanted = this.footW > 0.01;
     this.footW += (footTarget - this.footW) * Math.min(1, dt * (footTarget > this.footW ? 9 : 14));
     if (footTarget > 0) {
       if (!wasPlanted || !this.footwork.isPrimed) this.footwork.reset(this.display);
       const vx = 'vx' in view ? view.vx : 0;
       const vz = 'vz' in view ? view.vz : 0;
-      this.footwork.update(dt, this.feetDesired, vx, vz, view.mode === 'walk' ? 0.9 : 1.05 * this.character.motion.tempo);
+      this.footwork.update(dt, this.feetDesired, vx, vz, view.mode === 'walk' ? 1 : 1.05 * this.character.motion.tempo, view.mode === 'walk', this.scale);
       this.footwork.apply(this.display, this.footW);
       this.display[P.HIPS + 1] += this.footwork.bounce * this.footW;
+      const support = this.footwork.support * this.footW;
+      const sway = .018 - .004 * this.walkingOverlay;
+      const yaw = 'yaw' in view ? view.yaw : view.mode === 'paired' ? view.frame.yaw : 0;
+      this.display[P.HIPS] += Math.cos(yaw) * support * sway * this.scale;
+      this.display[P.HIPS + 2] -= Math.sin(yaw) * support * sway * this.scale;
+      if (this.walkingOverlay > .001) {
+        // Arm swing follows the actual leg separation, not an unrelated clock.
+        const dx = this.display[P.FOOT_L] - this.display[P.FOOT_R];
+        const dz = this.display[P.FOOT_L + 2] - this.display[P.FOOT_R + 2];
+        // Once guard transition starts, fade the last walking swing; the new
+        // staggered stance feet must not start another walking arm swing.
+        if (view.mode === 'walk') this.walkingStride = (dx * Math.sin(yaw) + dz * Math.cos(yaw)) / this.scale;
+        const stride = this.walkingStride;
+        const swing = Math.max(-.17, Math.min(.17, stride * .42)) * this.scale * this.walkingOverlay;
+        for (const [at, sign] of [[P.HAND_L, -1], [P.HAND_R, 1]] as const) {
+          this.display[at] += Math.sin(yaw) * swing * sign;
+          this.display[at + 2] += Math.cos(yaw) * swing * sign;
+          // A relaxed arm swings about the shoulder, rising at both extremes.
+          this.display[at + 1] += swing * swing / (.9 * this.scale);
+        }
+        // Elbows travel with the hands instead of being pinned behind the torso.
+        for (const [at, sign] of [[P.ELBOW_L, -1], [P.ELBOW_R, 1]] as const) {
+          this.display[at] += Math.sin(yaw) * swing * sign * .55;
+          this.display[at + 2] += Math.cos(yaw) * swing * sign * .55;
+        }
+        // Advance the hip of the forward leg; the shoulders counter-rotate.
+        // Apply a local yaw to the existing root quaternion, preserving heading.
+        const hipTurn = Math.max(-.065, Math.min(.065, stride * -.14)) * this.walkingOverlay;
+        this.gaitRotation.fromArray(this.display, P.HIPS_Q);
+        this.gaitYaw.setFromAxisAngle(this.gaitAxis, hipTurn);
+        this.gaitRotation.multiply(this.gaitYaw).normalize().toArray(this.display, P.HIPS_Q);
+        this.display[P.SPINE + 1] += swing / this.scale * .35 - hipTurn;
+        this.display[P.SPINE + 2] -= support * .018 * this.walkingOverlay;
+      }
     } else if (this.footW < 0.01) {
       this.footwork.invalidate();
     }
@@ -249,10 +322,18 @@ export class Animator {
     const k = 900;
     const c = 34;
     const L = this.lag;
-    L.pv += (-k * L.p - c * L.pv - clampA(fwd) * 6) * dt;
-    L.p += L.pv * dt;
-    L.rv += (-k * L.r - c * L.rv + clampA(side) * 4) * dt;
-    L.r += L.rv * dt;
+    // Integrate inertia in small steps: a single 50ms update can make this
+    // stiff spring unstable and leave the torso shaking after the player stops.
+    const steps = Math.max(1, Math.ceil(dt * 120));
+    const step = dt / steps;
+    const pitchForce = -clampA(fwd) * 6;
+    const rollForce = clampA(side) * 4;
+    for (let i = 0; i < steps; i++) {
+      L.pv += (-k * L.p - c * L.pv + pitchForce) * step;
+      L.p += L.pv * step;
+      L.rv += (-k * L.r - c * L.rv + rollForce) * step;
+      L.r += L.rv * step;
+    }
     L.p = Math.max(-0.25, Math.min(0.25, L.p));
     L.r = Math.max(-0.2, Math.min(0.2, L.r));
     d[P.SPINE] += L.p;
@@ -263,6 +344,22 @@ export class Animator {
 
   /** Second pass, once both bodies are posed: close grips onto the opponent. */
   applyContacts(dt: number, opp: Animator | null): void {
+    const claspContacts=this.contacts.filter(c=>c.clasp);
+    let clasp:Vector3|null=null;
+    if(opp && claspContacts.length===2){
+      const anchors=claspContacts.map(c=>{
+        const b=opp.character.bones[c.on];b.updateWorldMatrix(true,false);
+        return new Vector3().fromArray(c.at).multiplyScalar(opp.scale).applyMatrix4(b.matrixWorld);
+      });
+      if(anchors[0].distanceTo(anchors[1])<.22*this.scale)this.cradleClaspLocked=true;
+      if(this.cradleClaspLocked){
+        clasp=anchors[0].clone().add(anchors[1]).multiplyScalar(.5);
+        // Join on the outside of the trapped head/knee, not inside the torso.
+        const outside=new Vector3(this.display[P.HIPS]-clasp.x,0,0).normalize();
+        clasp.addScaledVector(outside,.13*this.scale);
+        clasp.y+=.035*this.scale;
+      }
+    }else this.cradleClaspLocked=false;
     for (const hand of ['L', 'R'] as const) {
       const c = this.contacts.find((x) => x.hand === hand);
       const want = c && opp ? c.weight : 0;
@@ -270,14 +367,25 @@ export class Animator {
         this.gripBone[hand] = c.on;
         this.gripAt[hand].set(c.at[0], c.at[1], c.at[2]);
       }
-      const rate = want > this.gripW[hand] ? 16 : 10;
+      const rate = want > this.gripW[hand] ? this.contactAcquireRate : this.contactReleaseRate;
       this.gripW[hand] += (want - this.gripW[hand]) * Math.min(1, dt * rate);
       const w = this.gripW[hand];
       const bone = this.gripBone[hand];
+      // A collar or thigh contact needs an open hook; wrist control can close
+      // farther. Contact strength still controls the arm attachment separately.
+      const aperture=bone==='neck'||bone==='head'?.5:
+        bone?.startsWith('forearm')?.72:bone?.startsWith('hand')?.85:
+        bone?.startsWith('shin')?.6:bone?.startsWith('thigh')?.35:.4;
+      this.character.setGrip?.(hand,w*(clasp?.8:aperture));
       if (w < 0.01 || !bone || !opp) continue;
       const ob = opp.character.bones[bone];
       ob.updateWorldMatrix(true, false);
       _v.copy(this.gripAt[hand]).multiplyScalar(opp.scale).applyMatrix4(ob.matrixWorld);
+      if(clasp && c?.clasp){
+        _v.copy(clasp);
+        // Adjacent wrist centers let the palms meet without coincident meshes.
+        _v.y+=(hand==='L'?1:-1)*.014*this.scale;
+      }
       const at = hand === 'L' ? P.HAND_L : P.HAND_R;
       this.display[at] += (_v.x - this.display[at]) * w;
       this.display[at + 1] += (_v.y - this.display[at + 1]) * w;
@@ -359,6 +467,26 @@ export class Animator {
       lp[P.HAND_R + 1] -= 0.28 * bell;
       lp[P.HAND_L + 2] -= 0.05 * bell;
       lp[P.HAND_R + 2] -= 0.05 * bell;
+    } else if (v.act === 'attackAttempt') {
+      // An entry without a secure tie still visibly tries its own technique.
+      // Keep it local: an out-of-range attempt must not teleport the opponent.
+      const move = v.attemptedTechnique;
+      if (move === 'slideBy') {
+        lp[P.SPINE + 1] += .28 * bell;
+        lp[P.HAND_L] += .20 * bell; lp[P.HAND_R] += .20 * bell;
+        lp[P.HAND_L + 2] -= .12 * bell; lp[P.HAND_R + 2] -= .12 * bell;
+      } else if (move === 'footSweep') {
+        lp[P.FOOT_R + 2] += .24 * bell; lp[P.FOOT_R + 1] += .055 * bell;
+        lp[P.HAND_L + 2] -= .12 * bell; lp[P.SPINE + 2] += .08 * bell;
+      } else {
+        const depth = move === 'superDuck' ? .23 : move === 'firemansCarry' ? .19 : .13;
+        lp[P.HIPS + 1] -= depth * bell;
+        lp[P.SPINE] += .15 * bell;
+        lp[P.HEAD] += .15 * bell;
+        lp[P.HAND_L + 1] += (move === 'firemansCarry' ? -.20 : .15) * bell;
+        lp[P.HAND_R + 2] += .15 * bell;
+        lp[P.SPINE + 1] += (move === 'firemansCarry' ? -.3 : .2) * bell;
+      }
     } else if (v.act === 'fake') {
       lp[P.HIPS + 1] -= 0.14 * bell;
       lp[P.HIPS + 2] += 0.05 * bell;
@@ -463,15 +591,29 @@ export class Animator {
   /* ----------------------------------------------------------------- walk */
 
   private buildWalk(v: Extract<AnimView, { mode: 'walk' }>, opp: Animator | null): void {
-    const speed = Math.hypot(v.vx, v.vz);
     const s = this.stanceParams;
-    this.breath += (1 / 60) * 2;
+    this.breath += this.frameDt * 2;
     Object.assign(s, DEFAULT_STANCE, { level: 0.97, width: 0.62, guard: 0, phase: this.breath, lead: 1 });
     stancePose(s, this.local);
     const lp = this.local;
+    // Release the low wrestling-ready knee bend when standing or strolling.
+    // Keep the existing lower pelvis at brisk speed for trailing-leg reach;
+    // the posture spring blends starts/stops rather than snapping the knees.
+    const travel = Math.min(1, Math.hypot(v.vx, v.vz) / (this.scale * .65));
+    const strideLoad = travel * travel * (3 - 2 * travel);
+    lp[P.HIPS + 1] += .03 * (1 - strideLoad);
     // Upright walk: feet side by side, arms swinging opposite the legs.
-    lp[P.FOOT_L + 2] = 0.04;
-    lp[P.FOOT_R + 2] = -0.02;
+    lp[P.FOOT_L] = .10;
+    lp[P.FOOT_R] = -.10;
+    lp[P.FOOT_L + 2] = 0;
+    lp[P.FOOT_R + 2] = 0;
+    // Walking knees track straight ahead of their own hip, rather than using
+    // the staggered/outward poles authored for a defensive wrestling stance.
+    for (const [at, side] of [[P.KNEE_L, 1], [P.KNEE_R, -1]] as const) {
+      lp[at] = .10 * side;
+      lp[at + 1] = .45;
+      lp[at + 2] = .75;
+    }
     lp[P.FOOT_L + FOOT.YAW] = 0.08;
     lp[P.FOOT_R + FOOT.YAW] = -0.08;
     lp[P.FOOT_L + FOOT.HEEL] = 0;
@@ -481,14 +623,12 @@ export class Animator {
     lp[P.SPINE] = 0.04;
     lp[P.SPINE + 1] = 0;
     lp[P.HEAD] = -0.05;
-    this.phase += (1 / 60) * speed * 2.6;
-    const swing = Math.sin(this.phase) * Math.min(1, speed) * 0.18;
     lp[P.HAND_L] = 0.2;
     lp[P.HAND_L + 1] = 0.82;
-    lp[P.HAND_L + 2] = 0.02 + swing;
+    lp[P.HAND_L + 2] = 0.02;
     lp[P.HAND_R] = -0.2;
     lp[P.HAND_R + 1] = 0.82;
-    lp[P.HAND_R + 2] = 0.02 - swing;
+    lp[P.HAND_R + 2] = 0.02;
     lp[P.ELBOW_L] = 0.35;
     lp[P.ELBOW_L + 1] = 1.0;
     lp[P.ELBOW_L + 2] = -0.4;
@@ -510,9 +650,49 @@ export class Animator {
   private buildPaired(v: Extract<AnimView, { mode: 'paired' }>, opp: Animator | null): void {
     const lp = this.local;
     const contacts = v.hold
-      ? sampleHold(v.clip, v.role, v.progress, (this.phase += 1 / 60), v.intensity, v.mirror, lp)
+      ? sampleHold(v.clip, v.role, v.progress, (this.phase += this.frameDt), v.intensity, v.mirror, lp)
       : sampleMove(v.clip, v.role, v.u, v.mirror, lp);
     this.contacts = contacts;
+    const failedRise = v.clip === 'ride' && this.effortPulse.button === 'shoot' && this.effortPulse.result === 'lost'
+      && (v.role === 'B' ? !this.effortPulse.reaction : this.effortPulse.reaction);
+    const effortDuration = failedRise ? 0.65 : 0.42;
+    if (v.hold && this.effortPulse.age < effortDuration) {
+      // Local paired motion happens before IK/contact closure: locked hands stay
+      // attached while the trunk, head and controlled limbs actually yield.
+      const pulse = Math.sin(Math.PI * this.effortPulse.age / effortDuration);
+      const reaction = this.effortPulse.reaction;
+      const amount = pulse * (reaction ? 0.5 : 1) * (0.65 + 0.35 * v.stamina);
+      const top = v.role === 'A';
+      const pin = ['exposed','cradleHold','spladle'].includes(v.clip);
+      if (pin) {
+        if (top) {
+          lp[P.SPINE] += 0.12 * amount;
+          lp[P.ELBOW_L] += 0.045 * amount;
+          lp[P.ELBOW_R] -= 0.045 * amount;
+          lp[P.HIPS + 1] -= 0.025 * amount;
+        } else {
+          lp[P.HIPS + 1] += (reaction ? 0.02 : 0.075) * amount;
+          lp[P.SPINE + 2] += 0.12 * amount;
+          lp[P.HEAD] += 0.08 * amount;
+          // Leave the trapped leg and clasp to their authored contact solver.
+          lp[P.FOOT_R + 2] -= 0.12 * amount;
+        }
+      } else if (v.clip === 'ride') {
+        applyRideEffort(lp, top, reaction, this.effortPulse.button, amount, v.mirror, failedRise);
+      } else if (v.clip === 'flat') {
+        const rise = !top && !reaction;
+        lp[P.HIPS + 1] += (rise ? 0.10 : -0.025) * amount;
+        lp[P.SPINE] += (rise ? -0.18 : 0.12) * amount;
+        lp[P.ELBOW_L + 2] -= 0.06 * amount;
+        lp[P.ELBOW_R + 2] -= 0.06 * amount;
+        if (rise && this.effortPulse.button === 'fight') lp[P.SPINE + 1] += 0.20 * amount;
+      } else {
+        lp[P.SPINE] += (top ? 0.12 : -0.10) * amount;
+        lp[P.HEAD] += (v.clip === 'fhl' ? 0.16 : 0.06) * amount;
+        lp[P.ELBOW_L + 2] -= 0.07 * amount;
+        lp[P.ELBOW_R + 2] -= 0.07 * amount;
+      }
+    }
 
     // Shots start from wherever the bodies really were: close the gap to the
     // authored contact over the first part of the move.

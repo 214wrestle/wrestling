@@ -1,4 +1,5 @@
-import { isScrambleSpecialist } from './athleteProfiles';
+import { weightPhysics, absoluteStrength } from './weightPhysics';
+import { isScrambleSpecialist, isFootSweepSpecialist } from './athleteProfiles';
 import { MAT } from './rules';
 import { pinningMultiplier } from './careerAwards';
 import { HOLD_PLACES, MOVES, SHOT_CLIPS, LEG_HOLDS } from './moves';
@@ -37,6 +38,7 @@ export type Act =
   | 'sprawl'
   | 'sprawlRecover'
   | 'fake'
+  | 'attackAttempt'
   | 'stagger'
   | 'idle'
   | 'paired';
@@ -57,6 +59,7 @@ export interface Athlete {
   /** Recent effort 0..1, for breathing and sweat. */
   exertion: number;
   act: Act;
+  attemptedTechnique?: Command['technique'];
   actT: number;
   actDur: number;
   cooldown: number;
@@ -113,6 +116,7 @@ export type Position =
       sub: MatSub;
       t: number;
       frame: Frame;
+      turnStyle?: 'cradle';
       legRide?: number;
       pockets?: number;
       legCaught?: number;
@@ -427,12 +431,16 @@ export class Bout {
     const cost = big ? 0.11 : technique === 'firemansCarry' ? 0.09 : 0.055;
     if (d < 0.5 || d > (big ? 1.4 : 1.05) || a.stamina < cost + 0.1 || (!big && a.hand < 0.35)) {
       this.ev.announce?.('Set up the attack', 'info', 'Close distance and establish hand control');
+      this.setAct(a, 'attackAttempt', 0.42);
+      a.attemptedTechnique = technique;
+      this.ev.feedback?.(a.side, 'shoot', 'blocked');
       a.cooldown = 0.35; return;
     }
     this.spend(a, cost);
     const wa=this.wrestlers[a.side].attributes, wd=this.wrestlers[opponent.side].attributes;
     const opening = a.hand - opponent.hand + Math.max(0, opponent.lean);
     const success = clamp((big ? 0.28 : 0.4) + opening * 0.25 + (wa.quickness-wd.defense)*0.3
+      + (technique==='footSweep' && isFootSweepSpecialist(this.wrestlers[a.side]) ? 0.12 : 0)
       + (opponent.act==='reach' ? 0.18 : 0) - (defense.sprawl ? 0.2 : 0), 0.08, 0.8);
     this.startMove(this.rng.chance(success) ? technique : 'tieAttackCounter', a.side, this.pairFrame(a.side), false);
   }
@@ -541,6 +549,7 @@ export class Bout {
           this.setAct(a, 'sprawlRecover', BOUT.sprawlRecover);
           break;
         case 'sprawlRecover':
+        case 'attackAttempt':
         case 'fake':
         case 'stagger':
           this.setAct(a, 'stance', Infinity);
@@ -694,7 +703,7 @@ export class Bout {
     q -= (1 - a.stamina) * 0.25;
     q = clamp(q, 0.05, 1);
 
-    const dur = (0.3 + 0.28 * Math.max(0, dist - 0.65)) * (1.12 - wa.quickness * 0.25) * (1 + (1 - a.stamina) * 0.3);
+    const dur = (1 / weightPhysics(this.wrestlers[a.side].weightClass).mobility) * (0.3 + 0.28 * Math.max(0, dist - 0.65)) * (1.12 - wa.quickness * 0.25) * (1 + (1 - a.stamina) * 0.3);
     const frame = this.pairFrame(a.side);
     for (const x of this.athletes) {
       x.act = 'paired';
@@ -743,7 +752,7 @@ export class Bout {
       const mobile = a.act === 'stance' || a.act === 'reach' || a.act === 'fake' || a.act === 'snap';
       const levelK = 0.55 + 0.45 * clamp01((a.level - 0.12) / 0.33);
       const gas = 0.65 + 0.35 * a.stamina;
-      const speed = BOUT.maxSpeed * levelK * gas * (a.act === 'stance' ? 1 : 0.5) * (0.9 + w.quickness * 0.2);
+      const speed = BOUT.maxSpeed * weightPhysics(this.wrestlers[a.side].weightClass).mobility * levelK * gas * (a.act === 'stance' ? 1 : 0.5) * (0.9 + w.quickness * 0.2);
       const len = Math.hypot(c.moveX, c.moveZ);
       let mx = len > 1 ? c.moveX / len : c.moveX;
       let mz = len > 1 ? c.moveZ / len : c.moveZ;
@@ -791,8 +800,8 @@ export class Bout {
 
     // Chest to chest: whoever drives harder moves the pair, and the loser of
     // that exchange is pushed back off his base.
-    const sa = 0.75 + this.wrestlers[0].attributes.strength * 0.5;
-    const sb = 0.75 + this.wrestlers[1].attributes.strength * 0.5;
+    const sa = absoluteStrength(this.wrestlers[0]);
+    const sb = absoluteStrength(this.wrestlers[1]);
     const inContact = dist < BOUT.contact && A.act !== 'sprawl' && B.act !== 'sprawl';
     let leanA = 0.3 * clamp(A.drive, -1, 1) * (inContact ? 0 : 1);
     let leanB = 0.3 * clamp(B.drive, -1, 1) * (inContact ? 0 : 1);
@@ -800,13 +809,14 @@ export class Bout {
       const pa = Math.max(0, A.drive) * sa;
       const pb = Math.max(0, B.drive) * sb;
       const net = pa - pb;
-      const shove = net * 0.85 * dt;
+      const bodyMass = (this.wrestlers[0].weightClass + this.wrestlers[1].weightClass) / 330;
+      const shove = net / bodyMass * 0.85 * dt;
       A.pos.x += nx * shove;
       A.pos.z += nz * shove;
       B.pos.x += nx * shove;
       B.pos.z += nz * shove;
-      leanA = 0.45 * Math.max(0, A.drive) - 0.55 * pb;
-      leanB = 0.45 * Math.max(0, B.drive) - 0.55 * pa;
+      leanA = 0.45 * Math.max(0, A.drive) - 0.55 * pb / weightPhysics(this.wrestlers[0].weightClass).force;
+      leanB = 0.45 * Math.max(0, B.drive) - 0.55 * pa / weightPhysics(this.wrestlers[1].weightClass).force;
       // Pushing into someone who gives ground leaves you falling forward.
       if (A.drive > 0.3 && B.drive < -0.25) leanA = 0.85;
       if (B.drive > 0.3 && A.drive < -0.25) leanB = 0.85;
@@ -876,6 +886,7 @@ export class Bout {
         D.stats.stuffs += 1;
         this.spend(D, 0.04);
         this.ev.announce?.('Sprawl!', 'info', 'Shot stuffed');
+        this.ev.feedback?.(A.side, 'shoot', 'lost');
         this.ev.feedback?.(D.side, 'sprawl', 'won');
         this.startMove('stuffed', s.A, s.frame, s.mirror, s.dist);
         return;
@@ -916,14 +927,19 @@ export class Bout {
     const sn = Math.sin(s.frame.yaw);
     const fwdA = ca.moveX * sn + ca.moveZ * c;
 
-    if (ca.legAction === 'lift' && (s.shot === 'single' || s.shot === 'highCrotch') && A.stamina > 0.15) {
+    const needsLift = ca.legAction === 'lift' || ca.legAction === 'trip' || ca.legAction === 'double';
+    if (needsLift && (s.shot === 'single' || s.shot === 'highCrotch') && A.stamina > 0.15) {
       s.lifted = Math.min(1, (s.lifted ?? 0) + dt * (0.6 + wa.strength * 0.5));
       this.spend(A, dt * 0.045);
     }
     if ((s.lifted ?? 0) > 0.7 && ca.legAction && ca.legAction !== 'lift') s.legFinish = ca.legAction;
     if (s.legFinish === 'double') { s.shot = 'double'; s.lifted = 0; s.legFinish = undefined; }
-    const driving = ca.shoot || fwdA > 0.3 || !!s.legFinish;
-    const lifting = ca.legAction === 'lift' && (s.shot === 'single' || s.shot === 'highCrotch');
+    const driving = ca.shoot || ca.legAction === 'drive' || fwdA > 0.3 || !!s.legFinish;
+    const lifting = needsLift && (s.shot === 'single' || s.shot === 'highCrotch');
+    if (ca.legAction && ca.legAction !== this.prev[A.side].legAction) {
+      const label = {lift:'Lift leg',trip:'Trip',double:'Switch double',drive:'Drive back'}[ca.legAction];
+      this.ev.announce?.(label, 'info', A.stamina <= 0.15 && needsLift ? 'Not enough stamina to lift' : needsLift && (s.lifted ?? 0) <= 0.7 ? 'Working to elevate the leg · keep holding' : 'Driving the finish');
+    }
     if (s.legFinish === 'drive') { s.frame.x += sn * dt * 0.35; s.frame.z += c * dt * 0.35; }
     if (s.legFinish === 'trip') s.frame.yaw += dt * (s.mirror ? -0.4 : 0.4);
     let rate = lifting && !driving ? 0.015 : driving ? (0.10 + wa.strength * 0.12 + wa.quickness * 0.05) * (0.55 + 0.45 * A.stamina) : -0.14;
@@ -967,6 +983,7 @@ export class Bout {
     if (s.progress <= 0) {
       D.stats.stuffs += 1;
       this.ev.announce?.('Sprawls out', 'info');
+      this.ev.feedback?.(A.side, 'shoot', 'lost');
       this.ev.feedback?.(D.side, 'sprawl', 'won');
       this.startMove('sprawlOut', s.A, s.frame, s.mirror);
       return;
@@ -1118,7 +1135,7 @@ export class Bout {
           this.spend(T, 0.05);
           if (this.rng.chance(p)) {
             this.ev.feedback?.(T.side, 'shoot', 'won');
-            this.startMove('tilt', s.A, s.frame, false);
+            this.startMove(this.wrestlers[s.A].motion?.preferredTurn === 'cradle' ? 'cradle' : 'tilt', s.A, s.frame, false);
             return;
           }
           s.turnCool = 0.9;
@@ -1187,7 +1204,7 @@ export class Bout {
           this.spend(T, 0.05);
           if (this.rng.chance(p)) {
             this.ev.feedback?.(T.side, 'shoot', 'won');
-            this.startMove('halfNelson', s.A, s.frame, false);
+            this.startMove(this.wrestlers[s.A].motion?.preferredTurn === 'cradle' ? 'cradle' : 'halfNelson', s.A, s.frame, false);
             return;
           }
           s.control = Math.max(0, s.control - 0.18);
@@ -1227,29 +1244,34 @@ export class Bout {
       }
       if (this.take(Bm, 'shoot')) {
         if (s.escape >= BOUT.turnOut) {
+          this.spend(Bm, 0.02);
           this.ev.feedback?.(Bm.side, 'shoot', 'won');
           this.startMove('escapeTurn', s.A, s.frame, false);
           return;
         }
         s.escape += 0.07;
+        this.spend(Bm, 0.02);
         this.ev.feedback?.(Bm.side, 'shoot', 'lost');
       }
-      if (this.take(T, 'sprawl')) {
-        // Returns need a lock and a man who has not yet broken it.
-        const p = clamp(0.22 + wt.strength * 0.35 + s.control * 0.25 - s.escape * 0.7 + Math.min(0.15, s.t * 0.05), 0.05, 0.9);
-        this.spend(T, 0.05);
+      // Rear standing control: three returns with different effort and escape risks.
+      const returnAction = this.take(T, 'sprawl') ? 'returnMat'
+        : this.take(T, 'shoot') ? 'standingTrip'
+        : this.take(T, 'fight') ? 'crotchLift' : null;
+      if (returnAction) {
+        const trip = returnAction === 'standingTrip';
+        const lift = returnAction === 'crotchLift';
+        const skill = trip ? wt.quickness : wt.strength;
+        const p = clamp(0.22 + skill * 0.35 + s.control * 0.25 - s.escape * 0.7
+          + Math.min(0.15, s.t * 0.05) + (lift ? -0.08 + T.stamina * 0.08 : 0), 0.05, 0.9);
+        this.spend(T, lift ? 0.075 : trip ? 0.035 : 0.05);
+        const button = trip ? 'shoot' : lift ? 'fight' : 'sprawl';
         if (this.rng.chance(p)) {
-          this.ev.feedback?.(T.side, 'sprawl', 'won');
-          this.startMove('returnMat', s.A, s.frame, false);
+          this.ev.feedback?.(T.side, button, 'won');
+          this.startMove(returnAction, s.A, s.frame, false);
           return;
         }
-        s.escape += 0.15;
-        this.ev.feedback?.(T.side, 'sprawl', 'lost');
-      }
-      if (this.take(T, 'fight')) {
-        s.control = Math.min(1, s.control + 0.15);
-        s.escape = Math.max(0, s.escape - 0.08);
-        this.ev.feedback?.(T.side, 'fight', 'ok');
+        s.escape += lift ? 0.2 : trip ? 0.1 : 0.15;
+        this.ev.feedback?.(T.side, button, 'lost');
       }
       if (s.escape >= 1) {
         this.startMove('escapeTurn', s.A, s.frame, false);
@@ -1298,9 +1320,13 @@ export class Bout {
     const wrestler = this.wrestlers[T.side];
     const pinSkill = pinningMultiplier(`${wrestler.firstName} ${wrestler.lastName}`);
     if (!shouldersUp && (locked || ct.shoot || ct.fight)) s.pin += dt * (locked ? 0.16 : 0.22) * (0.7 + wt.strength * 0.6) * pinSkill;
-    if (this.take(T, 'shoot') || this.take(T, 'fight')) {
+    // Both squeeze buttons report their own result. Concurrent presses are one effort.
+    const squeezeShoot = this.take(T, 'shoot');
+    const squeezeFight = this.take(T, 'fight');
+    if (squeezeShoot || squeezeFight) {
       if (!shouldersUp) s.pin += 0.06 * pinSkill;
-      this.ev.feedback?.(T.side, 'shoot', 'ok');
+      if (squeezeShoot) this.ev.feedback?.(T.side, 'shoot', shouldersUp ? 'blocked' : 'ok');
+      if (squeezeFight) this.ev.feedback?.(T.side, 'fight', shouldersUp ? 'blocked' : 'ok');
     }
     for (const b of ['sprawl', 'fight', 'shoot'] as const) {
       if (this.take(Bm, b)) {
@@ -1441,14 +1467,15 @@ export class Bout {
         const mat = this.matPosition(sideOf(next.A), sub(next.frame), next.sub, next.base ?? 0);
         if (mat.kind === 'mat') {
           if (next.sub === 'standing') mat.escape = 0.15;
+          if (m.id === 'cradle') mat.turnStyle = 'cradle';
           // Fighting off your back leaves you scrambling, not flat and helpless.
           if (next.sub === 'flat') mat.base = m.id === 'fightOff' ? 0.45 : 0;
           if (m.id === 'fightOff') mat.turnCool = 1.6;
-          if (m.id === 'rebase' || m.id === 'returnMat') mat.turnCool = 0.6;
+          if (m.id === 'rebase' || ['returnMat', 'standingTrip', 'crotchLift'].includes(m.id)) mat.turnCool = 0.6;
           // Whoever just put him there starts with a tight hold on him.
           const def = MOVES[m.id];
           if (def.award?.kind === 'takedown' || def.award?.kind === 'reversal') mat.control = 0.68;
-          else if (m.id === 'returnMat') mat.control = 0.62;
+          else if (['returnMat', 'standingTrip', 'crotchLift'].includes(m.id)) mat.control = 0.62;
         }
         this.position = mat;
         break;

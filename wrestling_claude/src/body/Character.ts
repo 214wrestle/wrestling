@@ -63,6 +63,8 @@ function eyeTexture(iris: string): CanvasTexture {
 
 /** Shared rendering contract; anatomy implementations can change without coupling the sim. */
 export interface CharacterRig {
+  /** Optional fine-hand flexion, driven by actual contact strength. */
+  setGrip?(hand: 'L' | 'R', amount: number): void;
   root: Group; bones: Record<BoneName, Bone>; boneList: Bone[]; scale: number;
   motion: WrestlingStyle;
   setExertion(sweat: number, flush: number): void;

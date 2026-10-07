@@ -149,6 +149,9 @@ export class Game implements GameApi {
   private squeakT = 0;
   private resizeObserver: ResizeObserver | null = null;
   private feedbackId = 1;
+  // Named attacks share the sim's shoot channel; preserve the input's label
+  // during this tick so its acknowledgement matches the button the player used.
+  private namedAttackFeedback: string | undefined;
   private refSignal: { side: Side; t: number } | null = null;
   private lastPhase: MatchPhase = 'attract';
   private camFocus = new Vector3();
@@ -296,6 +299,7 @@ export class Game implements GameApi {
   }
 
   start(options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean }): void {
+    this.input.clearTouch();
     void this.audio.resume();
     this.teardownMatch();
     this.store.set({ screen: 'loading', loading: 0.2, matchup: options.matchup });
@@ -377,13 +381,15 @@ export class Game implements GameApi {
         }
       },
       onFeedback: (side, button, result) => {
+        bodies[side].anim.effort(button, false, result);
+        bodies[otherSide(side)].anim.effort(button, true, result);
         // Winning a hand fight yanks the other man's head and shoulders.
         if (result === 'won' && button === 'fight') bodies[otherSide(side)].anim.impulse(0.35, (Math.random() - 0.5) * 0.6);
         if (result === 'lost' && button === 'fight') bodies[side].anim.impulse(0.2, 0);
         if (side !== human) return;
         this.audio.press(result);
         if (result === 'won') this.input.rumble(0.35, 70);
-        this.store.set({ flash: { button, result, id: this.feedbackId++ } });
+        this.store.set({ flash: { button, label: button === 'shoot' && this.namedAttackFeedback ? this.namedAttackFeedback : this.store.getSnapshot().prompts[button].label, result, id: this.feedbackId++ } });
       },
     });
     sim.humanSide = human;
@@ -435,6 +441,7 @@ export class Game implements GameApi {
   }
 
   toTitle(): void {
+    this.input.clearTouch();
     this.teardownMatch();
     this.running = false;
     this.cameraRig.setMode('showcase');
@@ -449,6 +456,7 @@ export class Game implements GameApi {
   }
 
   setPaused(paused: boolean): void {
+    this.input.clearTouch();
     this.store.set({ paused });
   }
 
@@ -462,9 +470,11 @@ export class Game implements GameApi {
     this.store.set({ muted });
   }
 
+  cancelTouch(key?: import("../engine/TouchGestures").TouchKey): void { this.input.cancelTouch(key); }
+
   setTouch(state: PadState): void {
     this.input.touch = state;
-    if (state.shoot || state.fight || state.sprawl || state.x || state.y) this.store.set({ device: 'touch' });
+    if (Object.values(state).some(Boolean)) { this.input.device = 'touch'; this.store.set({ device: 'touch' }); }
   }
 
   chooseTopRestart(cut: boolean): void { this.sim?.chooseTopRestart(cut); }
@@ -596,9 +606,12 @@ export class Game implements GameApi {
       level: pad.level,
     };
     const wrestling = sim.phase === 'wrestling';
-    const aiCmd = this.ai!.update(dt, sim.bout, wrestling, {timeLeft:sim.clock,finalPeriod:sim.period>=3,deficit:sim.score[sim.humanSide]-sim.score[otherSide(sim.humanSide)]});
+    const aiCmd = import.meta.env.DEV && new URLSearchParams(location.search).has('passive') ? NO_COMMAND : this.ai!.update(dt, sim.bout, wrestling, {timeLeft:sim.clock,finalPeriod:sim.period>=3,deficit:sim.score[sim.humanSide]-sim.score[otherSide(sim.humanSide)]});
     const commands: [Command, Command] = sim.humanSide === 0 ? [human, aiCmd] : [aiCmd, human];
+    const techniqueLabels = {duckUnder:'Duck under',superDuck:'Super duck',slideBy:'Slide by',firemansCarry:'Fireman’s carry',footSweep:'Foot sweep'};
+    this.namedAttackFeedback = human.technique ? techniqueLabels[human.technique] : human.lowSingle ? 'Low single' : undefined;
     sim.tick(dt, sim.phase === 'positionChoice' || sim.phase === 'results' ? [NO_COMMAND, NO_COMMAND] : commands);
+    this.namedAttackFeedback = undefined;
   }
 
   private present(dt: number, wall: number): void {
@@ -669,7 +682,7 @@ export class Game implements GameApi {
   }
 
   private isMatClip(id: string): boolean {
-    return ['breakdown', 'rebase', 'halfNelson', 'tilt', 'fightOff', 'fall', 'standUp', 'returnMat', 'switch', 'escapeTurn'].includes(id);
+    return ['breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'fightOff', 'fall', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
   }
 
   /** The official works the far side of the action and signals the score. */
@@ -821,6 +834,7 @@ export class Game implements GameApi {
       prompts: read.prompts,
       topRestartCut: sim.topRestartCut,
       meters: read.meters,
+      legActions: read.legActions,
       nearFall: { active: pos.kind === 'mat' && pos.sub === 'exposed', timer: pos.kind === 'mat' ? pos.expo : 0 },
       stats: [{ ...a[0].stats }, { ...a[1].stats }],
       awaitingChoice: sim.phase === 'positionChoice',

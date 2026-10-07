@@ -29,6 +29,8 @@ export interface Contact {
   to?: number;
   /** Fade in/out, normalised time. */
   fade?: number;
+  /** Cradle hands join after the head and knee have been gathered. */
+  claspFrom?: number;
 }
 
 export interface MoveClip {
@@ -105,6 +107,7 @@ export interface ActiveContact {
   on: BoneName;
   at: V3;
   weight: number;
+  clasp?: boolean;
 }
 
 const _tmp = createLocal();
@@ -131,8 +134,9 @@ function contactsAt(list: Contact[] | undefined, role: Role, u: number, mirror: 
             on: (MIRROR[c.on] ?? c.on) as BoneName,
             at: [-c.at[0], c.at[1], c.at[2]],
             weight: w,
+            clasp: c.claspFrom!==undefined && (hold || u>=c.claspFrom),
           }
-        : { hand: c.hand, on: c.on, at: c.at, weight: w },
+        : { hand: c.hand, on: c.on, at: c.at, weight: w, clasp:c.claspFrom!==undefined && (hold || u>=c.claspFrom) },
     );
   }
   return out;
@@ -180,6 +184,13 @@ export function sampleHold(
   for (const at of [P.HAND_L, P.HAND_R]) {
     out[at] += Math.sin(w * 2.1 + at) * 0.015 * amp;
     out[at + 2] += Math.cos(w * 1.7 + at) * 0.015 * amp;
+  }
+  if(id==='cradleHold' && role==='B'){
+    // Attempts to extend the trapped leg; the free leg kicks harder for leverage.
+    const kick=(.5+.5*Math.sin(w*1.35))*amp;
+    out[P.FOOT_L+2]+=.018*kick;
+    out[P.FOOT_R+2]-=.24*kick;
+    out[P.FOOT_R+1]+=.08*kick;
   }
   if (mirror) mirrorLocal(out, out);
   return contactsAt(h.clip.contacts, role, 0, mirror, true);

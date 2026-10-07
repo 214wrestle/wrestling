@@ -53,6 +53,9 @@ registerMove({
   contacts: [
     { who: 'A', hand: 'L', on: 'thighR', at: [-0.02, -0.34, -0.07], from: 0.82, to: 1 },
     { who: 'A', hand: 'R', on: 'thighL', at: [0.02, -0.34, -0.07], from: 0.82, to: 1 },
+    // Build the defensive frame during penetration, then retain the hold anchors.
+    { who: 'B', hand: 'L', on: 'chest', at: [-0.1, 0.18, -0.12], from: 0.55, to: 1 },
+    { who: 'B', hand: 'R', on: 'chest', at: [0.1, 0.18, -0.12], from: 0.65, to: 1 },
   ],
 });
 
@@ -95,6 +98,8 @@ registerMove({
   contacts: [
     { who: 'A', hand: 'L', on: 'shinR', at: [0.0, -0.04, -0.05], from: 0.82, to: 1 },
     { who: 'A', hand: 'R', on: 'thighR', at: [0.03, -0.32, 0.07], from: 0.82, to: 1 },
+    { who: 'B', hand: 'L', on: 'head', at: [0, 0.1, -0.04], from: 0.55, to: 1 },
+    { who: 'B', hand: 'R', on: 'chest', at: [0.1, 0.16, -0.12], from: 0.65, to: 1 },
   ],
 });
 
@@ -813,23 +818,41 @@ registerMove({
   ],
   B: [
     { t: 0, pose: { base: holdAt('ride', 'B', 0) } },
+    { t: 0.2, pose: {
+      hips: [0, 0.51, -0.01], rot: [0, 72, 0], spine: [8, 0, 0],
+      footL: [0.22, 0.12, -0.04, 10, 35],
+      handR: [-0.2, POST, 0.5],
+    } },
+    { t: 0.32, pose: {
+      hips: [0, 0.46, 0], rot: [0, 70, 0], spine: [8, 0, 0],
+      footL: [0.2, BALL, 0.2, 10, 15], handR: [-0.2, POST, 0.5],
+    } },
     {
       t: 0.4,
       pose: {
         hips: [0, 0.58, 0.0],
         rot: [0, 50, 0],
-        spine: [20, 0, 0],
+        spine: [10, 0, 0],
         footL: [0.2, BALL, 0.2, 10, 15],
-        handL: [0.15, 0.6, 0.25],
-        handR: [-0.2, POST, 0.4],
+        handL: [0.10, 0.64, 0.18],
+        elbowL: [0.22, 0.52, 0.08],
+        handR: [-0.18, 0.22, 0.4], palms: [0, 0],
       },
     },
+    { t: 0.62, pose: {
+      hips: [0, 0.72, 0.02], rot: [0, 30, 0], spine: [8, 0, 0],
+      footL: [0.2, BALL, 0.2, 10, 15],
+      handR: [-0.12, 0.72, 0.22], palms: [0, 0],
+      elbowL: [0.25, 0.68, 0.04], elbowR: [-0.25, 0.66, 0.04],
+    } },
     { t: 1, pose: { base: holdAt('standing', 'B', 0, { x: 0, z: 0.06, yaw: 0 }) } },
   ],
   contacts: [
-    { who: 'A', hand: 'R', on: 'spine', at: [0, 0.02, 0.11], from: 0, to: 0.5 },
+    { who: 'A', hand: 'R', on: 'spine', at: [0, 0.02, 0.11], from: 0, to: 1 },
     { who: 'A', hand: 'L', on: 'spine', at: [0.04, 0.0, 0.13], from: 0.65, to: 1 },
-    { who: 'A', hand: 'R', on: 'spine', at: [-0.04, 0.0, 0.13], from: 0.7, to: 1 },
+    { who: 'B', hand: 'L', on: 'handR', at: [0, -0.02, 0.02], from: 0.3, to: 0.66 },
+    { who: 'B', hand: 'L', on: 'handL', at: [0, -0.02, 0.02], from: 0.74, to: 1 },
+    { who: 'B', hand: 'R', on: 'handR', at: [0, -0.02, 0.02], from: 0.72, to: 1 },
   ],
 });
 
@@ -861,7 +884,7 @@ registerMove({
     { t: 1, pose: { base: holdAt('ride', 'A', 0.2, { x: 0, z: 0.05, yaw: 0 }) } },
   ],
   B: [
-    { t: 0, pose: { base: holdAt('standing', 'B', 0) } },
+    { t: 0, pose: { base: holdAt('standing', 'B', 0), palms: [1, 1] } },
     {
       t: 0.4,
       pose: {
@@ -871,13 +894,15 @@ registerMove({
         footR: [-0.18, 0.2, 0.0, -10, 40],
       },
     },
-    { t: 0.72, land: true, pose: { hips: [0, 0.48, 0.02], rot: [0, 70, 0], handL: [0.22, POST, 0.4], handR: [-0.22, POST, 0.42] } },
+    { t: 0.62, pose: { hips: [0, 0.58, 0.03], rot: [0, 62, 0], spine: [6, 0, 0], handL: [0.22, POST, 0.4], handR: [-0.22, POST, 0.42] } },
+    { t: 0.72, land: true, pose: { hips: [0, 0.48, 0.02], rot: [0, 70, 0], handL: [0.22, POST, 0.4], handR: [-0.22, POST, 0.42], palms: [1, 1] } },
     { t: 1, pose: { base: holdAt('ride', 'B', 0.4, { x: 0, z: 0.05, yaw: 0 }) } },
   ],
   contacts: [
     { who: 'A', hand: 'L', on: 'spine', at: [0.04, 0.0, 0.13], from: 0, to: 0.7 },
     { who: 'A', hand: 'R', on: 'spine', at: [-0.04, 0.0, 0.13], from: 0, to: 0.6 },
     { who: 'A', hand: 'R', on: 'spine', at: [0, 0.02, 0.11], from: 0.75, to: 1 },
+    { who: 'A', hand: 'L', on: 'forearmL', at: [0, -0.04, -0.035], from: 0.75, to: 1 },
   ],
 });
 

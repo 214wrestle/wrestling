@@ -144,7 +144,7 @@ function torso(): Spec[] {
       w0: { spine: 0.65, chest: 0.35 },
       w1: { chest: 1 },
     }),
-    ell('chest', [0, 1.358, -0.012], [0.158, 0.094, 0.104], 0.04, T, { w: { chest: 1 } }),
+    ell('chest', [0, 1.354, -0.008], [0.158, 0.09, 0.092], 0.032, T, { w: { chest: 1 } }),
     ...pair(
       ell('chest', [0.07, 1.336, 0.066], [0.079, 0.058, 0.042], 0.026, T, {
         rot: [0, 16, -12],
@@ -160,29 +160,25 @@ function torso(): Spec[] {
         muscle: true,
       }),
     ),
+    // Sloping trapezius merges into the shoulder instead of a raised neck shelf.
     ...pair(
-      cone('chest', [0.034, 1.508, -0.05], [0.152, 1.456, -0.04], 0.046, 0.034, 0.032, T, {
-        w0: { neck: 0.45, chest: 0.55 },
-        w1: { chest: 0.55, shoulderL: 0.45 },
+      cone('chest', [0.035, 1.493, -0.035], [0.163, 1.435, -0.022], 0.029, 0.027, 0.023, T, {
+        w0: { neck: 0.2, chest: 0.8 },
+        w1: { chest: 0.75, shoulderL: 0.25 },
         muscle: true,
       }),
     ),
-    ell('chest', [0, 1.33, -0.066], [0.112, 0.11, 0.054], 0.04, T, { w: { chest: 1 } }),
+    ell('chest', [0, 1.326, -0.055], [0.112, 0.108, 0.043], 0.028, T, { w: { chest: 1 } }),
     ell('spine', [0, 1.1, -0.07], [0.074, 0.12, 0.044], 0.035, T, {
       w0: { hips: 0.55, spine: 0.45 },
       w1: { spine: 0.6, chest: 0.4 },
       muscle: true,
     }),
+    // Collarbone contour comes from the chest/shoulder surface, not raised rods.
     ...pair(
-      cone('shoulderL', [0.03, 1.456, 0.034], [0.172, 1.456, 0.002], 0.022, 0.028, 0.02, T, {
-        w0: { chest: 0.65, shoulderL: 0.35 },
-        w1: { shoulderL: 0.85, chest: 0.15 },
-      }),
-    ),
-    ...pair(
-      ell('chest', [0.098, 1.355, -0.074], [0.058, 0.074, 0.03], 0.03, T, {
+      ell('chest', [0.092, 1.353, -0.068], [0.064, 0.071, 0.022], 0.024, T, {
         rot: [0, 20, 0],
-        w: { chest: 0.55, shoulderL: 0.45 },
+        w: { chest: 0.85, shoulderL: 0.15 },
       }),
     ),
   ];
@@ -207,10 +203,10 @@ function neckAndHead(hair: HairStyle, clothing: Clothing): Spec[] {
     ),
     ell('head', [0, 1.668, 0.0], [0.076, 0.097, 0.095], 0.02, H, { w: { head: 1 } }),
     ell('head', [0, 1.636, -0.054], [0.064, 0.06, 0.05], 0.025, H, { w: { head: 1 } }),
-    ell('head', [0, 1.628, 0.034], [0.063, 0.074, 0.07], 0.025, H, { w: { head: 1 } }),
+    ell('head', [0, 1.628, 0.034], [0.066, 0.074, 0.07], 0.028, H, { w: { head: 1 } }),
     ...pair(cone('head', [0.047, 1.59, 0.006], [0.02, 1.55, 0.073], 0.019, 0.018, 0.026, H, { w: { head: 1 } })),
     ell('head', [0, 1.548, 0.082], [0.024, 0.02, 0.018], 0.02, H, { w: { head: 1 } }),
-    ...pair(ell('head', [0.047, 1.641, 0.064], [0.02, 0.014, 0.013], 0.015, H, { w: { head: 1 } })),
+    // Cheeks flow through the main facial envelope; separate pads read as lumps.
     ...pair(cone('head', [0.0, 1.693, 0.080], [0.047, 1.692, 0.073], 0.007, 0.006, 0.015, H, { w: { head: 1 } })),
     cone('head', [0, 1.684, 0.092], [0, 1.632, 0.112], 0.008, 0.012, 0.012, H, { w: { head: 1 } }),
     ell('head', [0, 1.627, 0.103], [0.014, 0.009, 0.010], 0.01, H, { w: { head: 1 } }),
@@ -254,11 +250,17 @@ function arms(): Spec[] {
   const A = Part.Arm;
   const D = Part.Hand;
   return [
+    // Axillary fold connects the deltoid to the rib cage through arm elevation.
+    // Broad shared tissue prevents the shoulder from reading as a ball on a rod.
+    ...pair(cone('shoulderL', [0.128, 1.355, -0.004], [0.205, 1.414, -0.013], 0.042, 0.043, 0.032, A, {
+      w0: { chest: 0.8, shoulderL: 0.15, armL: 0.05 },
+      w1: { chest: 0.15, shoulderL: 0.3, armL: 0.55 },
+    })),
     ...pair(
-      ell('armL', [0.21, 1.403, -0.02], [0.054, 0.085, 0.062], 0.04, A, {
+      ell('armL', [0.207, 1.397, -0.016], [0.052, 0.073, 0.052], 0.03, A, {
         rot: [0, 0, 8],
-        w0: { armL: 0.6, shoulderL: 0.4 },
-        w1: { shoulderL: 0.45, armL: 0.35, chest: 0.2 },
+        w0: { armL: 0.9, shoulderL: 0.1 },
+        w1: { shoulderL: 0.35, armL: 0.55, chest: 0.1 },
         t0: 0.25,
         t1: 1,
         muscle: true,

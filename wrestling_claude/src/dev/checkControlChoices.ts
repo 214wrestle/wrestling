@@ -1,3 +1,4 @@
+import {readPrompts} from '../game/prompts';
 import {Bout} from '../sim/bout';
 import {MatchSim} from '../sim/MatchSim';
 import {PROTOTYPE_ROSTER} from '../sim/roster';
@@ -74,3 +75,34 @@ for(const id of ['switch','escapeTurn'] as const){
  }
  ok(contested>0&&contested<100,`${id}: pre-score scramble restores a contested mat position`);
 }
+for (const [button,id] of [['shoot','standingTrip'],['fight','crotchLift'],['sprawl','returnMat']] as const) {
+ let wins=0;
+ for(let seed=1;seed<=100;seed++) {
+  let points=0;
+  const standing=new Bout([PROTOTYPE_ROSTER[0],PROTOTYPE_ROSTER[1]],{score:()=>points++},Math.imul(seed,2654435761)>>>0);
+  standing.setReferee(0,{x:0,z:0},0);
+  if(standing.position.kind==='mat'){standing.position.sub='standing';standing.position.control=.9;standing.position.escape=.1;standing.position.t=3;}
+  standing.tick(1/60,[{...NO_COMMAND,[button]:true},NO_COMMAND]);
+  const p=standing.position;
+  if(p.kind==='move'){
+   ok(p.id===id,'standing buttons select their distinct return');wins++;
+   for(let i=0;i<120;i++)standing.tick(1/60,[NO_COMMAND,NO_COMMAND]);
+   ok(standing.position.kind==='mat'&&standing.position.A===0,'return preserves the original top wrestler');
+  }
+  ok(points===0,'standing returns never award another takedown');
+ }
+ ok(wins>0&&wins<100,'standing returns permit success and failure');
+}
+console.log('Standing trip, crotch lift and mat return preserve control without extra points');
+
+const promptSim = new MatchSim([PROTOTYPE_ROSTER[0],PROTOTYPE_ROSTER[1]],{},123);
+promptSim.phase = 'wrestling';
+for (const shot of ['single','highCrotch','double','lowSingle'] as const) {
+ promptSim.bout.position={kind:'legs',A:0,shot,mirror:false,t:0,frame:{x:0,z:0,yaw:0},progress:.6,lifted:shot==='single'?.4:0,intensity:0};
+ const attack=readPrompts(promptSim,0),defense=readPrompts(promptSim,1);
+ ok(attack.legActions?.join(',')===(shot==='single'||shot==='highCrotch'?'lift,trip,double,drive':'drive'),'finish buttons match secured grip');
+ ok(defense.legActions?.length===0,'defender cannot request attacker leg finishes');
+ ok(attack.meters.some(m=>m.label==='Finish'),'finish remains visible during lift');
+ if(shot==='single')ok(attack.meters.some(m=>m.label==='Leg lift'),'lift and finish are distinct meters');
+}
+console.log('Leg finish controls respect grip type and preserve both progress meters');

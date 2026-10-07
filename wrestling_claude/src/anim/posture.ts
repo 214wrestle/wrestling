@@ -42,7 +42,9 @@ export const P = {
   SHRUG_R: 55,
   /** Toe flattening weight per foot (1 = toes flat on the mat). */
   TOES: 57,
-  SIZE: 59,
+  /** World-flat palm support weight per hand; zero preserves authored wrists. */
+  PALMS: 59,
+  SIZE: 61,
 } as const;
 
 /** Height of the ball-of-foot joint when the sole is flat on the mat. */

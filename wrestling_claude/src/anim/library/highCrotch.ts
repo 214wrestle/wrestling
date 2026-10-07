@@ -16,8 +16,9 @@ registerHold({
   contacts: [
     { who: 'A', hand: 'L', on: 'thighR', at: [0.04, -0.12, 0.06] },
     { who: 'A', hand: 'R', on: 'thighR', at: [-0.04, -0.24, -0.06] },
-    { who: 'B', hand: 'R', on: 'chest', at: [0.1, 0.14, -0.12] },
-    { who: 'B', hand: 'L', on: 'head', at: [0, 0.09, -0.03] },
+    // Near hand presses the head; far hand frames the front of the chest.
+    { who: 'B', hand: 'L', on: 'chest', at: [-0.1, 0.14, 0.1] },
+    { who: 'B', hand: 'R', on: 'head', at: [0, 0.09, -0.03] },
   ],
   struggle: { A: 0.8, B: 1 }, tempo: 1.7,
 });
@@ -38,6 +39,8 @@ registerMove({
   contacts: [
     { who: 'A', hand: 'L', on: 'thighR', at: [0.04, -0.12, 0.06], from: 0.82, to: 1 },
     { who: 'A', hand: 'R', on: 'thighR', at: [-0.04, -0.24, -0.06], from: 0.82, to: 1 },
+    { who: 'B', hand: 'R', on: 'head', at: [0, 0.09, -0.03], from: 0.55, to: 1 },
+    { who: 'B', hand: 'L', on: 'chest', at: [-0.1, 0.14, 0.1], from: 0.65, to: 1 },
   ],
 });
 

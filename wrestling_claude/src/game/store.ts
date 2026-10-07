@@ -66,12 +66,13 @@ export interface UiState {
   position: PositionLabel;
   top: Side | null;
   meters: Meter[];
+  legActions?: readonly ('lift' | 'trip' | 'double' | 'drive')[];
   nearFall: { active: boolean; timer: number };
   prompts: Record<ButtonId, ButtonPrompt>;
   /** A move to react to right now (the opponent just shot, say). */
   react: { button: ButtonId; label: string; id: number } | null;
   /** Feedback on the player's last press. */
-  flash: { button: ButtonId; result: 'ok' | 'won' | 'lost' | 'blocked'; id: number } | null;
+  flash: { button: ButtonId; label?: string; result: 'ok' | 'won' | 'lost' | 'blocked'; id: number } | null;
   stats: [WrestlerStats, WrestlerStats];
   announcement: Announcement | null;
   lastScore: ScoreEvent | null;
@@ -179,6 +180,7 @@ export interface GameApi {
   toggleHelp: () => void;
   toggleMute: () => void;
   setTouch: (state: import("../engine/Input").PadState) => void;
+  cancelTouch: (key?: import("../engine/TouchGestures").TouchKey) => void;
   skipIntros: () => void;
   chooseTopRestart: (cut: boolean) => void;
 }

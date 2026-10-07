@@ -242,7 +242,7 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
             );
           })}
         </div>
-        <p className="field__note">Ratings are provisional. Unrated wrestlers await historical research; appearances remain prototypes.</p>
+        <p className="field__note">Ratings are provisional. Estimates and developmental ratings are identified in wrestler bios; appearances remain prototypes.</p>
         {[you, them].filter(w => w.legends?.bioNote).map(w => <p className="field__note" key={w.id}>{w.firstName} {w.lastName}: {w.legends!.bioNote}</p>)}
         {morenoMatchupNote(you, them) && <p className="field__note">{morenoMatchupNote(you, them)}</p>}
         <details className="roster-notes"><summary>Locked roster notes and Coach’s Choice</summary>

@@ -70,6 +70,7 @@ export const MOVES: Record<string, MoveDef> = {
   liftedLegDrive: {id:'liftedLegDrive',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Lifted leg — drive back'},impact:{at:0.7,strength:0.6},next:{kind:'mat',A:'A',frame:{x:0,z:1.1,yaw:PI},sub:'ride',base:0.55}},
   duckUnder: {id:'duckUnder',dur:1.3,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'duckUnder — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   superDuck: {id:'superDuck',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'superDuck — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  footSweep: {id:'footSweep',dur:1.5,camera:'tight',award:{to:'A',kind:'takedown',at:0.9,detail:'Foot sweep — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   slideBy: {id:'slideBy',dur:1.25,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'slideBy — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   firemansCarry: {id:'firemansCarry',dur:1.8,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'firemansCarry — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   tieAttackCounter: {id:'tieAttackCounter',dur:1.1,camera:'low',next:{kind:'fhl',A:'B',frame:{x:0,z:0.1,yaw:PI}}},
@@ -194,6 +195,7 @@ export const MOVES: Record<string, MoveDef> = {
     camera: 'mat',
     next: { kind: 'mat', A: 'A', frame: { x: 0, z: -0.05, yaw: 0 }, sub: 'ride', base: 0.6 },
   },
+  cradle: {id:'cradle',dur:1.45,camera:'mat',impact:{at:0.78,strength:0.55},next:{kind:'mat',A:'A',frame:{x:0,z:0,yaw:0},sub:'exposed'}},
   halfNelson: {
     id: 'halfNelson',
     dur: 1.25,
@@ -244,6 +246,16 @@ export const MOVES: Record<string, MoveDef> = {
     dur: 1.1,
     impact: { at: 0.7, strength: 0.7 },
     camera: 'hero',
+    next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0.05, yaw: 0 }, sub: 'ride', base: 0.35 },
+  },
+  standingTrip: {
+    id: 'standingTrip', dur: 1.05, camera: 'mat',
+    impact: { at: 0.7, strength: 0.45 },
+    next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0.05, yaw: 0 }, sub: 'ride', base: 0.35 },
+  },
+  crotchLift: {
+    id: 'crotchLift', dur: 1.5, camera: 'hero',
+    impact: { at: 0.72, strength: 0.75 },
     next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0.05, yaw: 0 }, sub: 'ride', base: 0.35 },
   },
   switch: {

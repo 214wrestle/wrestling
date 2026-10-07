@@ -27,6 +27,7 @@ function stanceView(a: Athlete, o: Athlete, relaxed: boolean): AnimView {
     lean: a.lean,
     lead: a.lead,
     act: a.act,
+    attemptedTechnique: a.attemptedTechnique,
     actT: a.actT,
     actDur: a.actDur,
     hand: a.hand,
@@ -96,7 +97,7 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete]): AnimV
       if (legClip) progress = legClip === 'catchRidingLeg' ? p.legCaught! : legClip === 'closedPockets' ? p.pockets! : p.legRide!;
       return {
         mode: 'paired',
-        clip: legClip ?? HOLD_FOR_SUB[p.sub],
+        clip: p.sub === 'exposed' && p.turnStyle === 'cradle' ? 'cradleHold' : legClip ?? HOLD_FOR_SUB[p.sub],
         hold: true,
         role: p.A === side ? 'A' : 'B',
         frame: p.frame,

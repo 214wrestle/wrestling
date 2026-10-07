@@ -364,7 +364,7 @@ export class MatchSim {
   }
 
   private isMatMove(id: string): boolean {
-    return ['breakdown', 'rebase', 'halfNelson', 'tilt', 'fightOff', 'standUp', 'returnMat', 'switch', 'escapeTurn'].includes(id);
+    return ['breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'fightOff', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
   }
 
   private endPeriod(): void {

@@ -18,6 +18,7 @@ export interface PromptRead {
   position: PositionLabel;
   prompts: Record<ButtonId, ButtonPrompt>;
   meters: Meter[];
+  legActions?: readonly ('lift' | 'trip' | 'double' | 'drive')[];
 }
 
 const P = (label: string, state: ButtonPrompt['state'] = 'idle'): ButtonPrompt => ({ label, state });
@@ -82,7 +83,11 @@ export function readPrompts(sim: MatchSim, me: Side): PromptRead {
               fight: P(pos.shot !== 'double' ? 'Whizzer' : 'Down block', 'mash'),
               sprawl: P('Sprawl hips', 'mash'),
             },
-        meters: [{ label: (pos.lifted ?? 0) > 0 ? 'Leg lift' : 'Finish', value: (pos.lifted ?? 0) > 0 ? pos.lifted! : pos.progress, tone: attacking ? 'you' : 'them' }],
+        legActions: attacking ? (pos.shot === 'single' || pos.shot === 'highCrotch' ? ['lift','trip','double','drive'] : ['drive']) : [],
+        meters: [
+          { label: 'Finish', value: pos.progress, tone: attacking ? 'you' : 'them' },
+          ...((pos.lifted ?? 0) > 0 ? [{ label: 'Leg lift', value: pos.lifted!, tone: attacking ? 'you' as const : 'them' as const }] : []),
+        ],
       };
     }
     case 'fhl': {
@@ -98,7 +103,7 @@ export function readPrompts(sim: MatchSim, me: Side): PromptRead {
     case 'mat': {
       const top = pos.A === me;
       const label: PositionLabel = top ? 'Top' : 'Bottom';
-      if (pos.sub === 'exposed') {
+      if (pos.sub === 'exposed' || pos.sub === 'spladle') {
         return {
           position: label,
           prompts: top
@@ -114,7 +119,7 @@ export function readPrompts(sim: MatchSim, me: Side): PromptRead {
         return {
           position: label,
           prompts: top
-            ? { shoot: P('—', 'off'), fight: P('Lock hands', 'idle'), sprawl: P('Return to mat', 'hot') }
+            ? { shoot: P('Trip', 'hot'), fight: P('Crotch lift', 'hot'), sprawl: P('Mat return', 'hot') }
             : { shoot: P('Turn out', pos.escape >= BOUT.turnOut ? 'hot' : 'idle'), fight: P('Hand control', 'mash'), sprawl: P('—', 'off') },
           meters: [{ label: 'Escape', value: pos.escape, tone: top ? 'them' : 'you', mark: 0.55 }],
         };

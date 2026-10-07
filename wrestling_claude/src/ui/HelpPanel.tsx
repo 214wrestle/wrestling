@@ -12,7 +12,7 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
     title: 'On your feet',
     lead: 'Distance, level and hands decide everything. Right on the stick always moves you toward him.',
     rows: [
-      {key:'O / B / V / C',move:'Duck-under / super duck / slide-by / fireman’s carry',note:'O, V and C require hand control and close range. B commits farther out: a desperate high-risk attack, countered into a front headlock when it fails.'},
+      {key:'O / B / V / C / N',move:'Duck-under / super duck / slide-by / fireman’s carry / foot sweep',note:'O, V, C and N require hand control and close range. B commits farther out: a desperate high-risk attack, countered into a front headlock when it fails.'},
       {key:'U / LB',move:'Low single',note:'Attack the ankle from neutral. John Smith favors this entry.'},
       {key:'I / Y',move:'Scramble',note:'Contest grips and control with a burst of movement. Costs stamina; points require a completed finish or reversal. Press at any time; during a committed transition it queues for the next live position.'},
       { key: 'J', move: 'Shoot', note: 'From about an arm’s length. Square up for a double, come off an angle for a single. Out of range it is a fake that can pull his sprawl.' },

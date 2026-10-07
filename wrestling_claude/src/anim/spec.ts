@@ -47,6 +47,8 @@ export interface PoseSpec {
   shrugR?: [number, number];
   /** Toe flattening, per foot. */
   toes?: [number, number];
+  /** Blend into a mat-facing palm orientation near the floor. */
+  palms?: [number, number];
 }
 
 export type LocalPose = Float32Array;
@@ -101,6 +103,10 @@ export function compileSpec(spec: PoseSpec, base: LocalPose | null, out: LocalPo
     out[P.SHRUG_R] = spec.shrugR[0] * DEG;
     out[P.SHRUG_R + 1] = spec.shrugR[1] * DEG;
   }
+  if (spec.palms) {
+    out[P.PALMS] = spec.palms[0];
+    out[P.PALMS + 1] = spec.palms[1];
+  }
   if (spec.toes) {
     out[P.TOES] = spec.toes[0];
     out[P.TOES + 1] = spec.toes[1];
@@ -128,6 +134,8 @@ export function mirrorLocal(src: LocalPose, out: LocalPose = createLocal()): Loc
   swap(P.ELBOW_L, P.ELBOW_R, 3);
   swap(P.WRIST_L, P.WRIST_R, 3);
   swap(P.SHRUG_L, P.SHRUG_R, 2);
+  tmp[P.PALMS] = s[P.PALMS + 1];
+  tmp[P.PALMS + 1] = s[P.PALMS];
   tmp[P.TOES] = s[P.TOES + 1];
   tmp[P.TOES + 1] = s[P.TOES];
   for (const at of [P.HIPS, P.FOOT_L, P.FOOT_R, P.KNEE_L, P.KNEE_R, P.HAND_L, P.HAND_R, P.ELBOW_L, P.ELBOW_R]) mx(at);

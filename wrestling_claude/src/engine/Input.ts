@@ -1,3 +1,5 @@
+import { TouchBuffer } from './TouchBuffer';
+import type { TouchKey } from './TouchGestures';
 /**
  * Input.
  *
@@ -31,6 +33,7 @@ const KEY_MAP: Record<string, string> = {
   KeyO: 'duckUnder',
   KeyB: 'superDuck',
   KeyV: 'slideBy',
+  KeyN: 'footSweep',
   KeyC: 'firemansCarry',
   Space: 'shoot',
   KeyK: 'fight',
@@ -57,7 +60,7 @@ export interface PadState {
   catchLeg?: boolean;
   legAction?: 'lift' | 'trip' | 'double' | 'drive';
   sustainedEffort?: boolean;
-  technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry';
+  technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry' | 'footSweep';
   lowSingle?: boolean;
   scramble?: boolean;
 }
@@ -70,7 +73,11 @@ export class Input {
   private held = new Set<string>();
   private listeners = new Map<ActionName, Array<() => void>>();
   /** Set by the on-screen controls on touch devices. */
-  touch: PadState = { ...NO_PAD };
+  private touchBuffer = new TouchBuffer();
+  get touch(): PadState { return this.touchBuffer.current; }
+  set touch(value: PadState) { this.touchBuffer.set(value); }
+  clearTouch(): void { this.touchBuffer.clear(); }
+  cancelTouch(key?: TouchKey): void { if (key) this.touchBuffer.cancel(key); else this.clearTouch(); }
   private padIndex: number | null = null;
   private padPrev: boolean[] = [];
   /** Last device the player touched, for button glyphs. */
@@ -114,6 +121,7 @@ export class Input {
 
   private onBlur = () => {
     this.held.clear();
+    this.clearTouch();
   };
 
   on(action: ActionName, fn: () => void): () => void {
@@ -160,6 +168,7 @@ export class Input {
   /** This frame's stick and buttons. */
   state(): PadState {
     const pad = this.gamepad();
+    const touch = this.touchBuffer.sample();
     const dead = (v: number) => (Math.abs(v) < 0.2 ? 0 : (v - Math.sign(v) * 0.2) / 0.8);
     let x = (this.held.has('right') ? 1 : 0) - (this.held.has('left') ? 1 : 0);
     let y = (this.held.has('up') ? 1 : 0) - (this.held.has('down') ? 1 : 0);
@@ -175,19 +184,19 @@ export class Input {
       sprawl = sprawl || !!pad.buttons[1]?.pressed || !!pad.buttons[5]?.pressed;
       level = level || (pad.buttons[7]?.value ?? 0) > 0.4 || (pad.buttons[6]?.value ?? 0) > 0.4;
     }
-    x += this.touch.x;
-    y += this.touch.y;
-    shoot = shoot || this.touch.shoot;
-    fight = fight || this.touch.fight;
-    sprawl = sprawl || this.touch.sprawl;
-    level = level || this.touch.level;
+    x += touch.x;
+    y += touch.y;
+    shoot = shoot || touch.shoot;
+    fight = fight || touch.fight;
+    sprawl = sprawl || touch.sprawl;
+    level = level || touch.level;
     const len = Math.hypot(x, y);
     if (len > 1) {
       x /= len;
       y /= len;
     }
-    const technique = (['duckUnder','superDuck','slideBy','firemansCarry'] as const).find(k=>this.held.has(k)) ?? this.touch.technique ?? (pad?.buttons[12]?.pressed ? 'duckUnder' : pad?.buttons[13]?.pressed ? 'superDuck' : pad?.buttons[14]?.pressed ? 'slideBy' : pad?.buttons[15]?.pressed ? 'firemansCarry' : undefined);
-    return { x, y, shoot, fight, sprawl, level, technique, legRide: this.held.has('legRide') || this.touch.legRide, closePockets: this.held.has('closePockets') || this.touch.closePockets, catchLeg: this.held.has('catchLeg') || this.touch.catchLeg, legAction: this.held.has('liftLeg') ? 'lift' : this.held.has('tripLeg') ? 'trip' : this.held.has('doubleLeg') ? 'double' : this.held.has('driveLeg') ? 'drive' : this.touch.legAction, sustainedEffort: this.touch.shoot || this.touch.fight || this.touch.sprawl, lowSingle: this.held.has('lowSingle') || !!this.touch.lowSingle || !!pad?.buttons[4]?.pressed, scramble: this.held.has('scramble') || !!this.touch.scramble || !!pad?.buttons[3]?.pressed };
+    const technique = (['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).find(k=>this.held.has(k)) ?? touch.technique ?? (pad?.buttons[12]?.pressed ? 'duckUnder' : pad?.buttons[13]?.pressed ? 'superDuck' : pad?.buttons[14]?.pressed ? 'slideBy' : pad?.buttons[15]?.pressed ? 'firemansCarry' : undefined);
+    return { x, y, shoot, fight, sprawl, level, technique, legRide: this.held.has('legRide') || touch.legRide, closePockets: this.held.has('closePockets') || touch.closePockets, catchLeg: this.held.has('catchLeg') || touch.catchLeg, legAction: this.held.has('liftLeg') ? 'lift' : this.held.has('tripLeg') ? 'trip' : this.held.has('doubleLeg') ? 'double' : this.held.has('driveLeg') ? 'drive' : touch.legAction, sustainedEffort: touch.shoot || touch.fight || touch.sprawl, lowSingle: this.held.has('lowSingle') || !!touch.lowSingle || !!pad?.buttons[4]?.pressed, scramble: this.held.has('scramble') || !!touch.scramble || !!pad?.buttons[3]?.pressed };
   }
 
   /** A short controller buzz for impacts and scores. */

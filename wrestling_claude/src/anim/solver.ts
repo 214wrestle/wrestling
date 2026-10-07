@@ -216,6 +216,25 @@ export class Solver {
     this.solveChain(_v3, target, _end, this.arm, false, parentQ, arm, fore);
 
     hand.quaternion.setFromEuler(_e.set(p[w], p[w + 2] * sign, p[w + 1] * sign, 'YXZ'));
+    // A defensive post needs a world-space palm normal. Fixed wrist angles
+    // alone rotate with the forearm and can leave fingers pointing skyward.
+    // Fade the constraint away as the hand leaves the mat for a grip.
+    const support = clamp(p[P.PALMS + (side === 'L' ? 0 : 1)], 0, 1)
+      * clamp((0.14 * this.rig.scale - p[h + 1]) / (0.07 * this.rig.scale), 0, 1);
+    if (support > 0) {
+      // Rest fingers point along -Y; palm faces inward (-X on the left).
+      const forward = _cDir.set(target.x - _v3.x, 0, target.z - _v3.z);
+      if (forward.lengthSq() < 1e-8) forward.set(0, 0, 1);
+      forward.normalize();
+      const x = _cHinge.set(0, sign, 0);
+      const y = _cY.copy(forward).negate();
+      const z = _cZ.crossVectors(x, y);
+      _m.makeBasis(x, y, z);
+      _q3.setFromRotationMatrix(_m);
+      _q2.copy(_qLowerW).invert().multiply(_q3);
+      hand.quaternion.slerp(_q2, support);
+    }
+
   }
 
   /**

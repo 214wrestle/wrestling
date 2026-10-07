@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react';
-import type { PadState } from '../engine/Input';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { NO_PAD, type PadState } from '../engine/Input';
+import { TouchGestures, type TouchKey } from '../engine/TouchGestures';
 import type { GameApi, UiState } from '../game/store';
 
 /**
@@ -8,32 +9,100 @@ import type { GameApi, UiState } from '../game/store';
  * state the keyboard does.
  */
 export function TouchControls({ state, api }: { state: UiState; api: GameApi }) {
+  const [feedback, setFeedback] = useState<{ text: string; result: string; id: number } | null>(null);
+  const [shown, setShown] = useState(state.flash);
+  const [held, setHeld] = useState<string | null>(null);
+  const noticeId = useRef(0);
+  useEffect(() => {
+    if (!state.flash) return;
+    setShown(state.flash);
+    const label = state.flash.label ?? state.prompts[state.flash.button].label;
+    const result = state.flash.result;
+    const detail = result === 'blocked' ? 'Blocked' : result === 'lost' ? 'Opponent resisted' : result === 'won' ? 'Successful' : label === 'Squeeze' ? 'Tightening' : 'Working';
+    setFeedback({ text: `${label} · ${detail}`, result, id: ++noticeId.current });
+    const timer = window.setTimeout(() => setShown(null), 600);
+    return () => window.clearTimeout(timer);
+  }, [state.flash]);
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = window.setTimeout(() => setFeedback(null), 1400);
+    return () => window.clearTimeout(timer);
+  }, [feedback]);
+  const capture = (e: React.PointerEvent<HTMLDivElement>) => {
+    const button = (e.target as HTMLElement).closest('button');
+    if (!button || button.disabled) return;
+    button.setPointerCapture(e.pointerId);
+    button.dataset.held = 'true';
+    setHeld(button.textContent);
+    const label = button.querySelector('.touch__label')?.textContent ?? button.childNodes[0]?.textContent ?? button.textContent;
+    setFeedback({ text: `${label} · Attempted`, result: 'attempt', id: ++noticeId.current });
+  };
+  const pinning = state.meters.some(m => m.label === 'Pin');
+  const contest = state.meters.length > 0 && state.position !== 'Neutral';
+  const contestHint = pinning
+    ? state.top === state.humanSide ? 'Tap or hold Squeeze to tighten' : 'Tap or hold to fight off your back'
+    : state.position === 'In on the legs' ? 'Hold a finish; watch your progress'
+    : state.position === 'Defending the shot' ? 'Tap or hold to resist the finish'
+    : state.meters.some(m => m.label === 'Base') ? state.top === state.humanSide ? 'Break down their base to open a turn' : 'Build your base to set up an escape'
+    : state.meters.some(m => m.label === 'Escape') ? state.top === state.humanSide ? 'Return or cut; stop their escape' : 'Keep working to break their grip'
+    : 'Keep working; watch the hold progress';
+  const hint = (key: 'shoot' | 'fight' | 'sprawl') => {
+    const prompt = state.prompts[key];
+    if (prompt.label === '—') return 'Unavailable';
+    if (pinning || prompt.state === 'mash') return 'Tap or hold';
+    return prompt.state === 'hold' ? 'Hold' : 'Tap';
+  };
   const padRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLSpanElement>(null);
   const stick = useRef({ x: 0, y: 0 });
-  const legAction = useRef<PadState['legAction']>(undefined);
-  const technique = useRef<PadState["technique"]>(undefined);
-  const buttons = useRef({ shoot: false, fight: false, sprawl: false, level: false, lowSingle: false, scramble: false, legRide: false, closePockets: false, catchLeg: false });
-
+  const gestures = useRef(new TouchGestures());
+  const stickPointer = useRef<number | null>(null);
+  const buttonGroup = useRef<HTMLDivElement>(null);
   const push = useCallback(() => {
-    api.setTouch({ ...stick.current, ...buttons.current, technique: technique.current, legAction: legAction.current });
+    api.setTouch({ ...NO_PAD, ...stick.current, ...gestures.current.state() });
   }, [api]);
 
-  useEffect(
-    () => () => api.setTouch({ x: 0, y: 0, shoot: false, fight: false, sprawl: false, level: false }),
-    [api],
-  );
-
+  const reset = useCallback(() => {
+    gestures.current.clear();
+    stick.current = { x: 0, y: 0 };
+    stickPointer.current = null;
+    if (knobRef.current) knobRef.current.style.transform = '';
+    buttonGroup.current?.querySelectorAll<HTMLButtonElement>('[data-held]').forEach(b => { delete b.dataset.held; });
+    setHeld(null);
+    api.cancelTouch();
+  }, [api]);
   useEffect(() => {
-    technique.current = undefined;
-    legAction.current = undefined;
-    buttons.current.lowSingle = false;
-    buttons.current.scramble = false;
-    buttons.current.legRide = false;
-    buttons.current.closePockets = false;
-    buttons.current.catchLeg = false;
+    const visibility = () => { if (document.hidden) reset(); };
+    window.addEventListener('blur', reset);
+    document.addEventListener('visibilitychange', visibility);
+    return () => {
+      window.removeEventListener('blur', reset);
+      document.removeEventListener('visibilitychange', visibility);
+      api.cancelTouch();
+    };
+  }, [api, reset]);
+  const legActionSet = state.legActions?.join(',') ?? '';
+  useEffect(() => { reset(); }, [state.position, legActionSet, reset]);
+
+  const endAction = (e: React.PointerEvent<HTMLButtonElement>, cancelled: boolean) => {
+    const key = gestures.current.end(e.pointerId);
+    if (!key) return; // Normal release already handled before lostpointercapture.
+    if (!gestures.current.has(key)) {
+      delete e.currentTarget.dataset.held;
+      if (cancelled) api.cancelTouch(key);
+    }
+    setHeld(gestures.current.size ? 'Working' : null);
     push();
-  }, [state.position, push]);
+  };
+  const bindAction = (key: TouchKey, value: boolean | NonNullable<PadState['technique']> | NonNullable<PadState['legAction']> = true) => ({
+    onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
+      gestures.current.begin(e.pointerId, key, value);
+      push();
+    },
+    onPointerUp: (e: React.PointerEvent<HTMLButtonElement>) => endAction(e, false),
+    onPointerCancel: (e: React.PointerEvent<HTMLButtonElement>) => endAction(e, true),
+    onLostPointerCapture: (e: React.PointerEvent<HTMLButtonElement>) => endAction(e, true),
+  });
 
   const track = (e: React.PointerEvent) => {
     const el = padRef.current;
@@ -51,14 +120,11 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     push();
   };
 
-  const release = () => {
+  const release = (e: React.PointerEvent) => {
+    if (stickPointer.current !== e.pointerId) return;
+    stickPointer.current = null;
     stick.current = { x: 0, y: 0 };
     if (knobRef.current) knobRef.current.style.transform = '';
-    push();
-  };
-
-  const hold = (key: 'shoot' | 'fight' | 'sprawl' | 'level' | 'lowSingle' | 'scramble' | 'legRide' | 'closePockets' | 'catchLeg', down: boolean) => {
-    buttons.current[key] = down;
     push();
   };
 
@@ -68,45 +134,51 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
         ref={padRef}
         className="touch__pad"
         onPointerDown={(e) => {
-          (e.target as Element).setPointerCapture(e.pointerId);
+          if (stickPointer.current !== null) return;
+          stickPointer.current = e.pointerId;
+          e.currentTarget.setPointerCapture(e.pointerId);
           track(e);
         }}
         onPointerMove={(e) => {
-          if (e.buttons || e.pointerType === 'touch') track(e);
+          if (stickPointer.current === e.pointerId) track(e);
         }}
         onPointerUp={release}
         onPointerCancel={release}
+        onLostPointerCapture={release}
       >
         <span ref={knobRef} className="touch__knob" />
       </div>
-      <div className="touch__buttons">
-        {state.top !== null && (state.position === 'Top' || state.position === 'Bottom') && (state.top === state.humanSide ? ['legRide'] as const : ['closePockets','catchLeg'] as const).map(key => <button key={key} className="touch__btn touch__btn--small" onPointerDown={() => hold(key,true)} onPointerUp={() => hold(key,false)} onPointerLeave={() => hold(key,false)} onPointerCancel={() => hold(key,false)}>{ {legRide:'Work legs in',closePockets:'Close pockets',catchLeg:'Catch / clear leg'}[key] }</button>)}
+      <div ref={buttonGroup} className="touch__buttons" onPointerDownCapture={capture}>
+        <div className="touch__status">
+          <div className={`touch__notice touch__notice--${feedback?.result ?? 'idle'}`} role="status" key={feedback?.id}>{feedback?.text ?? (held ? 'Keep working' : 'Tap a move to attempt it')}</div>
+          {contest && <div className="touch__contest">
+            {state.meters.map(m => <label key={m.label} data-tone={m.tone}>{m.label}<progress max="1" value={Math.max(0, Math.min(1, m.value))} />{Math.round(Math.max(0, Math.min(1, m.value)) * 100)}%</label>)}
+            {([state.humanSide, state.humanSide === 0 ? 1 : 0] as const).map(side => <label key={side}>{side === state.humanSide ? 'Your stamina' : 'Rival stamina'}<progress max="1" value={state.stamina[side]} />{Math.round(state.stamina[side] * 100)}%</label>)}
+            <small>{contestHint}</small>
+          </div>}
+        </div>
+        {state.top !== null && state.meters.some(m => m.label === 'Base') && (state.top === state.humanSide ? ['legRide'] as const : ['closePockets','catchLeg'] as const).map(key => <button key={key} className="touch__btn touch__btn--small" {...bindAction(key)}>{ {legRide:'Work legs in',closePockets:'Close pockets',catchLeg:'Catch / clear leg'}[key] }<small className="touch__hint">Hold</small></button>)}
 
-        {state.position === 'In on the legs' && (['lift','trip','double','drive'] as const).map(action => <button key={action} className="touch__btn touch__btn--small" onPointerDown={() => {legAction.current=action;push()}} onPointerUp={() => {legAction.current=undefined;push()}} onPointerCancel={() => {legAction.current=undefined;push()}} onPointerLeave={() => {legAction.current=undefined;push()}}>{ {lift:'Lift leg',trip:'Trip',double:'Switch double',drive:'Drive back'}[action] }</button>)}
-        
+        {state.legActions?.map(action => <button key={action} className="touch__btn touch__btn--small" {...bindAction('legAction', action)}>{ {lift:'Lift leg',trip:'Trip',double:'Switch double',drive:'Drive back'}[action] }<small className="touch__hint">Hold</small></button>)}
 
-        {state.position === 'Neutral' && <details className="touch__techniques"><summary className="touch__btn touch__btn--small">Techniques</summary><div>{(['duckUnder','superDuck','slideBy','firemansCarry'] as const).map((move,i)=><button key={move} type="button" className="touch__btn" onPointerDown={()=>{technique.current=move;push()}} onPointerUp={()=>{technique.current=undefined;push()}} onPointerLeave={()=>{technique.current=undefined;push()}} onPointerCancel={()=>{technique.current=undefined;push()}}>{['Duck under','Super duck','Slide by','Fireman’s'][i]}</button>)}</div></details>}
-        {(['lowSingle', 'scramble'] as const).map(key => <button key={key} hidden={key === 'lowSingle' ? state.position !== 'Neutral' : state.position === 'Neutral' || state.position === '—'} type="button" className="touch__btn" onPointerDown={() => hold(key,true)} onPointerUp={() => hold(key,false)} onPointerLeave={() => hold(key,false)} onPointerCancel={() => hold(key,false)}>{key === 'lowSingle' ? 'Low single' : 'Scramble'}</button>)}
+
+        {state.position === 'Neutral' && <details className="touch__techniques"><summary className="touch__btn touch__btn--small">Techniques</summary><div>{(['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).map((move,i)=><button key={move} type="button" className="touch__btn" {...bindAction('technique', move)}>{['Duck under','Super duck','Slide by','Fireman’s','Foot sweep'][i]}<small className="touch__hint">Tap</small></button>)}</div></details>}
+        {(['lowSingle', 'scramble'] as const).map(key => <button key={key} hidden={key === 'lowSingle' ? state.position !== 'Neutral' : state.position === 'Neutral' || state.position === '—'} type="button" className="touch__btn" {...bindAction(key)}>{key === 'lowSingle' ? 'Low single' : 'Scramble'}<small className="touch__hint">Tap</small></button>)}
         {(['sprawl', 'fight', 'shoot'] as const).map((key) => (
           <button
             key={key}
             type="button"
-            className={`touch__btn touch__btn--${key} touch__btn--${state.prompts[key].state}`}
-            onPointerDown={() => hold(key, true)}
-            onPointerUp={() => hold(key, false)}
-            onPointerLeave={() => hold(key, false)}
-            onPointerCancel={() => hold(key, false)}
+            className={`touch__btn touch__btn--${key} touch__btn--${state.prompts[key].state} ${shown?.button === key ? `touch__btn--${shown.result}` : ''}`}
+            disabled={state.prompts[key].state === 'off' && state.prompts[key].label === '—'}
+            {...bindAction(key)}
           >
-            {state.prompts[key].label}
+<span className="touch__label">{state.prompts[key].label}</span><small className="touch__hint">{hint(key)}</small>
           </button>
         ))}
         <button
           type="button"
           className="touch__btn touch__btn--level"
-          onPointerDown={() => hold('level', true)}
-          onPointerUp={() => hold('level', false)}
-          onPointerLeave={() => hold('level', false)}
-          onPointerCancel={() => hold('level', false)}
+          {...bindAction('level')}
         >
           {state.top === state.humanSide ? 'Cut' : 'Lower'}
         </button>

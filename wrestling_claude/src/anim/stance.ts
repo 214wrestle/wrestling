@@ -64,11 +64,12 @@ export function stancePose(s: StanceParams, out: LocalPose = createLocal()): Loc
 
   // Pelvis: turned a touch so the lead hip is forward, tilted forward with depth.
   out[P.HIPS_Q] = -12 * lead * DEG * (0.4 + lv * 0.6);
-  out[P.HIPS_Q + 1] = (8 + deep * 18 + s.lean * 6) * DEG;
+  out[P.HIPS_Q + 1] = (14 + deep * 26 + s.lean * 6) * DEG;
   out[P.HIPS_Q + 2] = -s.side * 5 * DEG;
 
-  // Spine: flat back angled forward; counter-twist squares the chest up.
-  out[P.SPINE] = (10 + deep * 14 + s.lean * 10 + s.fatigue * 8 + breath * 1.2) * DEG;
+  // Keep the working lean at the hips rather than rounding the thoracic spine.
+  // Counter-twist squares the chest up; fatigue can still soften the posture.
+  out[P.SPINE] = (4 + deep * 6 + s.lean * 10 + s.fatigue * 6 + breath * 1.2) * DEG;
   out[P.SPINE + 1] = 10 * lead * DEG * (0.4 + lv * 0.6);
   out[P.SPINE + 2] = s.side * 4 * DEG;
 
@@ -96,6 +97,7 @@ export function stancePose(s: StanceParams, out: LocalPose = createLocal()): Loc
   out[rf + 2] = rearZ;
   out[rf + FOOT.YAW] = -28 * lead * DEG;
   out[rf + FOOT.HEEL] = lerp(34, 14, lv) * DEG;
+  out[P.PALMS] = out[P.PALMS + 1] = 0;
   out[P.TOES] = 1;
   out[P.TOES + 1] = 1;
 
@@ -133,8 +135,8 @@ export function stancePose(s: StanceParams, out: LocalPose = createLocal()): Loc
   out[P.WRIST_L + 2] = 35 * DEG;
   out[P.WRIST_R] = -15 * DEG;
   out[P.WRIST_R + 2] = 35 * DEG;
-  out[P.SHRUG_L] = (4 + s.fatigue * 4) * DEG;
-  out[P.SHRUG_R] = (4 + s.fatigue * 4) * DEG;
+  out[P.SHRUG_L] = (1 + s.fatigue * 2) * DEG;
+  out[P.SHRUG_R] = (1 + s.fatigue * 2) * DEG;
   return out;
 }
 

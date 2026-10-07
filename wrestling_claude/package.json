@@ -20,7 +20,20 @@
     "check:tie-attacks": "esbuild src/dev/checkTieAttacks.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-tie-attacks.mjs --log-level=warning && node node_modules/.cache/check-tie-attacks.mjs",
     "check:touch-effort": "esbuild src/dev/checkTouchEffort.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-touch-effort.mjs --log-level=warning && node node_modules/.cache/check-touch-effort.mjs",
     "ratings:coverage": "node scripts/export-rating-coverage.mjs",
-    "check:control-choices": "esbuild src/dev/checkControlChoices.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-control-choices.mjs --log-level=warning && node node_modules/.cache/check-control-choices.mjs"
+    "check:control-choices": "esbuild src/dev/checkControlChoices.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-control-choices.mjs --log-level=warning && node node_modules/.cache/check-control-choices.mjs",
+    "check:touch-buffer": "esbuild src/dev/checkTouchBuffer.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-touch-buffer.mjs --log-level=warning && node node_modules/.cache/check-touch-buffer.mjs",
+    "check:touch-gestures": "esbuild src/dev/checkTouchGestures.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-touch-gestures.mjs --log-level=warning && node node_modules/.cache/check-touch-gestures.mjs",
+    "check:palm-support": "esbuild src/dev/checkPalmSupport.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-palm-support.mjs --log-level=warning && node node_modules/.cache/check-palm-support.mjs",
+    "check:effort-pulse": "esbuild src/dev/checkEffortPulse.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-effort-pulse.mjs --log-level=warning && node node_modules/.cache/check-effort-pulse.mjs",
+    "check:footwork": "esbuild src/dev/checkFootwork.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-footwork.mjs --log-level=warning && node node_modules/.cache/check-footwork.mjs",
+    "check:locomotion-reach": "esbuild src/dev/checkLocomotionReach.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-locomotion-reach.mjs --log-level=warning && node node_modules/.cache/check-locomotion-reach.mjs",
+    "check:animated-grounding": "esbuild src/dev/checkAnimatedGrounding.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-animated-grounding.mjs --log-level=warning && node node_modules/.cache/check-animated-grounding.mjs",
+    "check:standing-footwork": "esbuild src/dev/checkStandingFootwork.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-standing-footwork.mjs --log-level=warning && node node_modules/.cache/check-standing-footwork.mjs",
+    "check:entry-contacts": "esbuild src/dev/checkEntryContacts.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-entry-contacts.mjs --log-level=warning && node node_modules/.cache/check-entry-contacts.mjs",
+    "check:low-single-post": "esbuild src/dev/checkLowSinglePost.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-low-single-post.mjs --log-level=warning && node node_modules/.cache/check-low-single-post.mjs",
+    "check:return-post": "esbuild src/dev/checkReturnPost.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-return-post.mjs --log-level=warning && node node_modules/.cache/check-return-post.mjs",
+    "check:walk-transition": "esbuild src/dev/checkWalkTransition.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-walk-transition.mjs --log-level=warning && node node_modules/.cache/check-walk-transition.mjs",
+    "check:sweep-defense": "esbuild src/dev/checkSweepDefense.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-sweep-defense.mjs --log-level=warning && node node_modules/.cache/check-sweep-defense.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",

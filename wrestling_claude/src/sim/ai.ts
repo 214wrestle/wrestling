@@ -1,4 +1,4 @@
-import { isScrambleSpecialist, heavyweightActivity } from './athleteProfiles';
+import { isScrambleSpecialist, heavyweightActivity, isFootSweepSpecialist, lateAttackUrgency, GABLE_PRESSURE_NAMES } from './athleteProfiles';
 import type { Bout } from './bout';
 import { BOUT, Rng } from './bout';
 import { otherSide } from './types';
@@ -122,7 +122,7 @@ export class WrestlerAI {
         this.fhl(bout, cmd, pos.A === this.side, pos.recover);
         break;
       case 'mat':
-        this.mat(bout, cmd, pos.A === this.side);
+        this.mat(bout, cmd, pos.A === this.side, context);
         break;
       default:
         break;
@@ -182,7 +182,9 @@ export class WrestlerAI {
     if (dist < 0.85) fwd = this.pushT > 0.5 ? 0.6 : -0.2;
     const style = bout.wrestlers[this.side].motion;
     const activity = heavyweightActivity(bout.wrestlers[this.side]);
+    const urgency=lateAttackUrgency(`${bout.wrestlers[this.side].firstName} ${bout.wrestlers[this.side].lastName}`,context);
     fwd *= (style?.pressure ?? 1) * activity.pressure;
+    if(urgency>1) fwd=Math.max(fwd,0.45);
     const lat = this.circleDir * 0.6 * (style?.circle ?? 1);
     cmd.moveX = nx * fwd + nz * lat - (me.pos.x / (r || 1)) * inward;
     cmd.moveZ = nz * fwd - nx * lat - (me.pos.z / (r || 1)) * inward;
@@ -200,7 +202,7 @@ export class WrestlerAI {
     }
 
     if (me.act !== 'stance' || me.cooldown > 0 || this.decideT > 0) return;
-    this.decideT = (1.4 + this.rng.next() * 1.4) / (style?.tempo ?? 1);
+    this.decideT = (1.4 + this.rng.next() * 1.4) / ((style?.tempo ?? 1)*urgency);
 
     // A look at the legs: how good would a shot be right now?
     const opening =
@@ -216,14 +218,14 @@ export class WrestlerAI {
     }
     if (!tired && dist < 1.05 && me.hand >= 0.35 && this.rng.chance(0.025)) {
       const r=this.rng.next();
-      cmd.technique=r<0.45?'duckUnder':r<0.85?'slideBy':'firemansCarry'; return;
+      cmd.technique=isFootSweepSpecialist(bout.wrestlers[this.side]) && r<0.7 ? 'footSweep' : r<0.45?'duckUnder':r<0.85?'slideBy':'firemansCarry'; return;
     }
 
-    if (inRange && !tired && opening > 0.2 + this.p.patience * 0.8 && this.rng.next() < this.p.aggression * 0.22 * (style?.attackRate ?? 1) * activity.attack) {
+    if (inRange && !tired && opening > 0.2 + this.p.patience * 0.8 && this.rng.next() < this.p.aggression * 0.22 * (style?.attackRate ?? 1) * activity.attack * urgency) {
       cmd.shoot = true;
       return;
     }
-    if (inRange && !tired && this.rng.next() < this.p.aggression * 0.04 * (1 - this.p.patience) * (style?.attackRate ?? 1) * activity.attack) {
+    if (inRange && !tired && this.rng.next() < this.p.aggression * 0.04 * (1 - this.p.patience) * (style?.attackRate ?? 1) * activity.attack * urgency) {
       cmd.shoot = true;
       return;
     }
@@ -275,7 +277,7 @@ export class WrestlerAI {
 
   /* ------------------------------------------------------------------ mat */
 
-  private mat(bout: Bout, cmd: Command, top: boolean): void {
+  private mat(bout: Bout, cmd: Command, top: boolean, context?:{timeLeft:number;finalPeriod:boolean;deficit:number}): void {
     const pos = bout.position;
     if (pos.kind !== 'mat') return;
     const me = bout.athletes[this.side];
@@ -308,6 +310,9 @@ export class WrestlerAI {
         if (!cmd.shoot && !cmd.sprawl) cmd.fight = true;
         return;
       }
+      // Protect established control through the whistle rather than force a risky turn.
+      const rider=bout.wrestlers[this.side];
+      if(context && context.timeLeft<=12 && GABLE_PRESSURE_NAMES.has(`${rider.firstName} ${rider.lastName}`) && pos.sub==='ride') {cmd.sprawl=true;return;}
       // Ride: keep him tight, break him down, then turn him. A chop comes with a
       // quick second one, before he can rebuild the base the first one cost him.
       // A failed turn leaves a short recovery window. Retain the ride and

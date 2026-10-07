@@ -17,6 +17,7 @@ void KNEE;
 /* ------------------------------------------------------------------ ride */
 
 const rideB: PoseSpec = {
+  palms: [1, 1],
   hips: [0, 0.5, 0],
   rot: [0, 80, 0],
   spine: [6, 0, 0],
@@ -240,8 +241,8 @@ const standingB: PoseSpec = {
   kneeR: [-0.3, 0.6, 0.8],
   handL: [0.08, 0.92, 0.2],
   handR: [-0.08, 0.92, 0.2],
-  elbowL: [0.45, 0.8, 0.0],
-  elbowR: [-0.45, 0.8, 0.0],
+  elbowL: [0.27, 0.8, 0.0],
+  elbowR: [-0.27, 0.8, 0.0],
   wristL: GRIP_IN,
   wristR: GRIP_IN,
   shrugL: [0, 0],
@@ -259,10 +260,11 @@ const standingBTurning: PoseSpec = {
 };
 
 const standingA: PoseSpec = {
-  hips: [0.02, 0.8, -0.36],
-  rot: [0, 26, 0],
-  spine: [16, 0, 0],
-  head: [12, 18, 0],
+  // Offset the head beside the defender's shoulder while keeping hip pressure.
+  hips: [0.10, 0.8, -0.36],
+  rot: [0, 24, 0],
+  spine: [12, 0, -6],
+  head: [8, -12, 4],
   look: 0,
   footL: [0.22, BALL, -0.42, 10, 15],
   footR: [-0.16, BALL, -0.7, -15, 25],
@@ -281,7 +283,7 @@ const standingA: PoseSpec = {
 
 registerHold({
   id: 'standing',
-  A: [standingA, { hips: [0.0, 0.82, -0.34], rot: [10, 24, 0] }],
+  A: [standingA, { hips: [0.12, 0.82, -0.34], rot: [10, 22, 0] }],
   B: [standingB, standingBTurning],
   contacts: [
     { who: 'A', hand: 'L', on: 'spine', at: [0.04, 0.0, 0.13] },

@@ -32,6 +32,7 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  'Mark Miller': {falls:26,bouts:106,source:'https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/vatech.sidearmsports.com/documents/2018/4/30/wr07mg.pdf#page=21'},
   'Mike McArthur': {falls:32,bouts:103,source:'https://gophersports.com/documents/download/2025/10/22/WREST_MediaGuide2025-26.pdf#page=40'},
   'Evan Johnson': {falls:25,bouts:97,source:'https://gophersports.com/documents/download/2025/10/22/WREST_MediaGuide2025-26.pdf#page=40'},
   'Joe Colon': {falls:11,bouts:68,source:'https://unipanthers.com/sports/wrestling/roster/joe-colon/1226'},

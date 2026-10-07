@@ -17,11 +17,19 @@ const N = Number(process.argv[2] ?? 30);
 const level = (process.argv[3] ?? 'starter') as Difficulty;
 const DT = 1 / 60;
 const legends = process.argv[4] === 'legends';
-const ROSTER = legends ? LEGENDS_ROSTER : PROTOTYPE_ROSTER;
+const ALL_ROSTER = legends ? LEGENDS_ROSTER : PROTOTYPE_ROSTER;
+const requestedAthlete = process.argv[5];
+const ROSTER = requestedAthlete ? ALL_ROSTER.filter(w => w.id === requestedAthlete) : ALL_ROSTER;
+if (!ROSTER.length) throw new Error(`Unknown diagnostic athlete: ${requestedAthlete}`);
 
 const moves: Record<string, number> = {};
+const scoring: Record<string, {events:number;points:number}> = {};
 const results: Record<string, number> = {};
 const totals: number[] = [];
+// Compare bracket numerical finishes with numerical finishes, excluding pin scores.
+const numericalTypes = new Set(['decision', 'major-decision', 'technical-fall', 'sudden-victory', 'tiebreaker', 'ultimate-rideout']);
+const numerical: {winner:number;loser:number;weight:number}[] = [];
+let unfinished = 0;
 const legs: number[] = [];
 let matTime = 0;
 let footTime = 0;
@@ -31,7 +39,7 @@ for (let m = 0; m < N; m++) {
   const a = ROSTER[m % ROSTER.length];
   let b = ROSTER[(m + 1 + Math.floor(m / ROSTER.length)) % ROSTER.length];
   if (legends) {
-    const opponents = ROSTER.filter(w => w.weightClass === a.weightClass && w.school.id !== a.school.id);
+    const opponents = ALL_ROSTER.filter(w => w.weightClass === a.weightClass && w.school.id !== a.school.id);
     if (!opponents.length) throw new Error(`No same-weight opponent for ${a.id}`);
     b = opponents[(m + Math.floor(m / ROSTER.length)) % opponents.length];
   } else if (a.id === b.id) b = ROSTER[(m + 1) % ROSTER.length];
@@ -43,9 +51,17 @@ for (let m = 0; m < N; m++) {
         moves[def.id] = (moves[def.id] ?? 0) + 1;
       },
       onTell: (to, what) => ais[to].onTell(what),
+      onScore: (event) => {
+        const bucket = scoring[event.kind] ??= {events:0,points:0};
+        bucket.events++;
+        bucket.points += event.points;
+      },
       onResult: (r) => {
         results[r.type] = (results[r.type] ?? 0) + 1;
         totals.push(r.score[0] + r.score[1]);
+        if (numericalTypes.has(r.type)) numerical.push({
+          winner: Math.max(...r.score), loser: Math.min(...r.score), weight: a.weightClass,
+        });
       },
     },
     1000 + m,
@@ -72,11 +88,19 @@ for (let m = 0; m < N; m++) {
       legsT = 0;
     }
   }
+  if (sim.phase !== 'results') unfinished++;
 }
 
 const quantile = (list: number[], f: number) => [...list].sort((x, y) => x - y)[Math.floor(f * (list.length - 1))] ?? 0;
-console.log(`${N} matches, ${level}`);
+console.log(`${N} requested matches, ${totals.length} completed, ${unfinished} unfinished, ${level}, ${legends ? 'legends' : 'prototype'}`);
 for (const [id, n] of Object.entries(moves).sort((x, y) => y[1] - x[1])) console.log(`  ${id.padEnd(14)} ${n}`);
 console.log(`mat share ${(matTime / (matTime + footTime)).toFixed(2)}, average ride ${(matTime / Math.max(1, rides)).toFixed(1)}s`);
 console.log(`results ${JSON.stringify(results)}, average total points ${(totals.reduce((s, v) => s + v, 0) / Math.max(1, totals.length)).toFixed(1)}`);
+const mean = (list:number[]) => list.length ? (list.reduce((sum,v)=>sum+v,0)/list.length).toFixed(2) : 'n/a';
+console.log(`bracket-comparable numerical finishes: n=${numerical.length}, winner ${mean(numerical.map(r=>r.winner))}, loser ${mean(numerical.map(r=>r.loser))}, combined ${mean(numerical.map(r=>r.winner+r.loser))}; falls excluded`);
+if (legends) for (const weight of [...new Set(numerical.map(r=>r.weight))].sort((a,b)=>a-b)) {
+  const rows = numerical.filter(r=>r.weight===weight);
+  console.log(`  weight ${weight}: n=${rows.length}, combined ${mean(rows.map(r=>r.winner+r.loser))}`);
+}
+console.log(`completed scoring events ${JSON.stringify(scoring)}`);
 console.log(`legs battles: median ${quantile(legs, 0.5).toFixed(2)}s, p75 ${quantile(legs, 0.75).toFixed(2)}s`);

@@ -13,7 +13,7 @@ import { BALL, GRIP } from './kit';
 // Just in: lead knee down, chest on his thighs, head on the outside, arms
 // wrapped behind both knees. He is still upright, hands on the back.
 const doubleA0: PoseSpec = {
-  hips: [0.04, 0.58, 0.06],
+  hips: [0.04, 0.51, 0.06],
   rot: [-8, 22, 0],
   spine: [12, -12, 0],
   head: [-20, -35, 0],
@@ -33,14 +33,15 @@ const doubleA0: PoseSpec = {
   toes: [1, 1],
 };
 
-// Driving through: up off the knee, running his feet, hips under.
+// Driving through: up off the knee, feet under the hips, shoulder pressure
+// stays low enough to retain both knee grips instead of standing out of them.
 const doubleA1: PoseSpec = {
-  hips: [0.0, 0.7, 0.2],
+  hips: [0.0, 0.59, 0.26],
   rot: [0, 30, 0],
   spine: [20, 0, 0],
   head: [-20, -25, 0],
-  footL: [0.16, BALL, 0.06, 0, 18],
-  footR: [-0.2, BALL, -0.36, -10, 35],
+  footL: [0.16, BALL, 0.38, 0, 18],
+  footR: [-0.2, BALL, -0.2, -10, 35],
   kneeL: [0.3, 0.6, 0.9],
   kneeR: [-0.3, 0.5, 0.6],
 };

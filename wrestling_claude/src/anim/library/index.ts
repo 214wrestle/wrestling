@@ -15,3 +15,7 @@ import './tieAttacks';
 import './legFinishes';
 
 import './legRide';
+
+import './cradle';
+
+import './standingReturns';
