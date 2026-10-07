@@ -8,6 +8,7 @@ export interface WrestlingStyle {
   stanceWidth: number; levelOffset: number; tempo: number; handActivity: number;
   pressure: number; circle: number; attackRate: number;
   topPatience?: number; turnPreference?: number;
+  preferredTurn?: 'cradle';
   highCrotchHand?: 'left' | 'right';
   shots: { double: number; single: number; highCrotch: number };
 }
@@ -44,13 +45,14 @@ export const ATHLETE_PROFILES: Record<string, AthleteProfile> = {
   },
   'Michael Moreno': {
     era: 'Iowa State collegiate, 2013–2015',
-    summary: 'Patient top control and opportunistic turns; recorded a ride-to-pin against Isaac Jordan in 2015.',
+    summary: 'Patient top control with a cradle option; documented NCAA cradle and spladle pins in 2013, and a ride-to-pin against Isaac Jordan in 2015.',
     appearanceStatus: 'Likeness reconstruction in progress. Official photos guide art estimates; top-control tendencies interpret documented bouts, not measured film frequencies.',
     shape: {torso: 0.97, limbs: 0.97, neck: 1.02, shoulders: 1.01, faceWidth: 0.98, faceLength: 0.98, jaw: 0.98, nose: 0.001},
-    motion: {...DEFAULT_MOTION, topPatience: 1.2, turnPreference: 1.15},
+    motion: {...DEFAULT_MOTION, topPatience: 1.2, turnPreference: 1.15, preferredTurn: 'cradle'},
     look: {height: 1.77, build: 0.42, skinTone: '#d6ac90', hairColor: '#241d19', hairStyle: 'crop', eyeColor: '#43362d', gear: '#f0eee7'},
     sources: [
       {label: 'Iowa State portrait and collegiate action photos', url: 'https://cyclones.com/sports/wrestling/roster/michael-moreno/1333', kind: 'photo'},
+      {label: '2013 NCAA report: cradle over Baumbach and spladle over Martin',url:'https://cyclones.com/news/2013/3/22/206873161',kind:'bio'},
       {label: '2015 Wisconsin bout: ride and turn to pin',url:'https://cyclones.com/news/2015/2/22/209902298',kind:'bio'},
       {label: 'National Wrestling Hall of Fame collegiate records', url: 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=16086', kind: 'bio'},
     ],
@@ -111,6 +113,7 @@ export function heavyweightActivity(w: Pick<Wrestler, 'firstName' | 'lastName' |
 
 /** Owner-confirmed specialty; percentages are provisional attack selection weights. */
 export const ATHLETE_MOTION_OVERRIDES: Record<string, WrestlingStyle> = {
+  'Teyon Ware': {...DEFAULT_MOTION, tempo:0.9,pressure:0.85,circle:1.1,attackRate:0.6},
   'Royce Alger': {...DEFAULT_MOTION, tempo:1.25,handActivity:1.45,pressure:1.3,circle:0.85,attackRate:1.2},
   'Brent Metcalf': {...DEFAULT_MOTION, highCrotchHand: 'left',
     shots: {double: 0.2, single: 0.15, highCrotch: 0.65}},
@@ -118,7 +121,7 @@ export const ATHLETE_MOTION_OVERRIDES: Record<string, WrestlingStyle> = {
 
 /** Owner-selected pace; numbers remain provisional until film calibration. */
 export const HIGH_PACE_NAMES = [
- 'Bo Bassett', 'David Taylor', 'Jason Nolf', 'Mitchell Messenbrink',
+ 'Bo Bassett', 'David Taylor', 'Jason Nolf', 'Mitchell Mesenbrink',
  'Tom Brands', 'Terry Brands', 'Mark Ironside', 'Doug Schwab',
 ] as const;
 export function applyOwnerPace(name: string, base: WrestlingStyle = DEFAULT_MOTION): WrestlingStyle {
@@ -128,4 +131,26 @@ export function applyOwnerPace(name: string, base: WrestlingStyle = DEFAULT_MOTI
    handActivity: Math.max(base.handActivity, bassett ? 1.3 : 1.2),
    attackRate: Math.max(base.attackRate, bassett ? 1.25 : 1.15),
    pressure: Math.max(base.pressure, 1.1)};
+}
+
+/** Owner-selected signature technique; exact athletes, not all heavyweights. */
+export function isFootSweepSpecialist(w: Wrestler): boolean {
+  return ['Steve Mocco', 'Michael Mocco'].includes(`${w.firstName} ${w.lastName}`);
+}
+
+/** Owner-described earlier Iowa cohort (through roughly 2002), plus explicit Metcalf exception. Exact identities, not a school-wide inheritance rule. */
+export const GABLE_PRESSURE_NAMES = new Set(['Brent Metcalf','T.J. Williams','Royce Alger','Tom Brands','Terry Brands','Mark Ironside','Eric Juergens','Lincoln McIlravy','Joe Williams','Jim Zalesky','Barry Davis','Randy Lewis','Ed Banach','Lou Banach','Duane Goldman','Chris Campbell','Mark Reiland','Terry Steiner','Troy Steiner','Jeff McGinness','Kevin Dresser','Jim Heffernan','Brad Penrith','Jessie Whitmer','Lee Fullhart']);
+export const IOWA_LATE_ATTACK_NAMES = new Set(['Royce Alger','Tom Brands','Terry Brands','Mark Ironside','Eric Juergens']);
+export function lateAttackUrgency(name:string, context?:{timeLeft:number;finalPeriod:boolean;deficit:number}):number {
+ if(!IOWA_LATE_ATTACK_NAMES.has(name)||!context?.finalPeriod||context.deficit<=0||context.timeLeft>60)return 1;
+ return 1.25+0.25*(1-Math.max(0,context.timeLeft)/60);
+}
+export function applyGablePressure(w:Wrestler):void {
+ const name=`${w.firstName} ${w.lastName}`;
+ if(w.school.id!=='iowa'||!GABLE_PRESSURE_NAMES.has(name))return;
+ const m=w.motion??DEFAULT_MOTION;
+ w.motion={...m,tempo:Math.max(m.tempo,1.1),handActivity:Math.max(m.handActivity,1.35),pressure:Math.max(m.pressure,1.2),circle:Math.min(m.circle,.9),attackRate:Math.min(m.attackRate,0.95)};
+ w.attributes.conditioning=Math.max(w.attributes.conditioning,IOWA_LATE_ATTACK_NAMES.has(name)?.97:.93);
+ const pressureStyle='Heavy head ties, persistent hand fighting and sustained pace';
+ if(!w.style?.includes(pressureStyle)) w.style=w.style ? `${w.style}; ${pressureStyle}` : pressureStyle;
 }

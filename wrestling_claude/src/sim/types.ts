@@ -43,7 +43,7 @@ export interface Wrestler {
   motion?: WrestlingStyle;
   appearance?: AppearanceShape;
   headgearColor?: string;
-  legends?: { role: 'starter' | 'choice'; source: string; bioNote?: string };
+  legends?: { role: 'starter' | 'choice'; source: string; nickname?: string; bioNote?: string };
   firstName: string;
   lastName: string;
   school: School;
@@ -65,6 +65,7 @@ export interface Wrestler {
   /** One line on how he wrestles, for the tale of the tape. */
   style: string;
   /** 0..1 attributes. */
+  /** All attributes are relative to opponents in this weight class, not absolute body output. */
   attributes: {
     /** Shot speed, scramble and hand-fight quickness. */
     quickness: number;
@@ -138,7 +139,7 @@ export interface Command {
   catchLeg?: boolean;
   legAction?: 'lift' | 'trip' | 'double' | 'drive';
   sustainedEffort?: boolean;
-  technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry';
+  technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry' | 'footSweep';
   lowSingle?: boolean;
   scramble?: boolean;
   /** Intended movement on the mat, world space, length <= 1. */

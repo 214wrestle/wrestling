@@ -11,6 +11,10 @@ export interface HistoricalMeeting {
 }
 /** Verified historical bouts; game roster weights do not rewrite history. */
 export const NCAA_MEETINGS: readonly HistoricalMeeting[] = [
+  {winner:'Mark Kerr',loser:'Randy Couture',year:1992,round:'final',weight:190,result:'12–4',source:'https://nwhof.org/brackets/62#page=1'},
+  {winner:'Terry Brands',loser:'Shawn Charles',year:1992,round:'final',weight:126,result:'8–5',source:'https://nwhof.org/brackets/62#page=1'},
+  {winner:'Tom Brands',loser:'Alan Fried',year:1992,round:'final',weight:134,result:'6–2',source:'https://nwhof.org/brackets/62#page=1'},
+  {winner:'Nick Muzashvili',loser:'Andrei Rodzianko',year:1999,round:'quarterfinal',weight:197,result:'5–4',source:'https://msuspartans.com/news/1999/6/21/round_3_at_ncaa_wrestling_championships'},
   {winner:'Steve Mocco',loser:'Cole Konrad',year:2005,round:'final',weight:285,result:'3–1 in sudden victory',source:'https://www.themat.com/news/2005/march/19/cowboys-crown-five-champions---12039'},
   {winner:"John Smith",loser:"Gil Sanchez",year:1987,round:"final",weight:134,result:"18–4",source:"https://nwhof.org/brackets/57#page=1"},
   {winner:"Jim Scherr",loser:"Duane Goldman",year:1984,round:"final",weight:177,result:"3–2",source:"https://nwhof.org/brackets/54#page=1"},
@@ -61,6 +65,7 @@ export function smithPerryFamilyNote(w: Wrestler): string | undefined {
 }
 export function wrestlerFamilyNote(w: Wrestler): string | undefined {
   const name = `${w.firstName} ${w.lastName}`;
+  if (w.school.id === 'west-virginia' && ['Greg Jones', 'Vertus Jones'].includes(name)) return 'Jones brothers: Greg and Vertus both became three-time All-Americans for West Virginia. The brothers entered the WVU Sports Hall of Fame together in 2019.';
   if (name === 'Steve Mocco') return 'Mocco family specialty: Steve is Michael Mocco’s father. Both bring a signature foot sweep to the mat.';
   if (name === 'Michael Mocco') return 'Mocco family specialty: Michael is Steve Mocco’s son. Their shared signature is the foot sweep.';
   if (w.school.id === 'nebraska' && ['Jim Scherr','Bill Scherr'].includes(`${w.firstName} ${w.lastName}`)) return 'Twin champions: Nebraska’s Jim and Bill Scherr both won NCAA titles in 1984, at 177 and 190 pounds, respectively.';

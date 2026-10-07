@@ -1,5 +1,6 @@
-import { CAREER_RECORDS, ELIGIBILITY_SEASONS, COLLEGE_RECORDS, overallRating, scoreCareer } from './ratings';
-import { HIGH_PACE_NAMES, applyOwnerPace, ATHLETE_MOTION_OVERRIDES, ATHLETE_PROFILES } from './athleteProfiles';
+import { applyGablePressure } from './athleteProfiles';
+import { CAREER_RECORDS, COLLEGE_RECORDS, overallRating, scoreKnownCareer } from './ratings';
+import { DEFAULT_MOTION, HIGH_PACE_NAMES, applyOwnerPace, ATHLETE_MOTION_OVERRIDES, ATHLETE_PROFILES } from './athleteProfiles';
 import type { School, Wrestler } from './types';
 import locked from './legends-roster.json';
 
@@ -169,7 +170,7 @@ export const ROSTER: Wrestler[] = LEGENDS_TEAMS.flatMap((team, i) => {
       style: role === 'starter' ? 'Locked Legends starter' : "Coach’s Choice",
       attributes: {quickness: 0.75, strength: 0.75, conditioning: 0.75, mat: 0.75, defense: 0.75},
       legends: {role, source: entry.source,
-        bioNote: entry.name === 'Evan Bernstein' ? '1988 Greco-Roman Olympian for Israel (Seoul, 90 kg).' : entry.name === 'Randy Lewis' ? 'LewBoo — 2x National Champ · 1984 Olympic Champ.' : entry.name === 'Royce Alger' ? '2x National Champ · 3x AA. Historical NCAA titles at 167 and 177; locked Legends slot: 174. Source: National Wrestling Hall of Fame.' : entry.name === 'Dan Hodge' ? 'Apple-crushing grip: Dan Hodge could crush an apple with one bare hand. Three NCAA titles at historical 177; Legends slot: 174. Source: National Wrestling Hall of Fame.' : entry.name === 'Quentin Wright' ? 'Career accomplishments at 184 and 197; locked Legends slot: 190.' : ['Trent Paulson', 'Travis Paulson'].includes(entry.name) ? 'Twin connection: Trent and Travis Paulson — identical twin brothers from Council Bluffs Lewis Central High School.' : undefined},
+        bioNote: entry.name === 'Stephen Neal' ? 'From the mat to the NFL: 3x Super Bowl Champion with the New England Patriots (XXXVI, XXXVIII and XXXIX).' : entry.name === 'Shane Griffith' ? 'Stanford · Keep Stanford Wrestling: His 2021 NCAA title in a plain black singlet helped rally support to save a program slated for elimination. Stanford reversed the decision in May 2021.' : entry.name === 'Evan Bernstein' ? '1988 Greco-Roman Olympian for Israel (Seoul, 90 kg).' : entry.name === 'Royce Alger' ? '2x National Champ · 3x AA. Historical NCAA titles at 167 and 177; locked Legends slot: 174. Source: National Wrestling Hall of Fame.' : entry.name === 'Dan Hodge' ? 'Apple-crushing grip: Dan Hodge could crush an apple with one bare hand. Three NCAA titles at historical 177; Legends slot: 174. Source: National Wrestling Hall of Fame.' : entry.name === 'Quentin Wright' ? 'Career accomplishments at 184 and 197; locked Legends slot: 190.' : ['Trent Paulson', 'Travis Paulson'].includes(entry.name) ? 'Twin connection: Trent and Travis Paulson — identical twin brothers from Council Bluffs Lewis Central High School.' : undefined},
     };
   };
   return [...team.starters.map(e => create(e, 'starter')), ...team.choices.map(e => create(e, 'choice'))];
@@ -178,7 +179,7 @@ export const ROSTER: Wrestler[] = LEGENDS_TEAMS.flatMap((team, i) => {
 for (const w of ROSTER) {
   const career = CAREER_RECORDS[`${w.firstName} ${w.lastName}`];
   if (career) {
-    w.ncaaCareer = scoreCareer(career, ELIGIBILITY_SEASONS[`${w.firstName} ${w.lastName}`] ?? 4);
+    w.ncaaCareer = scoreKnownCareer(`${w.firstName} ${w.lastName}`, career);
     w.rating = overallRating(`${w.firstName} ${w.lastName}`, w.ncaaCareer, COLLEGE_RECORDS[`${w.firstName} ${w.lastName}`]);
     const value = w.rating / 100;
     w.attributes = {quickness: value, strength: value, conditioning: value, mat: value, defense: value};
@@ -255,7 +256,8 @@ export const OFFICIAL: Wrestler = {
 
 for (const w of ROSTER) {
   const motion = ATHLETE_MOTION_OVERRIDES[`${w.firstName} ${w.lastName}`];
-  if (motion) {w.motion = motion; w.style = w.lastName === 'Alger' ? 'Relentless grinder — elite hand fighting, forward pressure and exceptional gas tank' : 'Left-handed high-crotch specialist';}
+  if (motion) {w.motion = motion; w.style = w.lastName === 'Alger' ? 'Relentless grinder — elite hand fighting, forward pressure and exceptional gas tank' : w.lastName === 'Ware' ? 'Patient defensive specialist — difficult to score on, selective explosive attacks; inactivity risks stalling' : 'Left-handed high-crotch specialist';}
+  if (w.firstName === 'Teyon' && w.lastName === 'Ware') {w.attributes.defense = Math.max(w.attributes.defense,0.95); w.attributes.quickness = Math.max(w.attributes.quickness,0.94);}
   if (w.firstName === 'Royce' && w.lastName === 'Alger') w.attributes.conditioning = 0.98;
 }
 
@@ -263,4 +265,30 @@ for (const w of ROSTER) {
  const name = `${w.firstName} ${w.lastName}`;
  if ((HIGH_PACE_NAMES as readonly string[]).includes(name)) w.motion = applyOwnerPace(name, w.motion);
  if (name === 'Bo Bassett') w.style = 'Machine Gun Mindset — sustained movement and repeated setups';
+}
+
+for (const w of ROSTER) applyGablePressure(w);
+
+/** Owner-selected nicknames preserve canonical names used by ratings and roster locks. */
+const athleteNicknames: Record<string,string> = {'Randy Lewis':'LewBoo','Kyle Dake':'Kid Dynamite','David Taylor':'The Magic Man','Steve Mocco':'The Bear','Nick Simmons':'The East Lansing Strangler'};
+for (const w of ROSTER) {
+ const name = `${w.firstName} ${w.lastName}`;
+ if (w.legends && athleteNicknames[name]) w.legends.nickname = athleteNicknames[name];
+ if (name === 'Matt Feast' && w.legends) w.legends.bioNote = 'College record: 118–xx (losses unknown).';
+ if (name === 'Rob Rohn') {
+  w.style = 'Cement mixer specialist — counterattack pinning threat';
+  if (w.legends) w.legends.bioNote = 'Never count him out: trailing Oklahoma’s Josh Lambrecht 14–2 late in the third period of the 2002 NCAA 184-pound final, Rohn hit a cement mixer for the championship-winning pin. Four consecutive falls in 13:28 earned him the tournament’s Gorriaran Award.';
+ }
+ if (name === 'Nick Simmons') {
+  w.motion = {...(w.motion ?? DEFAULT_MOTION), topPatience:1.15, turnPreference:1.35};
+  w.attributes.mat = Math.max(w.attributes.mat,0.97);
+  w.style = 'The East Lansing Strangler — suffocating top pressure, spladle specialist and relentless pinning';
+ }
+ if (name === 'Spencer Lee' || name === 'David Taylor') {
+  w.motion = {...(w.motion ?? DEFAULT_MOTION), topPatience:1.1, turnPreference:1.35};
+  w.attributes.mat = Math.max(w.attributes.mat,0.98);
+  w.style = name === 'David Taylor'
+   ? 'The Magic Man — arm bars and tilts; deep half nelsons from crab rides, quick side switches and pinning pressure'
+   : 'Arm-bar and tilt specialist — high-scoring turns and strong pinning pressure';
+ }
 }

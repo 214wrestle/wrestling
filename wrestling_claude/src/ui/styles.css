@@ -1846,6 +1846,15 @@ button:focus-visible {
   .tile__meta {
     display: none;
   }
+  .tile__credentials {
+    display: block;
+    color: #d1d5db;
+    min-width: 0;
+    font-size: 0.7rem;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
   .cta {
     position: sticky;
     bottom: 0;

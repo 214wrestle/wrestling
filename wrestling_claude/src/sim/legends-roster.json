@@ -278,6 +278,11 @@
           "name": "Randy Lewis",
           "weight": "133",
           "source": "Owner addition: Randy Lewis \u2014 133 Coach\u2019s Choice; historical 126/134; nickname LewBoo"
+        },
+        {
+          "name": "Austin DeSanto",
+          "weight": "133",
+          "source": "Owner addition; Iowa career bio"
         }
       ]
     },
@@ -475,13 +480,18 @@
           "source": "HWT \u2014 Chris Taylor"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nZach Roberson \u2014 133\nMike Moreno Sr. \u2014 133\nAaron Holker \u2014 141\nShawn Rustad \u2014 141\nGabe Moreno \u2014 149\nTim Krieger \u2014 149\nCarl Adams \u2014 157\nMichael Moreno \u2014 165\nKyven Gadson \u2014 197\nDavid Zabriskie \u2014 HWT\n\nSpecial:\nMoreno family connections with UNI's Israel \"Izzy\" Moreno trigger\nspecial Iowa State\u2013UNI commentary.\n\nOwner additions: Trent Paulson \u2014 157; Travis Paulson \u2014 165.\nEaster egg: Identical twins Trent and Travis Paulson grew up wrestling at Council Bluffs Lewis Central High School.\nOwner-confirmed family detail: Israel \u201cIzzy\u201d Moreno is Michael and Gabe Moreno\u2019s cousin, Mike Moreno Sr.\u2019s nephew, and Rick and Rebekah\u2019s son.\nOwner revision: Dan Gable starts at 141 (99 rating); Nate Gallick is Coach\u2019s Choice at 141.",
+      "notesAndChoices": "Coach's Choice:\nZach Roberson \u2014 133\nMike Moreno Sr. \u2014 133\nAaron Holker \u2014 141\nShawn Rustad \u2014 141\nGabe Moreno \u2014 149\nTim Krieger \u2014 149\nCarl Adams \u2014 157\nMichael Moreno \u2014 165\nKyven Gadson \u2014 197\nDavid Zabriskie \u2014 HWT\n\nSpecial:\nMoreno family connections with UNI's Israel \"Izzy\" Moreno trigger\nspecial Iowa State\u2013UNI commentary.\n\nOwner additions: Trent Paulson \u2014 157; Travis Paulson \u2014 165.\nEaster egg: Identical twins Trent and Travis Paulson grew up wrestling at Council Bluffs Lewis Central High School.\nOwner-confirmed family detail: Israel \u201cIzzy\u201d Moreno is Michael and Gabe Moreno\u2019s cousin, Mike Moreno Sr.\u2019s nephew, and Rick and Rebekah\u2019s son.\nOwner revision: Dan Gable starts at 141 (99 rating); Nate Gallick is Coach\u2019s Choice at 141.\nOwner addition: Mike Land \u2014 133 Coach\u2019s Choice.",
       "id": "iowa-state",
       "choices": [
         {
           "name": "Zach Roberson",
           "weight": "133",
           "source": "Zach Roberson \u2014 133"
+        },
+        {
+          "name": "Mike Land",
+          "weight": "133",
+          "source": "Mike Land \u2014 133 [owner addition]"
         },
         {
           "name": "Mike Moreno Sr.",
@@ -1965,7 +1975,7 @@
           "source": "HWT \u2014 Zach Rey"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nBobby Weaver \u2014 118/125\nYoshi Nakamura \u2014 157\nMike Fickell \u2014 197\nMike Brown\nMike Dorizas \u2014 HWT\nOwner revision: Bobby Weaver is eligible only at 125.",
+      "notesAndChoices": "Coach's Choice:\nBobby Weaver \u2014 118/125\nYoshi Nakamura \u2014 157\nMike Fickell \u2014 197\nMike Brown\nOwner revision: Bobby Weaver is eligible only at 125.",
       "id": "lehigh",
       "choices": [
         {
@@ -1982,11 +1992,6 @@
           "name": "Mike Fickell",
           "weight": "197",
           "source": "Mike Fickell \u2014 197"
-        },
-        {
-          "name": "Mike Dorizas",
-          "weight": "HWT",
-          "source": "Mike Dorizas \u2014 HWT"
         }
       ]
     },
@@ -2369,7 +2374,7 @@
           "source": "HWT \u2014 Matt Feast"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nRyan Miller \u2014 125\nAnthony Artalona \u2014 149\nYoshi Nakamura \u2014 157\nMike Fickell \u2014 197\nMike Dorizas \u2014 HWT\n\nSpecial:\nBrandon Slay presentation prominently recognizes his 2000 Olympic gold medal.",
+      "notesAndChoices": "Coach's Choice:\nRyan Miller \u2014 125\nAnthony Artalona \u2014 149\nYoshi Nakamura \u2014 157\nMike Fickell \u2014 197\n\nSpecial:\nBrandon Slay presentation prominently recognizes his 2000 Olympic gold medal.",
       "id": "penn",
       "choices": [
         {
@@ -2391,11 +2396,6 @@
           "name": "Mike Fickell",
           "weight": "197",
           "source": "Mike Fickell \u2014 197"
-        },
-        {
-          "name": "Mike Dorizas",
-          "weight": "HWT",
-          "source": "Mike Dorizas \u2014 HWT"
         }
       ]
     },
@@ -2498,6 +2498,11 @@
           "weight": "141",
           "name": "Andrew Alirez",
           "source": "141 \u2014 Andrew Alirez \u2014 Northern Colorado"
+        },
+        {
+          "name": "Shane Griffith",
+          "weight": "165",
+          "source": "Owner addition: Stanford representative in Icons pool, 165 only"
         }
       ]
     }

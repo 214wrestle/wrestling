@@ -1,6 +1,22 @@
 /** Senior Worlds/Olympics only: bio display, never NCAA rating inputs. */
 export interface SeniorHonors { olympicGold:number;worldGold:number;olympicSilver?:number;worldSilver?:number;olympicBronze?:number;worldBronze?:number;source:string; }
 export const SENIOR_HONORS:Record<string,SeniorHonors>={
+ 'Bobby Weaver':{olympicGold:1,worldGold:0,worldSilver:1,source:'https://lehighsports.com/news/2009/12/30/WREST_10313'},
+ 'Sam Gerson':{olympicGold:0,worldGold:0,olympicSilver:1,source:'https://pennathletics.com/story.aspx?file_date=11-24-2014&filename=5771a41fe4b0028e7235ae75_131492843341536113'},
+ 'Bill Smith':{olympicGold:1,worldGold:0,source:'https://nwhof.org/hall_of_fame/bio/31'},
+ 'Joe Colon':{olympicGold:0,worldGold:0,worldBronze:1,source:'https://unipanthers.com/news/2022/1/11/uni-wrestlings-joe-colon-to-be-inducted-into-glen-brand-hall-of-fame'},
+ 'Gerald Leeman':{olympicGold:0,worldGold:0,olympicSilver:1,source:'https://unipanthers.com/sports/2023/12/29/history-memorable-moments'},
+ 'Trent Hidlay':{olympicGold:0,worldGold:1,source:'https://gopack.com/news/2026/6/8/wrestling-former-teammates-fighting-for-a-spot-on-the-world-team'},
+ 'Nick Gwiazdowski':{olympicGold:0,worldGold:0,worldBronze:2,source:'https://cornellbigred.com/sports/wrestling/roster/coaches/nick-gwiazdowski/7837'},
+ 'Sam Henson':{olympicGold:0,worldGold:1,olympicSilver:1,worldBronze:1,source:'https://nwhof.org/hall_of_fame/bio/3521'},
+ 'Rick Sanders':{olympicGold:0,worldGold:1,olympicSilver:2,worldSilver:1,worldBronze:1,source:'https://nwhof.org/hall_of_fame/bio/74'},
+ 'Kevin Jackson':{olympicGold:1,worldGold:2,source:'https://lasportshall.com/?inductees=kevin-jackson'},
+ 'Kurt Angle':{olympicGold:1,worldGold:1,source:'https://clariongoldeneagles.com/honors/clarion-university-sports-hall-of-fame/kurts-angle/60'},
+ 'Stephen Neal':{olympicGold:0,worldGold:1,source:'https://gorunners.com/news/2021/11/24/wrestling-stephen-neal-to-be-inducted-into-csub-alumni-hall-of-fame'},
+ 'Jake Herbert':{olympicGold:0,worldGold:0,worldSilver:1,source:'https://nusports.com/news/2009/09/22/herbert-wrestles-to-silver-medal-at-2009-world-championships'},
+ 'Stephen Abas':{olympicGold:0,worldGold:0,olympicSilver:1,source:'https://gobulldogs.com/news/2004/8/28/Stephen_Abas_Claims_Olympic_Silver'},
+ 'Brandon Slay':{olympicGold:1,worldGold:0,source:'https://api.nwhof.org/national-wrestling-hall-of-fame/bio/3758'},
+ 'Les Gutches':{olympicGold:0,worldGold:1,worldBronze:1,source:'https://osubeavers.com/honors/hall-of-fame/les-gutches/102'},
  'Zeke Jones':{olympicGold:0,worldGold:1,olympicSilver:1,worldBronze:1,source:'https://thesundevils.com/asu-wrestling-senior-world-team-members'},
  'Jack Reinwand':{olympicGold:0,worldGold:0,worldBronze:1,source:'https://uwbadgers.com/news/2013/8/26/Hall_of_Fame_Class_of_2013_Jack_Reinwand'},
  'Jim Haines':{olympicGold:0,worldGold:0,worldSilver:1,source:'https://uwbadgers.com/news/2012/8/27/Hall_of_Fame_Class_of_2012_Jim_Haines'},
