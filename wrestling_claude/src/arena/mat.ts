@@ -130,16 +130,16 @@ function paintMat(host: School): CanvasTexture {
   g.lineTo(mid + lineLen / 2, mid + gap);
   g.stroke();
 
-  // Short red and green ankle markers on the starting lines.
+  // Each opposing short end is a full red or green starting line.
   g.lineWidth = toPx(0.07);
   g.strokeStyle = '#c23b3b';
   g.beginPath();
   g.moveTo(mid - lineLen / 2, mid - gap);
-  g.lineTo(mid - lineLen / 2 + toPx(0.22), mid - gap);
+  g.lineTo(mid - lineLen / 2, mid + gap);
   g.stroke();
   g.strokeStyle = '#2f9e5c';
   g.beginPath();
-  g.moveTo(mid + lineLen / 2 - toPx(0.22), mid + gap);
+  g.moveTo(mid + lineLen / 2, mid - gap);
   g.lineTo(mid + lineLen / 2, mid + gap);
   g.stroke();
 
