@@ -480,7 +480,7 @@
           "source": "HWT \u2014 Chris Taylor"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nZach Roberson \u2014 133\nMike Moreno Sr. \u2014 133\nAaron Holker \u2014 141\nShawn Rustad \u2014 141\nGabe Moreno \u2014 149\nTim Krieger \u2014 149\nCarl Adams \u2014 157\nMichael Moreno \u2014 165\nKyven Gadson \u2014 197\nDavid Zabriskie \u2014 HWT\n\nSpecial:\nMoreno family connections with UNI's Israel \"Izzy\" Moreno trigger\nspecial Iowa State\u2013UNI commentary.\n\nOwner additions: Trent Paulson \u2014 157; Travis Paulson \u2014 165.\nEaster egg: Identical twins Trent and Travis Paulson grew up wrestling at Council Bluffs Lewis Central High School.\nOwner-confirmed family detail: Israel \u201cIzzy\u201d Moreno is Michael and Gabe Moreno\u2019s cousin, Mike Moreno Sr.\u2019s nephew, and Rick and Rebekah\u2019s son.\nOwner revision: Dan Gable starts at 141 (99 rating); Nate Gallick is Coach\u2019s Choice at 141.\nOwner addition: Mike Land \u2014 133 Coach\u2019s Choice.",
+      "notesAndChoices": "Coach's Choice:\nZach Roberson \u2014 133\nMike Moreno Sr. \u2014 133\nAaron Holker \u2014 141\nShawn Rustad \u2014 141\nGabe Moreno \u2014 149\nTim Krieger \u2014 149\nCarl Adams \u2014 157\nMichael Moreno \u2014 165\nKyven Gadson \u2014 197\nDavid Zabriskie \u2014 HWT\n\nSpecial:\nMoreno family connections with UNI's Israel \"Izzy\" Moreno trigger\nspecial Iowa State\u2013UNI commentary.\n\nOwner additions: Trent Paulson \u2014 157; Travis Paulson \u2014 165.\nEaster egg: Identical twins Trent and Travis Paulson grew up wrestling at Council Bluffs Lewis Central High School.\nOwner-confirmed family detail: Israel \u201cIzzy\u201d Moreno is Michael and Gabe Moreno\u2019s cousin, Mike Moreno Sr.\u2019s nephew, and Rick and Rebekah\u2019s son.\nOwner revision: Dan Gable starts at 141 (99 rating); Nate Gallick is Coach\u2019s Choice at 141.\nOwner addition: Mike Land \u2014 133 Coach\u2019s Choice.\nOwner addition: Coby Merrill \u2014 HWT Coach\u2019s Choice, incoming freshman exception, rating 78.",
       "id": "iowa-state",
       "choices": [
         {
@@ -552,6 +552,11 @@
           "weight": "141",
           "name": "Nate Gallick",
           "source": "141 \u2014 Nate Gallick"
+        },
+        {
+          "name": "Coby Merrill",
+          "weight": "HWT",
+          "source": "Coby Merrill \u2014 HWT [owner-approved incoming freshman exception; rating 78]"
         }
       ]
     },
@@ -622,7 +627,7 @@
           "source": "HWT \u2014 Gable Steveson"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nDylan Ness \u2014 149/157 ONLY\nEvan Johnson \u2014 190\nEvan Bernstein \u2014 190\nCole Konrad \u2014 HWT\nBrock Lesnar \u2014 HWT\nOwner revision: Dylan Ness is eligible only at 157.",
+      "notesAndChoices": "Coach's Choice:\nDylan Ness \u2014 149/157 ONLY\nEvan Johnson \u2014 190\nCole Konrad \u2014 HWT\nBrock Lesnar \u2014 HWT\nOwner revision: Dylan Ness is eligible only at 157.",
       "id": "minnesota",
       "choices": [
         {
@@ -634,11 +639,6 @@
           "name": "Evan Johnson",
           "weight": "190",
           "source": "Evan Johnson \u2014 190"
-        },
-        {
-          "name": "Evan Bernstein",
-          "weight": "190",
-          "source": "Evan Bernstein \u2014 190"
         },
         {
           "name": "Cole Konrad",
@@ -2374,14 +2374,9 @@
           "source": "HWT \u2014 Matt Feast"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nRyan Miller \u2014 125\nAnthony Artalona \u2014 149\nYoshi Nakamura \u2014 157\nMike Fickell \u2014 197\n\nSpecial:\nBrandon Slay presentation prominently recognizes his 2000 Olympic gold medal.",
+      "notesAndChoices": "Coach's Choice:\nAnthony Artalona \u2014 149\nYoshi Nakamura \u2014 157\nMike Fickell \u2014 197\n\nSpecial:\nBrandon Slay presentation prominently recognizes his 2000 Olympic gold medal.",
       "id": "penn",
       "choices": [
-        {
-          "name": "Ryan Miller",
-          "weight": "125",
-          "source": "Ryan Miller \u2014 125"
-        },
         {
           "name": "Anthony Artalona",
           "weight": "149",

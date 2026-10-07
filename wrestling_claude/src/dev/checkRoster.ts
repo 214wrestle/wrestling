@@ -1,6 +1,17 @@
+import { PROVISIONAL_RATINGS } from '../sim/provisionalRatings';
 import { morenoFamilyNote, morenoMatchupNote, smithPerryFamilyNote } from '../sim/easterEggs';
 import { ROSTER, LEGENDS_TEAMS, LEGENDS_WEIGHTS, byId, DEFAULT_MATCHUP } from '../sim/roster';
+import { HIGH_PACE_NAMES } from '../sim/athleteProfiles';
 const check = (ok: boolean, label: string) => { if (!ok) throw new Error(label); };
+// Check the assembled roster: a typo in a style key must not silently drop the profile.
+for (const name of HIGH_PACE_NAMES) {
+ // Owner requested Schwab's style, but he has no slot in the approved roster yet.
+ if (name === 'Doug Schwab') continue;
+ const athletes = ROSTER.filter(w => `${w.firstName} ${w.lastName}` === name);
+ check(athletes.length > 0, `High-pace athlete missing from roster: ${name}`);
+ for (const w of athletes) check((w.motion?.tempo ?? 1) >= 1.2 && (w.motion?.handActivity ?? 1) >= 1.2,
+   `High-pace profile missing after roster assembly: ${name}`);
+}
 check(LEGENDS_TEAMS.length === 25, '25 teams');
 check(ROSTER.filter(w => w.legends?.role === 'starter').length === 300, '300 assigned starters');
 check(new Set(ROSTER.map(w => w.id)).size === ROSTER.length, 'unique selectable identities');
@@ -68,3 +79,24 @@ check(byId('ohio-state-197-choice-nick-heflin').legends?.role === 'choice', 'Hef
 check(!LEGENDS_TEAMS.some(t => t.id === 'northern-colorado'), 'Northern Colorado removed as a selectable team');
 const alirez = ROSTER.filter(w => w.firstName === 'Andrew' && w.lastName === 'Alirez');
 check(alirez.length === 1 && alirez[0].school.id === 'college-wrestling-icons' && alirez[0].weightClass === 141 && alirez[0].legends?.role === 'choice', 'Andrew Alirez retained once in legends pool at 141');
+
+check(Object.keys(PROVISIONAL_RATINGS).length === 13, 'Thirteen provisional resolutions including Coby Merrill');
+for (const w of ROSTER) {
+ check(Number.isInteger(w.rating), `Missing gameplay rating: ${w.id}`);
+ const resolution = PROVISIONAL_RATINGS[`${w.firstName} ${w.lastName}`];
+ if (resolution) {
+  check(!w.ncaaCareer, `Provisional history falsely marked verified: ${w.id}`);
+  check(w.rating === resolution.rating && !!w.legends?.bioNote?.includes(resolution.note), `Missing provisional rating disclosure: ${w.id}`);
+ }
+}
+
+check(!ROSTER.some(w => w.firstName === 'Evan' && w.lastName === 'Bernstein'), 'Evan Bernstein removed by owner');
+
+check(!ROSTER.some(w => w.firstName === 'Ryan' && w.lastName === 'Miller'), 'Ryan Miller removed by owner');
+check(ROSTER.some(w => w.firstName === 'Mason' && w.lastName === 'Lenhard' && w.weightClass === 125 && w.legends?.role === 'starter'), 'Lenhard retained as 125 starter');
+
+for (const [name,rating] of Object.entries({'Michael Mocco':75,'Dreshaun Ross':84,'Ashton Honnold':65,'Israel "Izzy" Moreno':53,'Bo Bassett':84,'Coby Merrill':78})) {
+ const entries = ROSTER.filter(w => `${w.firstName} ${w.lastName}` === name);
+ check(entries.length === 1 && entries[0].rating === rating && !entries[0].ncaaCareer, `Owner developmental rating and unique slot: ${name}`);
+}
+check(byId('iowa-state-285-choice-coby-merrill').legends?.role === 'choice', 'Coby Merrill ISU heavyweight choice');

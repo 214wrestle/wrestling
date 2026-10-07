@@ -4,6 +4,13 @@ import type { CareerScore } from './ratings';
 /** Bio honors count the entire verified career, including an extra season
  * excluded from the four-season gameplay rating. Cancelled events add none. */
 function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
+  // Confirmed honors remain visible even while counted-season eligibility is unresolved.
+  // Nebraska's Purler bio verifies the 1993 title and 1991/1993 AA finishes.
+  if(name === 'Tony Purler')return '1x National Champ · 2x AA';
+  // Iowa State NCAA qualifier register: 1991 at 142; no other NCAA appearance.
+  if(name === 'Shawn Rustad')return '1x NCAA Qualifier';
+  // Penn March 14, 2005 NCAA preview explicitly identifies his third qualification.
+  if(name === 'Mason Lenhard')return '3x NCAA Qualifier';
   // Official Lehigh/UNI bios verify these honors; full season denominators pending.
   if(name === 'Mike Land')return '1x National Champ · 4x AA';
   if(name === 'Bobby Weaver' || name === 'Jacob Holschlag')return '1x AA';
@@ -27,7 +34,7 @@ function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
   if(name === 'Daniel Bullard')return '2x AA (1x NCAA · 2020 NWCA Honorable Mention)';
   if(name === 'Tariq Wilson')return '4x AA (3x NCAA · 2020 NWCA Honorable Mention)';
   // UNI verifies 2020 NWCA recognition; cancelled tournament adds no points.
-  if(name === 'Taylor Lujan')return '4x NCAA Qualifier · 2020 NWCA All-American';
+  if(name === 'Taylor Lujan')return '1x AA · 4x NCAA Qualifier';
   if(name === 'Noah Adams')return '3x NCAA Qualifier · 2020 NWCA First-Team All-American';
   // UNI Hall of Fame verifies one NCAA title and two NJCAA titles.
   if(name === 'Tony Davis')return '3x National Champ (1x NCAA · 2x Junior College)';

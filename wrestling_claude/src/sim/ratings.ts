@@ -974,6 +974,13 @@ export function championshipCeiling(seasons: readonly NcaaSeason[]): number {
   return 90 + titles * 2; // 0 / 1 / 2 / 3 / 4 titles: 90 / 92 / 94 / 96 / 98.
 }
 export function overallRating(name: string, career: CareerScore, record?: CollegeRecord): number {
+  // Owner-authorized counterfactual (2026-10-07): score Lujan's cancelled senior
+  // season as runner-up for gameplay only. Never write it into verified history
+  // or display it as a real NCAA finish. Four seasons, including this assumption.
+  if (name === 'Taylor Lujan') career = scoreCareer([
+    ...CAREER_RECORDS[name],
+    {year:2020, place:2, source:'owner-assumption:2026-10-07'},
+  ], 4);
   if (name === 'Dan Gable' || name === 'Cael Sanderson') return 99;
   // Owner-approved exception: Taylor's finals opposition included Kyle Dake.
   if (name === 'David Taylor') return 96;
@@ -986,6 +993,8 @@ export function overallRating(name: string, career: CareerScore, record?: Colleg
   // Owner review of Indiana historical careers, October 6, 2026.
   if (name === 'Robert Jones') return 82;
   if (name === 'Charlie McDaniel') return 91;
+  // Owner review: NCAA champion Mark Reiland should be 84.
+  if (name === 'Mark Reiland') return 84;
   // Owner revision: Myers uses DI results with a one-point overall adjustment.
   const crossDivisionBonus = name === 'Kirk Myers' ? 1 : 0;
   return Math.min(championshipCeiling(career.counted), Math.max(0, Math.round(placementRating(career.averagePlacementPoints) + career.bonusPoints + (HODGE_AWARDS[name]?.years.length ?? 0) + (record ? recordAdjustment(record) : 0) + crossDivisionBonus)));

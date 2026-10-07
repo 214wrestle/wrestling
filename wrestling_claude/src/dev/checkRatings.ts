@@ -1,5 +1,5 @@
 import {careerCredentials} from '../sim/credentials';
-import { scoreCareer, seasonPoints, type NcaaSeason, CAREER_RECORDS, overallRating, recordAdjustment, ELIGIBILITY_SEASONS, COLLEGE_RECORDS } from '../sim/ratings';
+import { scoreCareer, seasonPoints, type NcaaSeason, CAREER_RECORDS, overallRating, recordAdjustment, careerDenominator, scoreKnownCareer, ACTIVE_CAREERS, COLLEGE_RECORDS } from '../sim/ratings';
 import { HODGE_AWARDS, PIN_HISTORY, pinningMultiplier } from '../sim/careerAwards';
 const assert = (ok: boolean) => { if (!ok) throw new Error('Rating scoring regression'); };
 const result = (year: number, place: NcaaSeason['place'], outstandingWrestler = false): NcaaSeason => ({year, place, outstandingWrestler, source: 'test'});
@@ -24,7 +24,7 @@ assert(recordAdjustment({wins:100, losses:0, source:'test'}) === 1);
 
 // Validate the live research data, not just synthetic examples of the formula.
 for (const [name, seasons] of Object.entries(CAREER_RECORDS)) {
-  const eligible = ELIGIBILITY_SEASONS[name] ?? 4;
+  const eligible = careerDenominator(name,seasons);
   if (seasons.length < eligible) throw new Error(`${name}: incomplete season coverage`);
   const career = scoreCareer(seasons, eligible);
   if (career.counted.length !== eligible) throw new Error(`${name}: wrong counted-season total`);
@@ -83,6 +83,7 @@ assert(brooks.counted.length===4 && brooks.placementPoints===40);
 assert(overallRating('Yojiro Uetake',scoreCareer(CAREER_RECORDS['Yojiro Uetake'],3),COLLEGE_RECORDS['Yojiro Uetake'])===98);
 
 assert(careerCredentials(undefined,'John Smith')==='6x World/Olympic Champ');
+assert(careerCredentials(undefined,'Dave Schultz')==='2x World/Olympic Champ · 3x World/Olympic Silver Medalist · 2x World/Olympic Bronze Medalist');
 assert(careerCredentials(undefined,'Jordan Burroughs')==='7x World/Olympic Champ · 3x World/Olympic Bronze Medalist');
 assert(careerCredentials(undefined,'Unknown athlete')===undefined);
 
@@ -91,3 +92,21 @@ assert(careerCredentials(undefined,'Dan Hodge')==='1x World/Olympic Silver Medal
 
 assert(careerCredentials(undefined,'Kenny Monday')==='2x World/Olympic Champ · 2x World/Olympic Silver Medalist');
 assert(careerCredentials(undefined,'Terry Brands')==='2x World/Olympic Champ · 1x World/Olympic Bronze Medalist');
+
+// Active athletes are averaged over completed opportunities, never future zeroes.
+const active=scoreKnownCareer('Vincent Robinson',CAREER_RECORDS['Vincent Robinson']);
+assert(active.eligibilitySeasons===2 && active.averagePlacementPoints===8 && active.activeThrough===2026);
+assert(careerDenominator('Vincent Robinson',[result(2025,1),result(2026,4),result(2027,2)])===3);
+assert(careerDenominator('Vincent Robinson',[2025,2026,2027,2028,2029].map(y=>result(y,1)))===4);
+assert(scoreKnownCareer('Matty Singleton',CAREER_RECORDS['Matty Singleton']).counted.some(s=>s.year===2023 && s.place===0));
+for(const [name,evidence] of Object.entries(ACTIVE_CAREERS)) {
+ assert(/^https:\/\//.test(evidence.source));
+ assert(Math.max(...CAREER_RECORDS[name].map(s=>s.year))===evidence.throughYear);
+}
+console.log('Active-career averages, growth, four-season cap and evidence dates passed');
+
+const lujanHistory = JSON.stringify(CAREER_RECORDS['Taylor Lujan']);
+assert(overallRating('Taylor Lujan', scoreKnownCareer('Taylor Lujan', CAREER_RECORDS['Taylor Lujan']), COLLEGE_RECORDS['Taylor Lujan']) === 74);
+assert(JSON.stringify(CAREER_RECORDS['Taylor Lujan']) === lujanHistory && !CAREER_RECORDS['Taylor Lujan'].some(s => s.year === 2020));
+assert(careerCredentials(scoreKnownCareer('Taylor Lujan', CAREER_RECORDS['Taylor Lujan']), 'Taylor Lujan')!.includes('1x AA') && !careerCredentials(scoreKnownCareer('Taylor Lujan', CAREER_RECORDS['Taylor Lujan']), 'Taylor Lujan')!.includes('runner'));
+console.log('Lujan owner assumption changes rating only; verified history and AA bio preserved');

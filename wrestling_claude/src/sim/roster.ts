@@ -1,3 +1,4 @@
+import { PROVISIONAL_RATINGS } from './provisionalRatings';
 import { applyGablePressure } from './athleteProfiles';
 import { CAREER_RECORDS, COLLEGE_RECORDS, overallRating, scoreKnownCareer } from './ratings';
 import { DEFAULT_MOTION, HIGH_PACE_NAMES, applyOwnerPace, ATHLETE_MOTION_OVERRIDES, ATHLETE_PROFILES } from './athleteProfiles';
@@ -183,6 +184,13 @@ for (const w of ROSTER) {
     w.rating = overallRating(`${w.firstName} ${w.lastName}`, w.ncaaCareer, COLLEGE_RECORDS[`${w.firstName} ${w.lastName}`]);
     const value = w.rating / 100;
     w.attributes = {quickness: value, strength: value, conditioning: value, mat: value, defense: value};
+  }
+  const resolution = PROVISIONAL_RATINGS[`${w.firstName} ${w.lastName}`];
+  if (!career && resolution) {
+    w.rating = resolution.rating;
+    const value = w.rating / 100;
+    w.attributes = {quickness:value,strength:value,conditioning:value,mat:value,defense:value};
+    if (w.legends) w.legends.bioNote = [w.legends.bioNote,resolution.note].filter(Boolean).join(' ');
   }
   if (w.school.id === 'iowa-state' && w.firstName === 'Dan' && w.lastName === 'Gable') {
     w.rating = 99;
