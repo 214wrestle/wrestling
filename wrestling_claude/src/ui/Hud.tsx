@@ -105,7 +105,7 @@ function ActionPad({ state }: { state: UiState }) {
     const t = window.setTimeout(() => setShown(null), 420);
     return () => window.clearTimeout(t);
   }, [flash]);
-  if (state.touchControls && state.device === 'touch') return null;
+  if (state.touchControls) return null;
   const order: ButtonId[] = ['shoot', 'fight', 'sprawl'];
   return (
     <div className="pad" aria-label="Moves">

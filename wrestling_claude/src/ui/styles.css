@@ -1946,3 +1946,13 @@ button:focus-visible {
 
 .touch__contest label[data-tone="you"] progress { accent-color:#62d7a0; }
 .touch__contest label[data-tone="them"] progress { accent-color:#ff887e; }
+
+@media (orientation: landscape) and (max-height: 440px) {
+  .touch__buttons { grid-template-columns: repeat(3, 4.5rem); gap: .35rem; }
+  .touch__btn { width: 4.5rem; height: 3rem; font-size: .65rem; border-radius: 12px; }
+  .touch__btn--small, .touch__btn--level { height: 3rem; }
+  .touch__status { width: 14.2rem; }
+  .touch__notice { min-height: 1.7rem; padding: .3rem; }
+  .touch__contest { margin-top: .2rem; padding: .3rem; }
+  .touch__hint { margin-top: .2rem; }
+}
