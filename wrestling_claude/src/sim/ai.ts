@@ -1,12 +1,14 @@
+import {isArmBar} from './armBars';
 import { isScrambleSpecialist, heavyweightActivity, isFootSweepSpecialist, lateAttackUrgency, GABLE_PRESSURE_NAMES } from './athleteProfiles';
 import type { Bout } from './bout';
 import { BOUT, Rng } from './bout';
 import { otherSide } from './types';
 import type { Command, Side } from './types';
 
-export type Difficulty = 'walk-on' | 'starter' | 'all-american';
+export type Difficulty = 'practice' | 'walk-on' | 'starter' | 'all-american';
 
 interface Profile {
+  effort: number;
   /** Seconds before it reacts to a committed shot. */
   reaction: number;
   /** Chance it reacts to a shot at all. */
@@ -26,9 +28,10 @@ interface Profile {
 }
 
 const PROFILES: Record<Difficulty, Profile> = {
-  'walk-on': { reaction: 0.34, sprawlSkill: 0.45, aggression: 0.35, patience: 0.2, handfight: 0.6, mash: 3.2, switchRead: 0.15, gullible: 0.6 },
-  starter: { reaction: 0.2, sprawlSkill: 0.72, aggression: 0.6, patience: 0.42, handfight: 1.1, mash: 5, switchRead: 0.42, gullible: 0.35 },
-  'all-american': { reaction: 0.13, sprawlSkill: 0.9, aggression: 0.85, patience: 0.6, handfight: 1.6, mash: 7, switchRead: 0.75, gullible: 0.15 },
+  practice: { effort: 0, reaction: 2, sprawlSkill: 0, aggression: 0, patience: 0, handfight: 0, mash: 0.2, switchRead: 0, gullible: 1 },
+  'walk-on': { effort: .25, reaction: .7, sprawlSkill: .12, aggression: .15, patience: .1, handfight: .3, mash: 1.2, switchRead: .03, gullible: .8 },
+  starter: { effort: .4, reaction: .48, sprawlSkill: .25, aggression: .3, patience: .2, handfight: .55, mash: 2, switchRead: .1, gullible: .65 },
+  'all-american': { effort: .6, reaction: .32, sprawlSkill: .4, aggression: .45, patience: .35, handfight: .8, mash: 2.8, switchRead: .2, gullible: .5 },
 };
 
 const empty = (): Command => ({ moveX: 0, moveZ: 0, shoot: false, fight: false, sprawl: false, level: false });
@@ -54,6 +57,8 @@ export class WrestlerAI {
   private pushT = 0;
   private levelT = 0;
   private lowLevel = false;
+  private effortTime = 0;
+  private legDefense: 'sprawl' | 'fight' | null = null;
 
   constructor(
     private side: Side,
@@ -81,10 +86,13 @@ export class WrestlerAI {
       this.held = { shoot: false, fight: false, sprawl: false };
       return cmd;
     }
+    if(this.p.effort===0)return cmd; // Cooperative practice partner: no attacks or counters.
+    this.effortTime+=dt;
     const pos = bout.position;
     const key = pos.kind + (pos.kind === 'mat' ? pos.sub : '');
     if (key !== this.lastPos) {
       this.lastPos = key;
+      this.legDefense = null;
       // A human beat to read the new position before acting on it.
       this.decideT = this.p.reaction * 1.6 + this.rng.next() * 0.3;
       this.mashT = this.p.reaction;
@@ -140,7 +148,7 @@ export class WrestlerAI {
   private edges(cmd: Command): Command {
     const out = { ...cmd };
     for (const k of ['shoot', 'fight', 'sprawl'] as const) {
-      if (cmd[k] && this.held[k]) out[k] = false;
+      if (cmd[k] && this.held[k] && !cmd.sustainedEffort) out[k] = false;
       this.held[k] = cmd[k] && !this.held[k];
     }
     return out;
@@ -247,14 +255,25 @@ export class WrestlerAI {
     const them = bout.athletes[otherSide(this.side)];
     if (attacking) {
       cmd.shoot = true;
-      this.held.shoot = false; // holding J drives; keep it pressed
+      // Use the human hold cadence instead of continuous drive with no
+      // repeated finishing effort. Both sides pay the shared effort costs.
+      cmd.sustainedEffort = true;
       cmd.moveX = them.pos.x - me.pos.x;
       cmd.moveZ = them.pos.z - me.pos.z;
       return;
     }
-    if (this.mashBeat()) {
-      if (this.rng.next() < 0.75) cmd.sprawl = true;
-      else cmd.fight = true;
+    // Difficulty gives the defender breathing windows, not the committed
+    // attacker. Pausing the entire AI also froze its decision timers.
+    if (this.effortTime % 2.5 > 2.5 * this.p.effort) return;
+    if (this.decideT <= 0) {
+      // Keep pressure through a grip exchange; changing buttons every mash
+      // beat creates extra press edges on top of the held effort clock.
+      this.legDefense = this.rng.next() < 0.75 ? 'sprawl' : 'fight';
+      this.decideT = 0.7 + this.rng.next() * 0.6;
+    }
+    if (this.legDefense) {
+      cmd[this.legDefense] = true;
+      cmd.sustainedEffort = true;
     }
   }
 
@@ -300,6 +319,8 @@ export class WrestlerAI {
       // A rider works patiently; the chop is a choice, not a reflex.
       this.decideT = (pos.sub === 'ride' ? 0.55 + this.rng.next() * 0.7 : 0.3 + this.rng.next() * 0.45) * (style?.topPatience ?? 1);
       if (pos.sub === 'standing') {
+        // Give bottom time to peel hands before another return attempt.
+        this.decideT = (0.9 + this.rng.next() * 0.6) / this.p.effort;
         cmd.sprawl = pos.escape > 0.25 || this.rng.next() < 0.5;
         if (!cmd.sprawl) cmd.fight = true;
         return;
@@ -318,7 +339,10 @@ export class WrestlerAI {
       // A failed turn leaves a short recovery window. Retain the ride and
       // continue breaking the base instead of forcing a blocked repeat tilt
       // that the simulation penalizes by releasing control.
-      if (pos.base < 0.32 && pos.turnCool <= 0) cmd.shoot = true;
+      if (pos.base < 0.32 && pos.turnCool <= 0) {
+        // Bar specialists finish the breakdown before committing their arm control.
+        if(isArmBar(style?.preferredTurn))cmd.fight=true;else cmd.shoot=true;
+      }
       else if (pos.base < 0.32 && pos.turnCool > 0) cmd.fight = true;
       else if (me.stamina < 0.2 || pos.control < 0.45) cmd.sprawl = true;
       else if (this.rng.next() < 0.5) {

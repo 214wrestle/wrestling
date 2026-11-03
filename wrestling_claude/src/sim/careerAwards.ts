@@ -32,6 +32,11 @@ export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> =
 
 export interface PinHistory { falls?: number; bouts?: number; gorriaranYears?: number[]; source: string; gorriaranSource?: string }
 export const PIN_HISTORY: Record<string, PinHistory> = {
+  'Spencer Lee': {falls:35,bouts:104,source:'https://hawkeyesports.com/sports/wrestling/roster/season/2019-20/player/spencer-lee'},
+  'Ben Askren': {falls:91,bouts:161,source:'https://mutigers.com/news/2007/3/22/Ben_Askren_Claims_Dan_Hodge_Award_for_Second_Consecutive_Year'},
+  'Aden Valencia': {falls:0,bouts:28,source:'https://storage.googleapis.com/stanford-prod/2025/11/06/BGGmRiffbR20Pf67wgk2xLFYzXMeeY1X3yl3gWkG.pdf#page=1'},
+  'Sergio Vega': {falls:4,bouts:24,source:'https://okstate.com/sports/wrestling/roster/sergio-vega/14648'},
+  'Max McEnelly': {falls:0,bouts:53,source:'https://gophersports.com/sports/wrestling/roster/max-mcenelly/24153'},
   'Mark Miller': {falls:26,bouts:106,source:'https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/vatech.sidearmsports.com/documents/2018/4/30/wr07mg.pdf#page=21'},
   'Mike McArthur': {falls:32,bouts:103,source:'https://gophersports.com/documents/download/2025/10/22/WREST_MediaGuide2025-26.pdf#page=40'},
   'Evan Johnson': {falls:25,bouts:97,source:'https://gophersports.com/documents/download/2025/10/22/WREST_MediaGuide2025-26.pdf#page=40'},
@@ -84,10 +89,30 @@ export const PIN_HISTORY: Record<string, PinHistory> = {
   'Logan Stieber': { falls: 50, bouts: 122, source: pastHodge },
 };
 
-/** Rates avoid rewarding an extra eligibility year merely for more bouts. */
+/**
+ * Existing-roster matches from the owner's Oct 26 @TrueWrestling graphic.
+ * College career falls, since-2000 scope (including overlapping 1990s careers).
+ * Frayer/Simmons are last-known totals in that graphic, not verified final totals.
+ * Kept separate from independently sourced PIN_HISTORY; no invented bout counts.
+ */
+export const OWNER_ELITE_PINNERS: Readonly<Record<string, number>> = {
+  'Ben Askren': 91, 'Jayson Ness': 73, 'Wyatt Hendrickson': 72,
+  'Taylor Walsh': 69, 'Cael Sanderson': 61, 'Jason Nolf': 60,
+  'Bo Nickal': 59, 'Darrion Caldwell': 58, 'Joe Heskett': 58,
+  'Steve Mocco': 56, 'Jordan Oliver': 54, 'David Taylor': 53,
+  'Zain Retherford': 53, 'Logan Stieber': 50, 'Gabe Dean': 50,
+  'Cole Konrad': 50, 'Jaydin Eierman': 49, 'Jake Herbert': 47,
+  'Brent Metcalf': 47, 'Ed Ruth': 46, 'Nick Simmons': 46,
+  'Jared Frayer': 45, 'Mason Parris': 45,
+};
+
+/** Rates avoid rewarding extra eligibility; owner-designated elites use the existing cap.
+ * This is pin-pressure tuning, not a historical probability or an overall-rating boost.
+ */
 export function pinningMultiplier(name: string): number {
   const history = PIN_HISTORY[name];
-  if (!history) return 1;
-  const rate = history.falls !== undefined && history.bouts ? history.falls / history.bouts : 0;
-  return Math.min(1.4, 1 + rate * 0.5 + (history.gorriaranYears?.length ? 0.1 : 0));
+  const rate = history?.falls !== undefined && history.bouts ? history.falls / history.bouts : 0;
+  const sourced = 1 + rate * 0.5 + (history?.gorriaranYears?.length ? 0.1 : 0);
+  const elite = Object.hasOwn(OWNER_ELITE_PINNERS, name) ? 1.4 : 1;
+  return Math.min(1.4, Math.max(sourced, elite));
 }

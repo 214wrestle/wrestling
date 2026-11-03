@@ -1,11 +1,14 @@
 import {seniorCredentials} from './seniorCredentials';
 import type { CareerScore } from './ratings';
+import { COLLEGE_RECORDS } from './ratings';
+import { OWNER_ELITE_PINNERS } from './careerAwards';
 
 /** Bio honors count the entire verified career, including an extra season
  * excluded from the four-season gameplay rating. Cancelled events add none. */
 function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
   // Confirmed honors remain visible even while counted-season eligibility is unresolved.
   // Nebraska's Purler bio verifies the 1993 title and 1991/1993 AA finishes.
+  if(name === 'Levi Haines')return '2x National Champ · 4x AA · 99–4 college record · 4x Big Ten Champ';
   if(name === 'Tony Purler')return '1x National Champ · 2x AA';
   // Iowa State NCAA qualifier register: 1991 at 142; no other NCAA appearance.
   if(name === 'Shawn Rustad')return '1x NCAA Qualifier';
@@ -71,5 +74,14 @@ function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
 }
 
 export function careerCredentials(career?:CareerScore,name?:string):string|undefined {
- return [ncaaCredentials(career,name),seniorCredentials(name)].filter(Boolean).join(' · ')||undefined;
+ return [ncaaCredentials(career,name),collegePinCredentials(name),seniorCredentials(name)].filter(Boolean).join(' · ')||undefined;
+}
+
+/** Owner-supplied falls supplement existing sourced records, never fabricated W–L. */
+export function collegePinCredentials(name?:string):string|undefined {
+ if(!name||!Object.hasOwn(OWNER_ELITE_PINNERS,name))return;
+ const record=COLLEGE_RECORDS[name];
+ const wl=record ? `${record.wins}–${record.losses}${record.ties ? `–${record.ties}` : ''}, ` : '';
+ const qualifier=['Jared Frayer','Nick Simmons'].includes(name) ? ' (last known)' : '';
+ return `${wl}${OWNER_ELITE_PINNERS[name]} career falls${qualifier}`;
 }

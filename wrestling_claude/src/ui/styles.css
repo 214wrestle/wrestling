@@ -1793,6 +1793,7 @@ button:focus-visible {
 
 .touch__btn--level {
   height: 2.6rem;
+  min-height: 44px;
   font-size: 0.7rem;
 }
 
@@ -1882,12 +1883,37 @@ button:focus-visible {
     display: none;
   }
   .bug {
-    grid-template-columns: minmax(120px, auto) auto minmax(120px, auto);
+    width: min(600px, calc(100vw - 16px));
+    grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr);
+  }
+  .bug__team {
+    min-width: 0;
+    gap: 0.25rem;
+    padding: 0.45rem 0.4rem;
+  }
+  .bug__team { clip-path: none; }
+  .bug__team--l { padding-left: 0.65rem; }
+  .bug__team--r { padding-right: 0.65rem; }
+  .bug__team--l .bug__corner { left: 0; transform: none; }
+  .bug__team--r .bug__corner { right: 0; transform: none; }
+  .bug__corner { width: 4px; }
+  .bug__clock {
+    min-width: 0;
+    padding-inline: 0.25rem;
+  }
+  .bug__school {
+    font-size: 0.5rem;
+    letter-spacing: 0.08em;
+    overflow-wrap: anywhere;
   }
   .bug__name {
-    font-size: 1rem;
+    font-size: clamp(0.8rem, 3.7vw, 1rem);
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
   .bug__score {
+    flex-shrink: 0;
+    min-width: 1.5rem;
     font-size: 1.7rem;
   }
   .plate__name {
@@ -1947,6 +1973,14 @@ button:focus-visible {
 .touch__contest label[data-tone="you"] progress { accent-color:#62d7a0; }
 .touch__contest label[data-tone="them"] progress { accent-color:#ff887e; }
 
+.bug__nearfall-note { display: block; font-size: 9px; line-height: 1.3; letter-spacing: .03em; }
+
+/* On narrow portrait phones, reserve the mat center for the wrestlers. */
+@media (orientation: portrait) and (max-width: 360px) and (min-height: 700px) {
+  .touch__status { position: fixed; top: 182px; left: 8px; right: 8px; width: auto; }
+}
+
+/* Keep feedback above the buttons inside short landscape phone viewports. */
 @media (orientation: landscape) and (max-height: 440px) {
   .touch__buttons { grid-template-columns: repeat(3, 4.5rem); gap: .35rem; }
   .touch__btn { width: 4.5rem; height: 3rem; font-size: .65rem; border-radius: 12px; }
@@ -1954,5 +1988,53 @@ button:focus-visible {
   .touch__status { width: 14.2rem; }
   .touch__notice { min-height: 1.7rem; padding: .3rem; }
   .touch__contest { margin-top: .2rem; padding: .3rem; }
+  .touch__contest label { grid-template-columns: 6.6rem 1fr 2rem; }
+  .touch__hint { margin-top: .2rem; }
+}
+
+.top-turn-picker{position:absolute;top:82px;right:12px;z-index:15;display:grid;gap:3px;max-width:230px;padding:6px 8px;border-radius:8px;background:#101c2de8;color:#fff;font-size:11px}.top-turn-picker select{max-width:100%;min-height:32px;background:#223145;color:#fff;border:1px solid #708299;border-radius:4px}.top-turn-picker small{font-size:10px}@media(max-width:600px){.top-turn-picker{top:88px;right:8px;max-width:205px}}
+
+.practice-panel{position:absolute;left:12px;top:110px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:calc(100vw - 24px);padding:8px;border-radius:8px;background:#172332ee;color:white;font-size:12px}.practice-panel span{flex-basis:100%}.practice-panel button{min-height:44px;padding:8px 16px;background:#344b63;color:white;border:1px solid #7592ab;border-radius:6px}.seg{flex-wrap:wrap}
+
+.practice-panel{width:340px;box-sizing:border-box}
+
+/* Keep practice resets and the turn picker independently tappable on phones. */
+@media (max-width: 600px) and (orientation: portrait) {
+  .practice-panel {
+    top: 88px;
+    left: 8px;
+    width: calc(50vw - 12px);
+    max-width: none;
+    padding: 6px;
+    gap: 4px;
+    font-size: 11px;
+  }
+  .practice-panel strong { flex-basis: 100%; }
+  .practice-panel span { display: none; }
+  .practice-panel button { flex: 1; min-width: 0; padding: 8px 4px; font-size: 11px; }
+  .top-turn-picker { top: 88px; right: 8px; width: calc(50vw - 12px); max-width: none; box-sizing: border-box; padding: 6px; }
+  .top-turn-picker select { width: 100%; min-width: 0; min-height: 44px; }
+}
+
+/* Practice resets occupy the left half; the picker clears during exposure. */
+@media (max-width: 600px) and (orientation: portrait) {
+  .bug--practice .bug__nearfall {
+    justify-self: end;
+    max-width: calc(50vw - 24px);
+    box-sizing: border-box;
+    text-align: center;
+    letter-spacing: .06em;
+  }
+}
+
+/* Compact controls leave the center clear on shorter portrait phones. */
+@media (orientation: portrait) and (max-width: 430px) and (max-height: 699px) {
+  .touch__pad { width: 28vw; flex-shrink: 0; }
+  .touch__buttons { grid-template-columns: repeat(3, 3.75rem); gap: .35rem; }
+  .touch__btn { width: 3.75rem; height: 3rem; font-size: .65rem; border-radius: 12px; }
+  .touch__btn--small, .touch__btn--level { height: 3rem; }
+  .touch__status { width: 11.95rem; }
+  .touch__notice { min-height: 1.7rem; padding: .3rem; }
+  .touch__contest { padding: .3rem; margin-top: .2rem; }
   .touch__hint { margin-top: .2rem; }
 }

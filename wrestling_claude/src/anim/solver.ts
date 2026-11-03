@@ -75,6 +75,32 @@ function chain(upperChild: BoneName, lowerChild: BoneName, scale: number): Chain
 }
 
 export class Solver {
+  authoredPalmRelease=false;
+ continuousPost=false;
+ softFreeReach={L:0,R:0};
+ authoredPostDirection:{L:Vector3|null,R:Vector3|null}={L:null,R:null};
+ private postDelta={L:null as Quaternion|null,R:null as Quaternion|null};
+  private elbowPlanes = new Map<Bone, Vector3>();
+  private elbowFramePlanes = new Map<Bone, Vector3>();
+  private elbowTurnBudget = new Map<Bone, number>();
+  beginElbowFrame(dt:number,radiansPerSecond=Infinity):void {
+    for(const side of ['L','R'] as const){
+      const bone=this.rig.bones[`arm${side}`];
+      this.elbowTurnBudget.set(bone,dt*radiansPerSecond);
+      const plane=this.elbowPlanes.get(bone);
+      if(plane)this.elbowFramePlanes.set(bone,plane.clone());
+    }
+  }
+  private kneePlanes = new Map<Bone, Vector3>();
+  private kneeTurnBudget = new Map<Bone, number>();
+  private kneeGroundHeight = .04;
+  /** Opt-in bend-plane continuity for experimental entanglement transitions.
+   * Both the pose solve and subsequent foot-contact solve share one budget. */
+  beginKneeFrame(dt: number, radiansPerSecond = Infinity, minimumJointHeight = .04): void {
+    this.kneeGroundHeight = minimumJointHeight;
+    for(const side of ['L','R'] as const)this.kneeTurnBudget.set(this.rig.bones[`thigh${side}`],dt*radiansPerSecond);
+  }
+
   private leg: ChainRest;
   private arm: ChainRest;
   private toeOffset: Vector3;
@@ -151,6 +177,16 @@ export class Solver {
     b.hips.updateMatrixWorld(true);
   }
 
+  // Intermediate leg-only solves transport bend planes without consuming
+  // arm-contact continuity budgets or changing the final authored pose.
+  applyLegPath(p: Posture): void {
+    const hips=this.rig.bones.hips;
+    hips.position.set(p[P.HIPS],p[P.HIPS+1],p[P.HIPS+2]);
+    hips.quaternion.set(p[P.HIPS_Q],p[P.HIPS_Q+1],p[P.HIPS_Q+2],p[P.HIPS_Q+3]);
+    hips.updateMatrixWorld(true);
+    this.solveLeg(p,'L');this.solveLeg(p,'R');
+  }
+
   private solveLeg(p: Posture, side: 'L' | 'R'): void {
     const b = this.rig.bones;
     const thigh = b[`thigh${side}`];
@@ -213,17 +249,31 @@ export class Solver {
     const offset = side === 'L' ? this.armOffsetL : this.armOffsetR;
     _v3.add(_mid.copy(offset).applyQuaternion(parentQ));
     _end.set(p[e], p[e + 1], p[e + 2]);
+    const soft=this.softFreeReach[side];
+    if(soft>0){
+      const reachVector=target.clone().sub(_v3),length=reachVector.length(),span=this.arm.l1+this.arm.l2;
+      const onset=.85*span,width=.12*span;
+      if(length>onset){
+        const eased=onset+width*(1-Math.exp(-(length-onset)/width));
+        target.copy(_v3).addScaledVector(reachVector,((1-soft)*length+soft*eased)/length);
+      }
+    }
     this.solveChain(_v3, target, _end, this.arm, false, parentQ, arm, fore);
 
     hand.quaternion.setFromEuler(_e.set(p[w], p[w + 2] * sign, p[w + 1] * sign, 'YXZ'));
     // A defensive post needs a world-space palm normal. Fixed wrist angles
     // alone rotate with the forearm and can leave fingers pointing skyward.
-    // Fade the constraint away as the hand leaves the mat for a grip.
+    // Orient a requested post before the hanging fingers can reach the mat.
+    // The hand extends about 0.17m below the wrist in its relaxed pose; waiting
+    // until wrist height 0.07m lets the fingertips penetrate during approach.
+    // Raised hands still retain their authored grip orientation.
     const support = clamp(p[P.PALMS + (side === 'L' ? 0 : 1)], 0, 1)
-      * clamp((0.14 * this.rig.scale - p[h + 1]) / (0.07 * this.rig.scale), 0, 1);
+      * (this.authoredPalmRelease ? 1 : clamp((0.24 * this.rig.scale - p[h + 1]) / (0.07 * this.rig.scale), 0, 1));
+    if(support<=0)this.postDelta[side]=null;
     if (support > 0) {
       // Rest fingers point along -Y; palm faces inward (-X on the left).
       const forward = _cDir.set(target.x - _v3.x, 0, target.z - _v3.z);
+      if(this.authoredPostDirection[side])forward.copy(this.authoredPostDirection[side]!);
       if (forward.lengthSq() < 1e-8) forward.set(0, 0, 1);
       forward.normalize();
       const x = _cHinge.set(0, sign, 0);
@@ -232,7 +282,13 @@ export class Solver {
       _m.makeBasis(x, y, z);
       _q3.setFromRotationMatrix(_m);
       _q2.copy(_qLowerW).invert().multiply(_q3);
-      hand.quaternion.slerp(_q2, support);
+      if(this.continuousPost){
+ const base=hand.quaternion.clone(),delta=base.clone().invert().multiply(_q2).normalize(),previous=this.postDelta[side];
+ if(previous?delta.dot(previous)<0:delta.w<0)delta.set(-delta.x,-delta.y,-delta.z,-delta.w);
+ this.postDelta[side]=delta.clone();
+ const axis=new Vector3(delta.x,delta.y,delta.z),length=axis.length();
+ if(length>1e-8)hand.quaternion.copy(base.multiply(new Quaternion().setFromAxisAngle(axis.divideScalar(length),2*Math.atan2(length,delta.w)*support)));
+}else{this.postDelta[side]=null;hand.quaternion.slerp(_q2,support);}
     }
 
   }
@@ -271,9 +327,65 @@ export class Solver {
       if (!isLeg) pp.negate();
     }
     pp.normalize();
-
     const a = (c.l1 * c.l1 - c.l2 * c.l2 + dist * dist) / (2 * dist);
     const hgt = Math.sqrt(Math.max(0, c.l1 * c.l1 - a * a));
+    if(isLeg) {
+      const previous=this.kneePlanes.get(upper);
+      const budget=this.kneeTurnBudget.get(upper)??Infinity;
+      if(previous && Number.isFinite(budget)) {
+        const transported=previous.clone().addScaledVector(dir,-previous.dot(dir));
+        if(transported.lengthSq()>1e-8) {
+          transported.normalize();
+          const turn=Math.atan2(dir.dot(transported.clone().cross(pp)),transported.dot(pp));
+          const applied=clamp(turn,-budget,budget);
+          pp.copy(transported.applyAxisAngle(dir,applied));
+          this.kneeTurnBudget.set(upper,Math.max(0,budget-Math.abs(applied)));
+        }
+      }
+      if(Number.isFinite(budget) && hgt>1e-6) {
+        // Keep the knee surface above the mat while transporting its bend plane.
+        // This rotates the bend around the hip-to-ankle axis; feet stay anchored.
+        const up=new Vector3(0,1,0).addScaledVector(dir,-dir.y);
+        const vertical=up.length();
+        const required=(this.kneeGroundHeight*this.rig.scale-root.y-dir.y*a)/hgt;
+        if(vertical>1e-6 && pp.y<required) {
+          up.divideScalar(vertical);
+          const maxAngle=Math.acos(clamp(required/vertical,-1,1));
+          const angle=Math.atan2(dir.dot(up.clone().cross(pp)),up.dot(pp));
+          pp.copy(up.applyAxisAngle(dir,clamp(angle,-maxAngle,maxAngle)));
+        }
+      }
+      if(previous)previous.copy(pp);else this.kneePlanes.set(upper,pp.clone());
+    }
+
+    if(!isLeg){
+      const previous=this.elbowFramePlanes.get(upper),budget=this.elbowTurnBudget.get(upper)??Infinity;
+      if(previous&&Number.isFinite(budget)){
+        const transported=previous.clone().addScaledVector(dir,-previous.dot(dir));
+        if(transported.lengthSq()>1e-8){
+          transported.normalize();
+          const turn=Math.atan2(dir.dot(transported.clone().cross(pp)),transported.dot(pp));
+          const applied=clamp(turn,-budget,budget);
+          pp.copy(transported.applyAxisAngle(dir,applied));
+        }
+      }
+      if(Number.isFinite(budget) && hgt>1e-6){
+        // Preserve shoulder and wrist anchors and bone lengths; select the
+        // closest feasible bend plane whose elbow clears the mat.
+        const up=new Vector3(0,1,0).addScaledVector(dir,-dir.y);
+        const vertical=up.length();
+        const required=(.065*this.rig.scale-root.y-dir.y*a)/hgt;
+        if(vertical>1e-6 && pp.y<required){
+          up.divideScalar(vertical);
+          const maxAngle=Math.acos(clamp(required/vertical,-1,1));
+          const angle=Math.atan2(dir.dot(up.clone().cross(pp)),up.dot(pp));
+          pp.copy(up.applyAxisAngle(dir,clamp(angle,-maxAngle,maxAngle)));
+        }
+      }
+      // Pose and contact solves must both start from the previous rendered
+      // frame, not transport the plane through two different wrist targets.
+      this.elbowPlanes.set(upper,pp.clone());
+    }
     const mid = _cMid.copy(root).addScaledVector(dir, a).addScaledVector(pp, hgt);
     const end = _cEnd.copy(root).addScaledVector(dir, dist);
 
@@ -296,6 +408,12 @@ export class Solver {
 
     upper.quaternion.copy(parentWorld).invert().multiply(_qUpperW);
     lower.quaternion.copy(_qUpperW).invert().multiply(_qLowerW);
+  }
+
+  /** Re-aim one leg at a ball-of-foot target after the opponent is posed. */
+  reachFoot(p: Posture, side: 'L' | 'R'): void {
+    this.solveLeg(p, side);
+    this.rig.bones[`thigh${side}`].updateMatrixWorld(true);
   }
 
   /** Re-aim one arm at a new wrist target, after both bodies are posed. */

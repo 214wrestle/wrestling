@@ -8,7 +8,7 @@ export interface WrestlingStyle {
   stanceWidth: number; levelOffset: number; tempo: number; handActivity: number;
   pressure: number; circle: number; attackRate: number;
   topPatience?: number; turnPreference?: number;
-  preferredTurn?: 'cradle';
+  preferredTurn?: 'cradle' | import('./armBars').ArmBar;
   highCrotchHand?: 'left' | 'right';
   shots: { double: number; single: number; highCrotch: number };
 }
@@ -95,7 +95,7 @@ export const ATHLETE_PROFILES: Record<string, AthleteProfile> = {
 
 /** Provisional style interpretation; the contest still requires control and stamina. */
 export const isScrambleSpecialist = (name: string): boolean => [
-  "Yianni Diakomihalis", "Jesse Delgado", "Ben Askren",
+  "Yianni Diakomihalis", "Jesse Delgado", "Ben Askren", "Jax Forrest",
 ].includes(name);
 
 /** Owner-selected heavyweight activity. Provisional tendencies, not measured film rates.
@@ -121,7 +121,7 @@ export const ATHLETE_MOTION_OVERRIDES: Record<string, WrestlingStyle> = {
 
 /** Owner-selected pace; numbers remain provisional until film calibration. */
 export const HIGH_PACE_NAMES = [
- 'Bo Bassett', 'David Taylor', 'Jason Nolf', 'Mitchell Mesenbrink',
+ 'Bo Bassett', 'David Taylor', 'Jason Nolf', 'Mitchell Mesenbrink', 'Jax Forrest',
  'Tom Brands', 'Terry Brands', 'Mark Ironside', 'Doug Schwab',
 ] as const;
 export function applyOwnerPace(name: string, base: WrestlingStyle = DEFAULT_MOTION): WrestlingStyle {

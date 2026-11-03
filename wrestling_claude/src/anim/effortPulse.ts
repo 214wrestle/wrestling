@@ -1,3 +1,9 @@
+/** Zero velocity at both ends avoids a jerk when a grip effort starts or stops. */
+export function effortEnvelope(age: number, duration: number): number {
+  if (age <= 0 || age >= duration || duration <= 0) return 0;
+  const wave = Math.sin(Math.PI * age / duration);
+  return wave * wave;
+}
 export type EffortResult = 'ok'|'won'|'lost'|'blocked';
 /** Finish the current physical effort before replaying one queued repeat.
  * Button/result acknowledgements stay immediate in the UI; this only times motion.

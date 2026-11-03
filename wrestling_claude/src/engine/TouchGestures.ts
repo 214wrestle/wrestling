@@ -10,6 +10,13 @@ export class TouchGestures {
     this.pointers.delete(pointer);
     return key;
   }
+  cancelKey(key: TouchKey): boolean {
+    let removed = false;
+    for (const [pointer, gesture] of this.pointers) {
+      if (gesture.key === key) { this.pointers.delete(pointer); removed = true; }
+    }
+    return removed;
+  }
   has(key: TouchKey): boolean { return [...this.pointers.values()].some(p => p.key === key); }
   get size(): number { return this.pointers.size; }
   state(): Partial<PadState> {

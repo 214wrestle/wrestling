@@ -21,9 +21,10 @@ export const POINTS = {
   takedown: 3,
   escape: 1,
   reversal: 2,
-  /** Near fall held 2–4 seconds. */
+  /** NCAA near-fall counts: two, three, or four points. */
   nearFall2: 2,
-  /** Near fall held 5+ seconds. */
+  nearFall3: 3,
+  /** Near fall held four counts or longer. */
   nearFall4: 4,
   penalty: 1,
   stalling: 1,

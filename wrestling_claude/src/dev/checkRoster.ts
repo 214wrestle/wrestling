@@ -95,7 +95,7 @@ check(!ROSTER.some(w => w.firstName === 'Evan' && w.lastName === 'Bernstein'), '
 check(!ROSTER.some(w => w.firstName === 'Ryan' && w.lastName === 'Miller'), 'Ryan Miller removed by owner');
 check(ROSTER.some(w => w.firstName === 'Mason' && w.lastName === 'Lenhard' && w.weightClass === 125 && w.legends?.role === 'starter'), 'Lenhard retained as 125 starter');
 
-for (const [name,rating] of Object.entries({'Michael Mocco':75,'Dreshaun Ross':84,'Ashton Honnold':65,'Israel "Izzy" Moreno':53,'Bo Bassett':84,'Coby Merrill':78})) {
+for (const [name,rating] of Object.entries({'Michael Mocco':75,'Dreshaun Ross':84,'Ashton Honnold':65,'Israel "Izzy" Moreno':53,'Bo Bassett':91,'Coby Merrill':78})) {
  const entries = ROSTER.filter(w => `${w.firstName} ${w.lastName}` === name);
  check(entries.length === 1 && entries[0].rating === rating && !entries[0].ncaaCareer, `Owner developmental rating and unique slot: ${name}`);
 }
@@ -110,3 +110,6 @@ for (const [a,b] of [[drDeath,louBanach],[louBanach,drDeath]]) {
  const meeting = ncaaMatchupNotes(a,b).find(m => m.year === 1982);
  check(!!meeting && historicalMeetingText(meeting).includes('unlimited heavyweight') && meeting.result === '7–4', '1982 heavyweight history works in either corner');
 }
+
+const haines = ROSTER.filter(w=>w.firstName==='Levi'&&w.lastName==='Haines');
+check(haines.length===1&&haines[0].school.id==='penn-state'&&haines[0].weightClass===174&&haines[0].legends?.role==='choice','Levi Haines unique Penn State174 choice');

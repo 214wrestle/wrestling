@@ -13,6 +13,8 @@ export type CameraMode =
   | 'wide'
   | 'celebration';
 
+export interface ActionFraming { pin?: number; mirror?: boolean; edge?: number }
+
 interface Shot {
   height: number;
   distance: number;
@@ -80,9 +82,21 @@ export class CameraRig {
    * @param azimuth Where the camera should sit, as the direction from the focus.
    * @param spread  Distance between the wrestlers.
    */
-  update(dt: number, camera: PerspectiveCamera, focus: Vector3, azimuth: number, spread: number): void {
+  update(dt: number, camera: PerspectiveCamera, focus: Vector3, azimuth: number, spread: number, action: ActionFraming = {}): void {
     this.time += dt;
-    const shot = SHOTS[this.mode];
+    const pin=Math.max(0,Math.min(1,action.pin??0));
+    const edge=Math.max(0,Math.min(1,action.edge??0));
+    const baseShot = SHOTS[this.mode];
+    // Rise a little over an exposed back, retaining room for the bridge/legs.
+    const shot = {...baseShot,
+      height:baseShot.height+pin*.45+edge*.2,
+      distance:baseShot.distance+pin*.25+edge*.55};
+    if(pin>0) azimuth+=(action.mirror?-1:1)*.18*pin;
+    if(edge>0){
+      const boundaryAngle=Math.atan2(focus.x,focus.z);
+      // A sine remains continuous when the boundary crosses behind the camera.
+      azimuth+=Math.sin(boundaryAngle-azimuth)*.18*edge;
+    }
     const k = Math.min(1, dt * 2.6);
     this.current.height += (shot.height - this.current.height) * k;
     this.current.distance += (shot.distance - this.current.distance) * k;
@@ -122,7 +136,11 @@ export class CameraRig {
     const sy = Math.cos(this.time * 0.74) * drift + Math.cos(this.shakeT * 1.37) * this.shakeAmount * 0.06;
     camera.position.set(this.position.x + sx, Math.max(0.3, this.position.y + sy), this.position.z);
     camera.lookAt(this.target.x, this.target.y + sy * 0.4, this.target.z);
-    const fov = this.current.fov - this.punch * 2.2;
+    // Preserve the shot's horizontal coverage on narrow screens. A fixed
+    // vertical FOV otherwise crops the wrestlers' feet and heads in portrait.
+    const shotFov = this.current.fov - this.punch * 2.2;
+    const fit = Math.max(1, 1.3 / Math.max(.2, camera.aspect));
+    const fov = 2 * Math.atan(Math.tan(shotFov * Math.PI / 360) * fit) * 180 / Math.PI;
     if (Math.abs(camera.fov - fov) > 0.01) {
       camera.fov = fov;
       camera.updateProjectionMatrix();

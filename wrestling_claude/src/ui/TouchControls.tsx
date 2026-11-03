@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NO_PAD, type PadState } from '../engine/Input';
 import { TouchGestures, type TouchKey } from '../engine/TouchGestures';
+import { availableTouchKeys } from './touchActions';
 import type { GameApi, UiState } from '../game/store';
 
 /**
@@ -84,6 +85,36 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
   const legActionSet = state.legActions?.join(',') ?? '';
   useEffect(() => { reset(); }, [state.position, legActionSet, reset]);
 
+  // Top/Bottom labels stay the same across ride, standing and exposure.
+  // A finger holding Stand up must not silently become a Turn out press.
+  const promptLabels = (['shoot','fight','sprawl'] as const).map(k => state.prompts[k].label).join('|');
+  const previousLabels = useRef(state.prompts);
+  const available = availableTouchKeys(state);
+  const availableSignature = [...available].sort().join('|');
+  const previousAvailable = useRef(available);
+  useLayoutEffect(() => {
+    let cancelled = false;
+    for (const key of ['shoot','fight','sprawl'] as const) {
+      if (previousLabels.current[key].label === state.prompts[key].label) continue;
+      cancelled = gestures.current.cancelKey(key) || cancelled;
+      api.cancelTouch(key);
+      buttonGroup.current?.querySelectorAll<HTMLButtonElement>(`[data-touch-key="${key}"]`).forEach(b => { delete b.dataset.held; });
+    }
+    for (const key of previousAvailable.current) {
+      if (available.has(key)) continue;
+      cancelled = gestures.current.cancelKey(key) || cancelled;
+      api.cancelTouch(key);
+      buttonGroup.current?.querySelectorAll<HTMLButtonElement>(`[data-touch-key="${key}"]`).forEach(b => { delete b.dataset.held; });
+    }
+    previousAvailable.current = available;
+    previousLabels.current = state.prompts;
+    if (cancelled) {
+      setHeld(gestures.current.size ? 'Working' : null);
+      setFeedback({ text: 'Position changed · Choose your next move', result: 'attempt', id: ++noticeId.current });
+      push();
+    }
+  }, [promptLabels, availableSignature, api, push]);
+
   const endAction = (e: React.PointerEvent<HTMLButtonElement>, cancelled: boolean) => {
     const key = gestures.current.end(e.pointerId);
     if (!key) return; // Normal release already handled before lostpointercapture.
@@ -93,8 +124,14 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     }
     setHeld(gestures.current.size ? 'Working' : null);
     push();
+    // Reveal the attempted move after a completed selection; cancellation stays put.
+    if (!cancelled && key === 'technique') {
+      const menu = e.currentTarget.closest('details');
+      if (menu) menu.open = false;
+    }
   };
   const bindAction = (key: TouchKey, value: boolean | NonNullable<PadState['technique']> | NonNullable<PadState['legAction']> = true) => ({
+    'data-touch-key': key,
     onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
       gestures.current.begin(e.pointerId, key, value);
       push();
@@ -157,13 +194,13 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
             <small>{contestHint}</small>
           </div>}
         </div>
-        {state.top !== null && state.meters.some(m => m.label === 'Base') && (state.top === state.humanSide ? ['legRide'] as const : ['closePockets','catchLeg'] as const).map(key => <button key={key} className="touch__btn touch__btn--small" {...bindAction(key)}>{ {legRide:'Work legs in',closePockets:'Close pockets',catchLeg:'Catch / clear leg'}[key] }<small className="touch__hint">Hold</small></button>)}
+        {(available.has('legRide') || available.has('closePockets')) && (available.has('legRide') ? ['legRide'] as const : ['closePockets','catchLeg'] as const).map(key => <button key={key} className="touch__btn touch__btn--small" {...bindAction(key)}>{ {legRide:'Work legs in',closePockets:'Close pockets',catchLeg:'Catch / clear leg'}[key] }<small className="touch__hint">Hold</small></button>)}
 
         {state.legActions?.map(action => <button key={action} className="touch__btn touch__btn--small" {...bindAction('legAction', action)}>{ {lift:'Lift leg',trip:'Trip',double:'Switch double',drive:'Drive back'}[action] }<small className="touch__hint">Hold</small></button>)}
 
 
-        {state.position === 'Neutral' && <details className="touch__techniques"><summary className="touch__btn touch__btn--small">Techniques</summary><div>{(['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).map((move,i)=><button key={move} type="button" className="touch__btn" {...bindAction('technique', move)}>{['Duck under','Super duck','Slide by','Fireman’s','Foot sweep'][i]}<small className="touch__hint">Tap</small></button>)}</div></details>}
-        {(['lowSingle', 'scramble'] as const).map(key => <button key={key} hidden={key === 'lowSingle' ? state.position !== 'Neutral' : state.position === 'Neutral' || state.position === '—'} type="button" className="touch__btn" {...bindAction(key)}>{key === 'lowSingle' ? 'Low single' : 'Scramble'}<small className="touch__hint">Tap</small></button>)}
+        {available.has('technique') && <details className="touch__techniques"><summary className="touch__btn touch__btn--small">Techniques</summary><div>{(['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).map((move,i)=><button key={move} type="button" className="touch__btn" {...bindAction('technique', move)}>{['Duck under','Super duck','Slide by','Fireman’s','Foot sweep'][i]}<small className="touch__hint">Tap</small></button>)}</div></details>}
+        {(['lowSingle', 'scramble'] as const).map(key => <button key={key} hidden={!available.has(key)} type="button" className="touch__btn" {...bindAction(key)}>{key === 'lowSingle' ? 'Low single' : 'Scramble'}<small className="touch__hint">Tap</small></button>)}
         {(['sprawl', 'fight', 'shoot'] as const).map((key) => (
           <button
             key={key}
@@ -178,9 +215,11 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
         <button
           type="button"
           className="touch__btn touch__btn--level"
+          hidden={!available.has('level')}
           {...bindAction('level')}
         >
-          {state.top === state.humanSide ? 'Cut' : 'Lower'}
+          <span className="touch__label">{state.top === state.humanSide ? 'Cut' : 'Lower'}</span>
+          <small className="touch__hint">{state.top === state.humanSide ? 'Tap · give 1' : 'Hold'}</small>
         </button>
       </div>
     </div>

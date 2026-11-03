@@ -1,6 +1,13 @@
 /** Senior Worlds/Olympics only: bio display, never NCAA rating inputs. */
 export interface SeniorHonors { olympicGold:number;worldGold:number;olympicSilver?:number;worldSilver?:number;olympicBronze?:number;worldBronze?:number;source:string; }
 export const SENIOR_HONORS:Record<string,SeniorHonors>={
+ // 2026 Senior Worlds, owner request November 2; age-group titles excluded.
+ 'Kyle Snyder':{olympicGold:1,worldGold:5,olympicSilver:1,source:'https://uww.org/articles/snyder-fends-yoshida-97kg-repeat-fifth-world-championships-gold'},
+ 'Kyle Dake':{olympicGold:0,worldGold:5,olympicBronze:2,source:'https://www.themat.com/news/2026/november/01/haines-lee-capture-world-gold-u-s-wins-men-s-freestyle-team-title'},
+ 'Spencer Lee':{olympicGold:0,worldGold:1,olympicSilver:1,source:'https://hawkeyesports.com/news/2026/11/1/spencer-lee-wins-world-championship'},
+ 'Bo Bassett':{olympicGold:0,worldGold:1,source:'https://www.themat.com/news/2026/october/31/snyder-secures-fifth-world-title-bassett-breaks-through-for-gold'},
+ // Owner added Haines to Penn State at174 on November2.
+ 'Levi Haines':{olympicGold:0,worldGold:1,worldSilver:1,source:'https://www.nittanylionwrestlingclub.com/news/2026-senior-world-championship-results'},
  'Bobby Weaver':{olympicGold:1,worldGold:0,worldSilver:1,source:'https://lehighsports.com/news/2009/12/30/WREST_10313'},
  'Sam Gerson':{olympicGold:0,worldGold:0,olympicSilver:1,source:'https://pennathletics.com/story.aspx?file_date=11-24-2014&filename=5771a41fe4b0028e7235ae75_131492843341536113'},
  'Bill Smith':{olympicGold:1,worldGold:0,source:'https://nwhof.org/hall_of_fame/bio/31'},

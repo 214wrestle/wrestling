@@ -1,3 +1,5 @@
+import {ARM_BAR_LABELS,isArmBar,type TopTurnChoice} from '../sim/armBars';
+import { LEG_CLEAR_THRESHOLD } from '../sim/legRideQuality';
 import { MOVES } from '../sim/moves';
 import { BOUT } from '../sim/bout';
 import type { MatchSim } from '../sim/MatchSim';
@@ -23,7 +25,7 @@ export interface PromptRead {
 
 const P = (label: string, state: ButtonPrompt['state'] = 'idle'): ButtonPrompt => ({ label, state });
 
-export function readPrompts(sim: MatchSim, me: Side): PromptRead {
+export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): PromptRead {
   const bout = sim.bout;
   const pos = bout.position;
   const you = bout.athletes[me];
@@ -74,18 +76,20 @@ export function readPrompts(sim: MatchSim, me: Side): PromptRead {
     }
     case 'legs': {
       const attacking = pos.A === me;
+      const counterAvailable = pos.shot === 'single' && pos.t >= 4.5 && pos.progress < 0.7 && (pos.lifted ?? 0) < 0.3;
       return {
         position: attacking ? 'In on the legs' : 'Defending the shot',
         prompts: attacking
-          ? { shoot: P('Drive through', 'hold'), fight: P('—', 'off'), sprawl: P('—', 'off') }
+          ? { shoot: P('Drive through', 'hold'), fight: P('Clear capture', (pos.counterGrip ?? 0) > 0 ? 'mash' : 'off'), sprawl: P('—', 'off') }
           : {
               shoot: P('—', 'off'),
-              fight: P(pos.shot !== 'double' ? 'Whizzer' : 'Down block', 'mash'),
+              fight: P(counterAvailable ? 'Set spladle' : pos.shot !== 'double' ? 'Whizzer' : 'Down block', 'mash'),
               sprawl: P('Sprawl hips', 'mash'),
             },
         legActions: attacking ? (pos.shot === 'single' || pos.shot === 'highCrotch' ? ['lift','trip','double','drive'] : ['drive']) : [],
         meters: [
-          { label: 'Finish', value: pos.progress, tone: attacking ? 'you' : 'them' },
+          { label: {single:'Single leg',highCrotch:'High crotch',double:'Double leg',lowSingle:'Low single'}[pos.shot], value: pos.progress, tone: attacking ? 'you' : 'them' },
+          ...((pos.counterGrip ?? 0) > 0 ? [{label:'Spladle setup',value:pos.counterGrip!,tone:attacking?'them' as const:'you' as const}] : []),
           ...((pos.lifted ?? 0) > 0 ? [{ label: 'Leg lift', value: pos.lifted!, tone: attacking ? 'you' as const : 'them' as const }] : []),
         ],
       };
@@ -103,6 +107,7 @@ export function readPrompts(sim: MatchSim, me: Side): PromptRead {
     case 'mat': {
       const top = pos.A === me;
       const label: PositionLabel = top ? 'Top' : 'Bottom';
+      const legMeters: Meter[] = [...((pos.legRide ?? 0) > 0 ? [{label:(pos.legRide ?? 0) >= 0.8 ? 'Leg ride secured' : 'Opening the pocket',value:pos.legRide!,tone:top ? 'you' as const : 'them' as const}] : []), ...((pos.pockets ?? 0) > 0.3 ? [{label:'Pockets closed',value:pos.pockets!,tone:top ? 'them' as const : 'you' as const}] : []), ...((pos.legCaught ?? 0) > 0 ? [{label:'Clearing the leg',value:Math.min(1,pos.legCaught!/LEG_CLEAR_THRESHOLD),tone:top ? 'them' as const : 'you' as const}] : [])];
       if (pos.sub === 'exposed' || pos.sub === 'spladle') {
         return {
           position: label,
@@ -125,12 +130,14 @@ export function readPrompts(sim: MatchSim, me: Side): PromptRead {
         };
       }
       if (pos.sub === 'flat') {
+        const preferred=bout.wrestlers[me].motion?.preferredTurn;
+        const selected=topTurn?.style ?? (isArmBar(preferred)?preferred:undefined);
         return {
           position: label,
           prompts: top
-            ? { shoot: P('Half nelson', pos.control > 0.3 ? 'hot' : 'idle'), fight: P('Pressure', 'idle'), sprawl: P('Ride tight', 'idle') }
+            ? { shoot: P(selected ? ARM_BAR_LABELS[selected] : preferred==='cradle'?'Cradle':'Half nelson', pos.control > 0.3 ? 'hot' : 'idle'), fight: P('Pressure', 'idle'), sprawl: P('Ride tight', 'idle') }
             : { shoot: P('Push up', 'mash'), fight: P('Push up', 'mash'), sprawl: P('Push up', 'mash') },
-          meters: [{ label: 'Base', value: Math.min(1, pos.base / 0.68), tone: top ? 'them' : 'you' }],
+          meters: [{ label: 'Base', value: Math.min(1, pos.base / 0.68), tone: top ? 'them' : 'you' }, ...legMeters],
         };
       }
       // Ride.
@@ -147,7 +154,7 @@ export function readPrompts(sim: MatchSim, me: Side): PromptRead {
               fight: P('Switch', pos.commit > 0 ? 'hot' : 'idle'),
               sprawl: P('Base up', pos.base < 0.5 ? 'hot' : 'idle'),
             },
-        meters: [{ label: 'Base', value: pos.base, tone: top ? 'them' : 'you', mark: 0.35 }, ...((pos.legRide ?? 0) > 0 ? [{label:(pos.legRide ?? 0) >= 0.8 ? 'Leg ride secured' : 'Opening the pocket',value:pos.legRide!,tone:top ? 'you' as const : 'them' as const}] : []), ...((pos.pockets ?? 0) > 0.3 ? [{label:'Pockets closed',value:pos.pockets!,tone:top ? 'them' as const : 'you' as const}] : []), ...((pos.legCaught ?? 0) > 0 ? [{label:'Clearing the leg',value:pos.legCaught!,tone:top ? 'them' as const : 'you' as const}] : [])],
+        meters: [{ label: 'Base', value: pos.base, tone: top ? 'them' : 'you', mark: 0.35 }, ...legMeters],
       };
     }
     case 'move': {

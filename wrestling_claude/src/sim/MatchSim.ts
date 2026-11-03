@@ -1,3 +1,4 @@
+import {isArmBar,ARM_BAR_GRIP_RELEASE} from './armBars';
 import { wrestlerFamilyNote, morenoMatchupNote } from './easterEggs';
 import {
   MAT,
@@ -11,7 +12,7 @@ import {
 import type { WinType } from './rules';
 import { Bout, Rng } from './bout';
 import type { BoutEvents } from './bout';
-import type { MoveDef } from './moves';
+import {CRADLE_GRIP_RELEASE,type MoveDef} from './moves';
 import { otherSide } from './types';
 import type {
   Announcement,
@@ -51,6 +52,7 @@ const SCORE_LABELS: Record<ScoreKind, string> = {
   escape: 'Escape',
   reversal: 'Reversal',
   nearFall2: 'Near Fall',
+  nearFall3: 'Near Fall',
   nearFall4: 'Near Fall',
   penalty: 'Penalty',
   stalling: 'Stalling',
@@ -62,7 +64,8 @@ const SCORE_POINTS: Record<ScoreKind, number> = {
   escape: POINTS.escape,
   reversal: POINTS.reversal,
   nearFall2: POINTS.nearFall2,
-  nearFall4: POINTS.nearFall4 - POINTS.nearFall2,
+  nearFall3: POINTS.nearFall3,
+  nearFall4: POINTS.nearFall4,
   penalty: POINTS.penalty,
   stalling: POINTS.stalling,
   ridingTime: POINTS.ridingTime,
@@ -98,9 +101,12 @@ export class MatchSim {
   humanSide: Side = 0;
   /** Quick matches shorten every period. */
   lengthScale = 1;
+  /** Cooperative drills have no period time limit. */
+  practice = false;
 
   private listeners: SimListeners;
   private eventId = 1;
+  private pendingNearFall: {side:Side;kind:'nearFall2'|'nearFall3'|'nearFall4'} | null = null;
   private restart: { pos: StartPosition; top: Side } = { pos: 'neutral', top: 0 };
   private tiebreakTotals: [number, number] = [0, 0];
   private rng: Rng;
@@ -110,7 +116,10 @@ export class MatchSim {
     this.listeners = listeners;
     this.rng = new Rng(seed ^ 0x51ed);
     const ev: BoutEvents = {
-      score: (side, kind, detail) => this.award(side, kind, detail),
+      score: (side, kind, detail) => {
+        if(kind==='nearFall2'||kind==='nearFall3'||kind==='nearFall4') this.pendingNearFall={side,kind};
+        else {this.releaseNearFall(); if(!this.result)this.award(side,kind,detail);}
+      },
       announce: (text, tone, detail) => this.announce({ text, tone, detail, hold: 1.1 }),
       impact: (s, at, slowmo) => listeners.onImpact?.(s, at, slowmo),
       move: (def, A) => listeners.onMove?.(def, A),
@@ -345,7 +354,7 @@ export class MatchSim {
   /* ------------------------------------------------------------ wrestling */
 
   private tickWrestling(dt: number, commands: [Command, Command]): void {
-    this.clock -= dt;
+    if(!this.practice)this.clock -= dt;
     const top = this.bout.top;
     const p = this.bout.position;
     const riding = top !== null || (p.kind === 'move' && this.isMatMove(p.id));
@@ -355,6 +364,12 @@ export class MatchSim {
     }
     this.bout.tick(dt, commands);
     if (this.phase !== 'wrestling') return;
+    const after=this.bout.position;
+    // Cradle points become payable when its lock opens, before the belly-down recovery.
+    const holdingNearFall=after.kind==='mat'&&(after.sub==='exposed'||after.sub==='spladle')
+      || after.kind==='move'&&(after.id==='fall'||after.id==='fightOff' && (after.t/after.dur < (after.turnStyle==='cradle'?CRADLE_GRIP_RELEASE:isArmBar(after.turnStyle)?ARM_BAR_GRIP_RELEASE:1)));
+    if(!holdingNearFall)this.releaseNearFall();
+    if(this.result)return;
     if (this.bout.position.kind === 'neutral') this.updateStalling(dt, commands);
     if (this.clock <= 0 && !this.result) {
       this.clock = 0;
@@ -368,6 +383,8 @@ export class MatchSim {
   }
 
   private endPeriod(): void {
+    this.releaseNearFall();
+    if(this.result)return;
     this.listeners.onWhistle?.('period');
     if (this.period === 5 || this.period === 6) {
       this.tiebreakTotals[0] += this.periodPoints[0];
@@ -379,6 +396,8 @@ export class MatchSim {
   }
 
   private whistle(reason: 'out' | 'stalemate'): void {
+    this.releaseNearFall();
+    if(this.result)return;
     if (this.phase !== 'wrestling') return;
     this.listeners.onWhistle?.(reason);
     const p = this.bout.position;
@@ -399,6 +418,8 @@ export class MatchSim {
   }
 
   private updateStalling(dt: number, commands: [Command, Command]): void {
+    // Unlimited drills allow time to inspect controls and rehearse a setup.
+    if (this.practice) return;
     const dist = this.bout.distance();
     for (const a of this.bout.athletes) {
       const backing = dist > 1.7 && a.drive <= 0.05;
@@ -408,17 +429,28 @@ export class MatchSim {
       a.stallTimer = backing || fleeing || passive ? a.stallTimer + dt * (fleeing ? 1.6 : passive ? 0.35 : 1) : Math.max(0, a.stallTimer - dt * 1.6);
       if (!a.stallWarned && a.stallTimer >= STALL_WARNING_SECONDS) {
         a.stallWarned = true;
-        this.announce({ text: 'Stalling — warning', detail: this.wrestlers[a.side].lastName, tone: 'warn', hold: 1.4 });
+        this.announce({ text: `Stalling ${a.side === 0 ? 'red' : 'green'}`, detail: 'Warning', tone: 'warn', hold: 1.4 });
       }
       if (a.stallTimer >= STALL_POINT_AT) {
         a.stallTimer = 0;
-        this.award(otherSide(a.side), 'stalling', `on ${this.wrestlers[a.side].lastName}`);
+        this.award(otherSide(a.side), 'stalling');
       }
     }
     void commands;
   }
 
   /* -------------------------------------------------------------- scoring */
+
+  /** Referee's held count, not yet part of the awarded scoreboard. */
+  get earnedNearFallPoints(): number {
+    return this.pendingNearFall ? POINTS[this.pendingNearFall.kind] : 0;
+  }
+
+  private releaseNearFall(): void {
+    const earned=this.pendingNearFall;
+    this.pendingNearFall=null;
+    if(earned&&!this.result)this.award(earned.side,earned.kind,'Near fall');
+  }
 
   private award(side: Side, kind: ScoreKind, detail?: string): void {
     if (this.result) return;
@@ -430,7 +462,7 @@ export class MatchSim {
       side,
       kind,
       points,
-      label: detail ? `${SCORE_LABELS[kind]} — ${detail}` : SCORE_LABELS[kind],
+      label: kind === 'stalling' ? `Stalling ${side === 0 ? 'green' : 'red'}` : detail ? `${SCORE_LABELS[kind]} — ${detail}` : SCORE_LABELS[kind],
       period: this.period,
       clock: this.clock,
     };
@@ -463,6 +495,7 @@ export class MatchSim {
 
   private finish(winner: Side, type: WinType): void {
     if (this.result) return;
+    this.pendingNearFall=null;
     const margin = Math.abs(this.score[0] - this.score[1]);
     this.result = {
       winner,

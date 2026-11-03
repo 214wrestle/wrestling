@@ -15,7 +15,7 @@ function Scorebug({ state }: { state: UiState }) {
   const rtSide: Side = rt >= 0 ? 0 : 1;
   const showRt = Math.abs(rt) >= 1;
   return (
-    <div className="bug">
+    <div className={`bug${state.difficulty === 'practice' ? ' bug--practice' : ''}`}>
       {([0, 1] as Side[]).map((side) => (
         <div
           key={side}
@@ -36,7 +36,7 @@ function Scorebug({ state }: { state: UiState }) {
       <div className="bug__clock">
         <span className="bug__period">{periodLabel(state.period)}</span>
         <span className={`bug__time ${state.clock <= 10 && state.phase === 'wrestling' ? 'bug__time--hot' : ''}`}>
-          {formatClock(state.clock)}
+          {state.difficulty==='practice'?'∞':formatClock(state.clock)}
         </span>
         {showRt && (
           <span className="bug__rt" style={{ color: w[rtSide].school.accent }}>
@@ -46,7 +46,8 @@ function Scorebug({ state }: { state: UiState }) {
       </div>
       {state.nearFall.active && (
         <div className="bug__nearfall">
-          Near fall <strong>{state.nearFall.timer.toFixed(1)}</strong>
+          Near fall <strong>{state.nearFall.earned ? `${state.nearFall.earned} earned` : state.nearFall.timer.toFixed(1)}</strong>
+          {state.nearFall.earned > 0 && <span className="bug__nearfall-note">Awarded on release</span>}
         </div>
       )}
     </div>
@@ -105,6 +106,9 @@ function ActionPad({ state }: { state: UiState }) {
     const t = window.setTimeout(() => setShown(null), 420);
     return () => window.clearTimeout(t);
   }, [flash]);
+  // Touch buttons are already visible before the first touch, and stay
+  // visible after keyboard/gamepad input on hybrid devices. Do not stack a
+  // second action pad under them based on the last input device.
   if (state.touchControls) return null;
   const order: ButtonId[] = ['shoot', 'fight', 'sprawl'];
   return (
@@ -148,8 +152,7 @@ function ScoreBanner({ state }: { state: UiState }) {
       <span className="score__text">
         <strong>{title}</strong>
         <em>
-          {w.lastName}
-          {detail ? ` · ${detail}` : ''}
+          {e.kind === 'stalling' ? `1 point to ${e.side === 0 ? 'red' : 'green'}` : <>{w.lastName}{detail ? ` · ${detail}` : ''}</>}
         </em>
       </span>
     </div>

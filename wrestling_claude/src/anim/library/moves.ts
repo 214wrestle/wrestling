@@ -59,6 +59,7 @@ registerMove({
   ],
 });
 
+// Standard single: outside sweep, corner turn, then gather. Low single stays separate.
 registerMove({
   id: 'shotSingle',
   startDist: 1.0,
@@ -68,26 +69,32 @@ registerMove({
     {
       t: 0.3,
       pose: {
-        hips: [0.04, 0.6, -0.42],
-        rot: [-8, 10, 0],
-        spine: [14, -6, 0],
+        hips: [0.20, 0.60, -0.36],
+        rot: [-24, 10, 0],
+        spine: [14, -10, 0],
         head: [-38, 0, 0],
-        handL: [0.24, 0.66, -0.1],
-        handR: [-0.12, 0.66, -0.1],
+        footL: [0.34, 0.06, -0.22, -20, 35],
+        handL: [0.34, 0.61, 0.03],
+        handR: [0.08, 0.62, -0.04],
       },
     },
     {
       t: 0.64,
       pose: {
-        hips: [0.08, 0.55, -0.1],
-        rot: [-12, 22, 0],
+        hips: [0.38, 0.53, 0.02],
+        rot: [-42, 22, 0],
         spine: [12, -8, 0],
-        footL: [0.2, 0.07, -0.12, 0, 35],
-        footR: [-0.16, BALL, -0.58, -25, 50],
-        handL: [0.24, 0.5, 0.36],
-        handR: [0.04, 0.52, 0.36],
+        footL: [0.46, BALL, 0.03, -35, 55],
+        kneeL: [0.40, 0.12, 0.30],
+        footR: [0.02, BALL, -0.43, -40, 55],
+        handL: [0.30, 0.43, 0.38],
+        handR: [0.10, 0.49, 0.41],
       },
     },
+    // Collect the leg inward after rounding the outside of the lead knee.
+    { t: .82, pose: { hips: [.25,.54,.08], rot: [-28,20,0],
+      footL: [.35,BALL,-.14,-20,65], footR: [-.04,.06,-.20,-25,20],
+      kneeL: [.38,.10,.35], handL: [.22,.45,.48],handR: [.07,.50,.48] } },
     { t: 1, pose: { base: holdAt('legsSingle', 'A', 0) } },
   ],
   B: [
@@ -378,17 +385,22 @@ registerMove({
         footR: [0.0, BALL, -0.12, -60, 20],
       },
     },
+    { t: .52, pose: { handR: [.16, .68, .70], elbowR: [.44, .72, .45] } },
     {
       t: 0.62,
       land: true,
       pose: {
-        hips: [0.32, 0.55, 0.5],
-        rot: [-80, 55, 0],
+        hips: [0.40, 0.48, 0.50],
+        rot: [-80, 30, -8],
         spine: [20, 0, 0],
-        footL: [0.62, BALL, 0.3, -90, 60],
-        footR: [0.5, BALL, 0.7, -90, 60],
+        footL: [0.66, BALL, 0.28, -85, 15],
+        footR: [0.18, BALL, 0.76, -90, 20],
+        kneeR: [0.28, 0.12, 0.62],
+        handR: [.24, .48, .84],
+        elbowR: [.54, .63, .62],
       },
     },
+    { t: .76, pose: { handL: [.10, .40, .88], elbowL: [-.08, .62, .62] } },
     { t: 1, pose: { base: holdAt('ride', 'A', 0, SINGLE_END) } },
   ],
   B: [
@@ -421,9 +433,9 @@ registerMove({
     { t: 1, pose: { base: holdAt('ride', 'B', 0, SINGLE_END) } },
   ],
   contacts: [
-    { who: 'A', hand: 'L', on: 'shinR', at: [0.0, -0.04, -0.05], from: 0, to: 0.6 },
-    { who: 'A', hand: 'R', on: 'thighR', at: [0.03, -0.32, 0.07], from: 0, to: 0.55 },
-    { who: 'A', hand: 'R', on: 'spine', at: [0, 0.02, 0.11], from: 0.85, to: 1 },
+    { who: 'A', hand: 'L', on: 'shinR', at: [0.0, -0.04, -0.05], from: 0, to: 0.67 },
+    { who: 'A', hand: 'R', on: 'thighR', at: [0.03, -0.32, 0.07], from: 0, to: 0.46 },
+    { who: 'A', hand: 'R', on: 'spine', at: [0, 0.02, 0.11], from: 0.72, to: 1 },
     { who: 'A', hand: 'L', on: 'forearmL', at: [0, -0.04, -0.035], from: 0.9, to: 1 },
   ],
 });
@@ -503,6 +515,12 @@ registerMove({
         rot: [0, 70, 0],
         spine: [22, 0, 0],
         head: [18, 0, 0],
+        handL: [0.22, POST, 0.26],
+        handR: [-0.22, POST, 0.26],
+        elbowL: [0.38, 0.30, 0.16],
+        elbowR: [-0.38, 0.30, 0.16],
+        wristL: PALM_DOWN,
+        wristR: PALM_DOWN,
         footL: [0.16, BALL, -0.44, 0, 75],
         footR: [-0.16, BALL, -0.46, 0, 75],
       },
@@ -525,8 +543,8 @@ registerMove({
     { t: 1, pose: { base: holdAt('fhl', 'A', 0, SPRAWL_END) } },
   ],
   contacts: [
-    { who: 'B', hand: 'L', on: 'neck', at: [0.0, 0.02, 0.08], from: 0.5, to: 1 },
-    { who: 'B', hand: 'R', on: 'armL', at: [0.0, -0.14, -0.045], from: 0.6, to: 1 },
+    { who: 'B', hand: 'L', on: 'neck', at: [0.0, 0.02, 0.08], from: 0.15, to: 1 },
+    { who: 'B', hand: 'R', on: 'armL', at: [0.0, -0.14, -0.045], from: 0.3, to: 1 },
   ],
 });
 
@@ -551,7 +569,7 @@ registerMove({
     { t: 1, pose: { base: holdAt('fhl', 'A', 0, SNAP_END) } },
   ],
   B: [
-    { t: 0, pose: { base: stanceAt({ x: 0, z: 0.42, yaw: 180 }, 1) } },
+    { t: 0, pose: { base: stanceAt({ x: 0, z: 0.42, yaw: 180 }, 1), palms: [1, 1] } },
     {
       t: 0.45,
       land: true,
@@ -606,7 +624,7 @@ registerMove({
     { t: 1, pose: { base: holdAt('ride', 'A', 0, BEHIND_END) } },
   ],
   B: [
-    { t: 0, pose: { base: holdAt('fhl', 'B', 0) } },
+    { t: 0, pose: { base: holdAt('fhl', 'B', 0), palms: [1, 1] } },
     {
       t: 0.5,
       pose: {
@@ -634,14 +652,16 @@ registerMove({
   id: 'recover',
   A: [
     { t: 0, pose: { base: holdAt('fhl', 'A', 1) } },
-    { t: 0.5, pose: { hips: [0, 0.7, -0.6], rot: [0, 26, 0], spine: [22, 0, 0], footL: [0.2, BALL, -0.75, 0, 30], footR: [-0.2, BALL, -1.05, -20, 40] } },
+    { t: 0.3, pose: { handL: [0.08, 0.94, -0.12], handR: [-0.2, 0.82, -0.1], elbowL: [0.35, 0.65, -0.4], elbowR: [-0.4, 0.55, -0.45] } },
+    { t: 0.5, pose: { handL: [0.18, 1.02, -0.3], handR: [-0.18, 0.95, -0.25], hips: [0, 0.7, -0.6], rot: [0, 26, 0], spine: [22, 0, 0], footL: [0.2, BALL, -0.75, 0, 30], footR: [-0.2, BALL, -1.05, -20, 40] } },
     { t: 1, pose: { base: stanceAt({ x: 0, z: -0.55, yaw: 0 }, 1) } },
   ],
   B: [
-    { t: 0, pose: { base: holdAt('fhl', 'B', 1) } },
+    { t: 0, pose: { base: holdAt('fhl', 'B', 1), handR: [0.18, 0.85, 0.12], elbowR: [0.4, 0.6, 0.35] } },
     {
       t: 0.45,
       pose: {
+        handL: [-0.22, 0.95, 0.1], handR: [0.22, 1, 0.16],
         hips: [0, 0.68, 0.52],
         rot: [180, 36, 0],
         spine: [20, 0, 0],
@@ -813,7 +833,7 @@ registerMove({
   id: 'standUp',
   A: [
     { t: 0, pose: { base: holdAt('ride', 'A', 0) } },
-    { t: 0.45, pose: { hips: [0.15, 0.62, -0.26], rot: [-10, 30, 0], spine: [24, -6, 0], footL: [0.35, BALL, -0.4, 0, 30] } },
+    { t: 0.45, pose: { hips: [0.15, 0.62, -0.26], rot: [-10, 30, 0], spine: [24, -6, 0], footL: [0.35, BALL, -0.4, 0, 30], handL: [0.18, 0.65, 0.12], elbowL: [0.38, 0.57, -0.08] } },
     { t: 1, pose: { base: holdAt('standing', 'A', 0, { x: 0, z: 0.06, yaw: 0 }) } },
   ],
   B: [
@@ -880,7 +900,7 @@ registerMove({
   A: [
     { t: 0, pose: { base: holdAt('standing', 'A', 0) } },
     { t: 0.4, pose: { hips: [0.0, 0.78, -0.3], rot: [0, 10, 0], spine: [4, 0, 0] } },
-    { t: 0.72, land: true, pose: { hips: [0.15, 0.5, -0.2], rot: [-10, 50, 0], spine: [24, -10, 0] } },
+    { t: 0.72, land: true, pose: { hips: [0.15, 0.5, -0.2], rot: [-10, 50, 0], spine: [24, -10, 0], handL: [.24, .3, .42], elbowL: [.48, .45, .2] } },
     { t: 1, pose: { base: holdAt('ride', 'A', 0.2, { x: 0, z: 0.05, yaw: 0 }) } },
   ],
   B: [
@@ -899,10 +919,10 @@ registerMove({
     { t: 1, pose: { base: holdAt('ride', 'B', 0.4, { x: 0, z: 0.05, yaw: 0 }) } },
   ],
   contacts: [
-    { who: 'A', hand: 'L', on: 'spine', at: [0.04, 0.0, 0.13], from: 0, to: 0.7 },
+    { who: 'A', hand: 'L', on: 'spine', at: [0.04, 0.0, 0.13], from: 0, to: 0.60, fade: 0.08 },
     { who: 'A', hand: 'R', on: 'spine', at: [-0.04, 0.0, 0.13], from: 0, to: 0.6 },
     { who: 'A', hand: 'R', on: 'spine', at: [0, 0.02, 0.11], from: 0.75, to: 1 },
-    { who: 'A', hand: 'L', on: 'forearmL', at: [0, -0.04, -0.035], from: 0.75, to: 1 },
+    { who: 'A', hand: 'L', on: 'forearmL', at: [0, -0.04, -0.035], from: 0.94, to: 1, fade: 0.23 },
   ],
 });
 
@@ -952,6 +972,8 @@ registerMove({
         wristR: PALM_DOWN,
       },
     },
+    // Lift the sit-out post and replant it beneath the circling shoulder.
+    { t: 0.5, pose: { handR: [-0.25, 0.24, -0.08], elbowR: [-0.4, 0.38, -0.24] } },
     // Hips swing out and round behind him.
     {
       t: 0.62,
@@ -964,6 +986,7 @@ registerMove({
         footR: [-0.25, BALL, -0.75, -30, 60],
         kneeL: [0.0, -0.4, 0.0],
         kneeR: [-0.3, -0.4, -0.2],
+        handR: [-0.12, POST, -0.24], elbowR: [-0.32, 0.3, -0.4],
       },
     },
     { t: 1, pose: { base: holdAt('ride', 'A', 0.2, SWITCH_END) } },

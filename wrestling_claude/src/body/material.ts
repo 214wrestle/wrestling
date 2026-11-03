@@ -22,6 +22,7 @@ export interface BodyLook {
   accent: string;
   pattern: SingletPattern;
   wordmark: string;
+  blockC?: boolean;
   /** Ankle band colour: red or green, as in a real bout. */
   band: string;
   shoe: string;
@@ -34,10 +35,10 @@ export interface BodyLook {
 const PATTERN_ID: Record<SingletPattern, number> = { panel: 0, sash: 1, stripes: 2, band: 3 };
 const HAIR_ID = { buzz: 0, crop: 1, curls: 2, afro: 2, bald: 3 } as const;
 
-function wordmarkTexture(text: string): CanvasTexture {
+function wordmarkTexture(text: string, blockC = false): CanvasTexture {
   const c = document.createElement('canvas');
   c.width = 512;
-  c.height = 160;
+  c.height = blockC ? 512 : 160;
   const g = c.getContext('2d')!;
   g.clearRect(0, 0, c.width, c.height);
   g.fillStyle = '#fff';
@@ -50,7 +51,13 @@ function wordmarkTexture(text: string): CanvasTexture {
     size -= 4;
     g.font = font(size);
   }
-  g.fillText(text, c.width / 2, c.height / 2 + 6);
+  if (blockC) {
+    // Solid collegiate block letter, independent of installed fonts.
+    g.beginPath();
+    const outline = [[410,50],[125,50],[60,115],[60,397],[125,462],[410,462],[452,420],[452,330],[340,330],[340,360],[172,360],[172,152],[340,152],[340,182],[452,182],[452,92]];
+    outline.forEach(([x,y],i) => i ? g.lineTo(x,y) : g.moveTo(x,y));
+    g.closePath(); g.fill();
+  } else g.fillText(text, c.width / 2, c.height / 2 + 6);
   const tex = new CanvasTexture(c);
   tex.colorSpace = SRGBColorSpace;
   tex.minFilter = LinearFilter;
@@ -83,6 +90,7 @@ uniform float uFaceLength;
 uniform float uJaw;
 uniform float uNose;
 uniform float uPattern;
+uniform float uBlockC;
 uniform float uClothing;
 uniform float uHairStyle;
 uniform float uSweat;
@@ -255,7 +263,9 @@ Look bodyLook() {
   float trim = aa(trimW - abs(edge)) * singlet;
 
   vec3 kit = base;
-  if (uPattern < 0.5) {
+  if (uBlockC > 0.5) {
+    kit = uPrimary;
+  } else if (uPattern < 0.5) {
     // Side panels down the ribs and the outside of each leg.
     float panel = isTorso ? aa(ax - 0.118) : aa(p.x * side - 0.128);
     kit = mix(kit, uSecondary, panel);
@@ -274,7 +284,7 @@ Look bodyLook() {
   }
 
   // Chest wordmark.
-  vec2 uv = vec2(0.5 + p.x / 0.25, (p.y - 1.178) / 0.078);
+  vec2 uv = uBlockC > 0.5 ? vec2(0.5 + p.x / 0.22, (p.y - 1.04) / 0.24) : vec2(0.5 + p.x / 0.25, (p.y - 1.178) / 0.078);
   float inMark = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0) * smoothstep(0.0, 0.04, p.z) * (isTorso ? 1.0 : 0.0);
   float ink = texture2D(uWordmark, uv).a * inMark;
   vec3 inkCol = uPattern > 2.5 ? uPrimary : uSecondary;
@@ -354,11 +364,12 @@ export function createBodyMaterial(look: BodyLook, shape?: AppearanceShape): Bod
     uJaw: {value: shape?.jaw ?? 1},
     uNose: {value: shape?.nose ?? 0},
     uPattern: { value: PATTERN_ID[look.pattern] },
+    uBlockC: { value: look.blockC ? 1 : 0 },
     uClothing: { value: look.clothing === 'referee' ? 1 : 0 },
     uHairStyle: { value: HAIR_ID[look.hairStyle] },
     uSweat: { value: 0.15 },
     uFlush: { value: 0 },
-    uWordmark: { value: wordmarkTexture(look.wordmark.toUpperCase()) },
+    uWordmark: { value: wordmarkTexture(look.wordmark.toUpperCase(), look.blockC) },
   };
   mat.userData.uniforms = uniforms;
 

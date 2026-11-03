@@ -9,12 +9,13 @@ import type { GameApi, UiState } from '../game/store';
 import { Key } from './glyphs';
 
 const DIFFICULTIES: Array<{ id: Difficulty; label: string; blurb: string }> = [
-  { id: 'walk-on', label: 'Walk-on', blurb: 'Slow to react. Learn the positions.' },
-  { id: 'starter', label: 'Starter', blurb: 'Sprawls on time and punishes lazy shots.' },
-  { id: 'all-american', label: 'All-American', blurb: 'Reads you, waits for openings, never stops.' },
+  { id: 'practice', label: 'Practice', blurb: 'Cooperative partner. No attacks or counters. Unlimited time and position resets.' },
+  { id: 'walk-on', label: 'Junior Varsity', blurb: 'Very forgiving. Plenty of time to set up and finish moves.' },
+  { id: 'starter', label: 'Varsity', blurb: 'Light resistance with generous openings. Player-friendly matches.' },
+  { id: 'all-american', label: 'All-American', blurb: 'More active, but still forgiving—even with a lower-rated wrestler.' },
 ];
 
-const ATTRS: Array<[keyof Wrestler['attributes'], string]> = [
+const ATTRS: Array<[Exclude<keyof Wrestler['attributes'], 'legRiding'>, string]> = [
   ['quickness', 'Quickness'],
   ['strength', 'Strength'],
   ['conditioning', 'Conditioning'],
@@ -37,7 +38,7 @@ function Tile({ w, on, onPick, corner }: { w: Wrestler; on: boolean; onPick: () 
         <span className="tile__first">{w.firstName}</span> {w.lastName}
       </span><span className="tile__rating" title={w.rating === undefined ? "Historical rating research pending" : "Overall rating"}>{w.rating ?? "Unrated"}</span></span>
       {w.legends?.nickname && <span className="tile__meta">“{w.legends.nickname}”</span>}
-      {careerCredentials(w.ncaaCareer, `${w.firstName} ${w.lastName}`) && <span className="tile__meta tile__credentials" title="Verified NCAA and senior international credentials · AA means All-American">{careerCredentials(w.ncaaCareer, `${w.firstName} ${w.lastName}`)}</span>}
+      {careerCredentials(w.ncaaCareer, `${w.firstName} ${w.lastName}`) && <span className="tile__meta tile__credentials" title="College and senior international credentials · Career falls from owner-provided graphic · AA means All-American">{careerCredentials(w.ncaaCareer, `${w.firstName} ${w.lastName}`)}</span>}
       <span className="tile__meta">
         {w.weightClass === 285 ? 'HWT' : `${w.weightClass} lbs`} · {w.legends?.role === 'choice' ? 'Coach’s Choice' : 'Starter'}
       </span>
@@ -174,7 +175,7 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
         {ncaaMatchupNotes(you, them).map(meeting => <p className="field__note matchup-history" key={`${meeting.year}-${meeting.round}-${meeting.weight}`}><strong>NCAA history:</strong> {historicalMeetingText(meeting)} <a href={meeting.source} target="_blank" rel="noopener noreferrer">View source</a></p>)}
 
         <button type="button" className="cta" onClick={go}>
-          <span>Wrestle</span>
+          <span>{difficulty==='practice'?'Practice':'Wrestle'}</span>
           <Key>Enter</Key>
         </button>
 

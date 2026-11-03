@@ -202,7 +202,8 @@ for (const w of ROSTER) {
   w.profile = profile; w.motion = profile.motion; w.appearance = profile.shape;
   w.headgearColor = profile.look.gear; w.style = profile.summary;
 }
-// Era uniform colours for researched teams; no logos or remote textures.
+// School uniform colours and locally drawn marks; no remote textures.
+Object.assign(SCHOOLS.cornell, {primary: '#b31b1b', secondary: '#ffffff', accent: '#ffffff', mark: 'C', pattern: 'panel'});
 Object.assign(SCHOOLS['penn-state'], {primary: '#001e44', secondary: '#ffffff', accent: '#ffffff', gear: '#e9e6df', pattern: 'band'});
 Object.assign(SCHOOLS.iowa, {primary: '#171717', secondary: '#ffcd00', accent: '#ffcd00', gear: '#171717', pattern: 'band'});
 
@@ -272,7 +273,13 @@ for (const w of ROSTER) {
 for (const w of ROSTER) {
  const name = `${w.firstName} ${w.lastName}`;
  if ((HIGH_PACE_NAMES as readonly string[]).includes(name)) w.motion = applyOwnerPace(name, w.motion);
- if (name === 'Bo Bassett') w.style = 'Machine Gun Mindset — sustained movement and repeated setups';
+ if (name === 'Bo Bassett') {
+   w.style = 'Machine Gun Mindset — non-stop motor, heart, pace, technician';
+   // Owner profile, November 2: conditioning sustains the motor; mat skill
+   // supports technique. Heart is a descriptive trait, not a fabricated stat.
+   w.attributes.conditioning = .98;
+   w.attributes.mat = .95;
+ }
 }
 
 for (const w of ROSTER) applyGablePressure(w);
@@ -287,13 +294,19 @@ for (const w of ROSTER) {
   w.style = 'Cement mixer specialist — counterattack pinning threat';
   if (w.legends) w.legends.bioNote = 'Never count him out: trailing Oklahoma’s Josh Lambrecht 14–2 late in the third period of the 2002 NCAA 184-pound final, Rohn hit a cement mixer for the championship-winning pin. Four consecutive falls in 13:28 earned him the tournament’s Gorriaran Award.';
  }
+ if (name === 'Aden Valencia' && w.legends) w.legends.bioNote = 'Stanford · 2026 NCAA champion at 149 pounds; first Stanford freshman to win an NCAA title.';
+ if (name === 'Jax Forrest') w.style = 'High-pace point scorer and elite scrambler — repeated attacks and creative counters in contested positions';
+ if (name === 'Sergio Vega') {
+  w.motion = {...(w.motion ?? DEFAULT_MOTION), topPatience:1.1, turnPreference:1.3, preferredTurn:'cradle'};
+  w.style = 'Cradle pinning specialist — locks the head and knee together, turns and maintains finishing pressure';
+ }
  if (name === 'Nick Simmons') {
   w.motion = {...(w.motion ?? DEFAULT_MOTION), topPatience:1.15, turnPreference:1.35};
   w.attributes.mat = Math.max(w.attributes.mat,0.97);
   w.style = 'The East Lansing Strangler — suffocating top pressure, spladle specialist and relentless pinning';
  }
  if (name === 'Spencer Lee' || name === 'David Taylor') {
-  w.motion = {...(w.motion ?? DEFAULT_MOTION), topPatience:1.1, turnPreference:1.35};
+  w.motion = {...(w.motion ?? DEFAULT_MOTION), topPatience:1.1, turnPreference:1.35, preferredTurn:name==='David Taylor'?'barHalf':'wristBar'};
   w.attributes.mat = Math.max(w.attributes.mat,0.98);
   w.style = name === 'David Taylor'
    ? 'The Magic Man — arm bars and tilts; deep half nelsons from crab rides, quick side switches and pinning pressure'

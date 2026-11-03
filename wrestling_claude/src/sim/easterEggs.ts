@@ -11,6 +11,7 @@ export interface HistoricalMeeting {
 }
 /** Verified historical bouts; game roster weights do not rewrite history. */
 export const NCAA_MEETINGS: readonly HistoricalMeeting[] = [
+  {winner:'Luke Becker',loser:'Yoshi Nakamura',year:2002,round:'semifinal',weight:157,result:'2–1 in a tiebreaker',source:'https://fs.ncaa.org/Docs/stats/winter_champs_records/2002/2002_winter_champs_records.pdf'},
   {winner:'Steve "Dr. Death" Williams',loser:'Lou Banach',year:1982,round:'semifinal',weight:'unlimited',result:'7–4',source:'https://nwhof.org/brackets/52#page=29'},
   {winner:'Mark Kerr',loser:'Randy Couture',year:1992,round:'final',weight:190,result:'12–4',source:'https://nwhof.org/brackets/62#page=1'},
   {winner:'Terry Brands',loser:'Shawn Charles',year:1992,round:'final',weight:126,result:'8–5',source:'https://nwhof.org/brackets/62#page=1'},

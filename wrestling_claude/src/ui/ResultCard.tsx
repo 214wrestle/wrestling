@@ -29,7 +29,7 @@ export function ResultCard({ state, api }: { state: UiState; api: GameApi }) {
   const youWon = result.winner === state.humanSide;
   const method =
     result.type === 'fall'
-      ? `Fall · ${formatClock(Math.max(0, result.clock))} left in ${periodLabel(result.period)}`
+      ? state.difficulty === 'practice' ? 'Fall · Practice' : `Fall · ${formatClock(Math.max(0, result.clock))} left in ${periodLabel(result.period)}`
       : `${describeWinType(result.type, margin)} · ${result.score[result.winner]}–${result.score[result.winner === 0 ? 1 : 0]}`;
 
   return (

@@ -75,6 +75,8 @@ export interface Wrestler {
     conditioning: number;
     /** Top and bottom technique. */
     mat: number;
+    /** Optional reviewed leg-riding technique, 0–1; falls back to mat. */
+    legRiding?: number;
     /** Reaction and sprawl. */
     defense: number;
   };
@@ -87,6 +89,7 @@ export type ScoreKind =
   | 'escape'
   | 'reversal'
   | 'nearFall2'
+  | 'nearFall3'
   | 'nearFall4'
   | 'penalty'
   | 'stalling'
@@ -132,6 +135,7 @@ export type StartPosition = 'neutral' | 'top' | 'bottom';
 
 /** Normalised per-tick intent from a human or the AI. */
 export interface Command {
+  topTurn?: import('./armBars').TopTurnChoice;
   /** U / left bumper: ankle-level single. I / triangle: contest control. */
   /** Touch hold adds capped repeat effort only in sustained struggle positions. */
   legRide?: boolean;

@@ -1,4 +1,8 @@
+import {ARM_BARS} from './armBars';
 import type { ScoreKind } from './types';
+
+/** Normalized instant when a successful cradle defense opens the lock. */
+export const CRADLE_GRIP_RELEASE = .255;
 
 /**
  * Moves: the transitions between positions.
@@ -66,13 +70,17 @@ export const HOLD_PLACES = {
 } as const;
 
 export const MOVES: Record<string, MoveDef> = {
+  ...Object.fromEntries(ARM_BARS.flatMap(style=>[
+    [style+'Turn',{id:style+'Turn',dur:2.2,camera:'mat',next:{kind:'mat',A:'A',frame:{x:0,z:0,yaw:0},sub:'exposed'}}],
+    [style+'Resisted',{id:style+'Resisted',dur:1.5,camera:'mat',next:{kind:'mat',A:'A',frame:{x:0,z:0,yaw:0},sub:'flat',base:.3}}],
+  ])) as Record<string,MoveDef>,
   liftedLegTrip: {id:'liftedLegTrip',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Lifted leg — outside trip'},impact:{at:0.7,strength:0.65},next:{kind:'mat',A:'A',frame:{x:0.3,z:0.8,yaw:-PI/2},sub:'ride',base:0.5}},
   liftedLegDrive: {id:'liftedLegDrive',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Lifted leg — drive back'},impact:{at:0.7,strength:0.6},next:{kind:'mat',A:'A',frame:{x:0,z:1.1,yaw:PI},sub:'ride',base:0.55}},
-  duckUnder: {id:'duckUnder',dur:1.3,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'duckUnder — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
-  superDuck: {id:'superDuck',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'superDuck — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  duckUnder: {id:'duckUnder',dur:1.3,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Duck under — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  superDuck: {id:'superDuck',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Super duck — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   footSweep: {id:'footSweep',dur:1.5,camera:'tight',award:{to:'A',kind:'takedown',at:0.9,detail:'Foot sweep — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
-  slideBy: {id:'slideBy',dur:1.25,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'slideBy — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
-  firemansCarry: {id:'firemansCarry',dur:1.8,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'firemansCarry — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  slideBy: {id:'slideBy',dur:1.25,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Slide by — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  firemansCarry: {id:'firemansCarry',dur:1.8,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Fireman’s carry — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   tieAttackCounter: {id:'tieAttackCounter',dur:1.1,camera:'low',next:{kind:'fhl',A:'B',frame:{x:0,z:0.1,yaw:PI}}},
   spladleCounter: {id:'spladleCounter',dur:1.6,camera:'mat',
     award:{to:'B',kind:'takedown',at:0.85,detail:'Spladle counter — control established'},

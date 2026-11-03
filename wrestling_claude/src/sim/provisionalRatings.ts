@@ -25,7 +25,7 @@ export const PROVISIONAL_RATINGS: Record<string, ProvisionalResolution> = {
     'Dreshaun Ross': 84,
     'Ashton Honnold': 65,
     'Israel "Izzy" Moreno': 53,
-    'Bo Bassett': 84,
+    'Bo Bassett': 91,
     'Coby Merrill': 78,
   }).map(([name,rating])=>[name,{rating,basis:'developmental' as const,note:'Owner-assigned developmental rating (October 7, 2026); not an NCAA career rating.',evidence:'docs/rosters/developmental-ratings-owner-2026-10-07.md'}])),
 };

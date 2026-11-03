@@ -196,7 +196,7 @@ export class Input {
       y /= len;
     }
     const technique = (['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).find(k=>this.held.has(k)) ?? touch.technique ?? (pad?.buttons[12]?.pressed ? 'duckUnder' : pad?.buttons[13]?.pressed ? 'superDuck' : pad?.buttons[14]?.pressed ? 'slideBy' : pad?.buttons[15]?.pressed ? 'firemansCarry' : undefined);
-    return { x, y, shoot, fight, sprawl, level, technique, legRide: this.held.has('legRide') || touch.legRide, closePockets: this.held.has('closePockets') || touch.closePockets, catchLeg: this.held.has('catchLeg') || touch.catchLeg, legAction: this.held.has('liftLeg') ? 'lift' : this.held.has('tripLeg') ? 'trip' : this.held.has('doubleLeg') ? 'double' : this.held.has('driveLeg') ? 'drive' : touch.legAction, sustainedEffort: touch.shoot || touch.fight || touch.sprawl, lowSingle: this.held.has('lowSingle') || !!touch.lowSingle || !!pad?.buttons[4]?.pressed, scramble: this.held.has('scramble') || !!touch.scramble || !!pad?.buttons[3]?.pressed };
+    return { x, y, shoot, fight, sprawl, level, technique, legRide: this.held.has('legRide') || touch.legRide, closePockets: this.held.has('closePockets') || touch.closePockets, catchLeg: this.held.has('catchLeg') || touch.catchLeg, legAction: this.held.has('liftLeg') ? 'lift' : this.held.has('tripLeg') ? 'trip' : this.held.has('doubleLeg') ? 'double' : this.held.has('driveLeg') ? 'drive' : touch.legAction, sustainedEffort: shoot || fight || sprawl, lowSingle: this.held.has('lowSingle') || !!touch.lowSingle || !!pad?.buttons[4]?.pressed, scramble: this.held.has('scramble') || !!touch.scramble || !!pad?.buttons[3]?.pressed };
   }
 
   /** A short controller buzz for impacts and scores. */

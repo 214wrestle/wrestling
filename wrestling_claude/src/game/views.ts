@@ -1,3 +1,5 @@
+import {isArmBar} from '../sim/armBars';
+import {legRideQuality,LEG_CLEAR_THRESHOLD} from '../sim/legRideQuality';
 import { SHOT_CLIPS, LEG_HOLDS } from '../sim/moves';
 import type { AnimView } from '../anim/Animator';
 import type { MatchSim } from '../sim/MatchSim';
@@ -42,7 +44,7 @@ function soloView(a: Athlete, clip: string, u: number): AnimView {
   return { mode: 'solo', clip, x: a.pos.x, z: a.pos.z, yaw: a.yaw, u, stamina: a.stamina, exertion: a.exertion };
 }
 
-function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete]): AnimView | null {
+function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete], rideQuality=1): AnimView | null {
   const me = athletes[side];
   const base = { stamina: me.stamina, exertion: me.exertion };
   switch (p.kind) {
@@ -63,13 +65,13 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete]): AnimV
     case 'legs':
       return {
         mode: 'paired',
-        clip: LEG_HOLDS[p.shot],
+        clip: (p.counterGrip ?? 0) > 0.01 ? 'spladleSetup' : LEG_HOLDS[p.shot],
         hold: true,
         role: p.A === side ? 'A' : 'B',
         frame: p.frame,
         mirror: p.mirror,
         u: 0,
-        progress: Math.max(0, Math.min(1, p.lifted ?? p.progress)),
+        progress: Math.max(0, Math.min(1, (p.counterGrip ?? 0) > 0.01 ? p.counterGrip! : p.lifted ?? p.progress)),
         intensity: p.intensity,
         ...base,
       };
@@ -93,25 +95,27 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete]): AnimV
       else if (p.sub === 'standing') progress = p.escape;
       else progress = Math.min(1, p.pin);
       const matLegs = p.sub === 'ride' || p.sub === 'flat';
-      const legClip = matLegs && (p.legCaught ?? 0) > 0.05 ? 'catchRidingLeg' : matLegs && (p.legRide ?? 0) > 0 ? 'legRide' : matLegs && (p.pockets ?? 0) > 0.3 ? 'closedPockets' : null;
-      if (legClip) progress = legClip === 'catchRidingLeg' ? p.legCaught! : legClip === 'closedPockets' ? p.pockets! : p.legRide!;
+      const legClip = matLegs && (p.legCaught ?? 0) > 0.05 ? (p.sub==='flat' ? 'catchRidingLegFlat' : 'catchRidingLeg') : matLegs && (p.legRide ?? 0) > 0 ? (p.sub==='flat' ? ((p.legRide??0)>=.8?'legRidePressure':'legRideFlat') : 'legRide') : matLegs && (p.pockets ?? 0) > 0.3 ? (p.sub==='flat' ? 'closedPocketsFlat' : 'closedPockets') : null;
+      if (legClip) progress = legClip==='legRidePressure' ? rideQuality : (legClip === 'catchRidingLeg' || legClip === 'catchRidingLegFlat') ? Math.min(1,p.legCaught!/LEG_CLEAR_THRESHOLD) : (legClip === 'closedPockets' || legClip === 'closedPocketsFlat') ? p.pockets! : p.legRide!;
       return {
         mode: 'paired',
-        clip: p.sub === 'exposed' && p.turnStyle === 'cradle' ? 'cradleHold' : legClip ?? HOLD_FOR_SUB[p.sub],
+        clip: p.sub==='exposed' && isArmBar(p.turnStyle) ? p.turnStyle+'Pin' : p.sub === 'exposed' && p.turnStyle === 'cradle' ? 'cradleHold' : legClip ?? HOLD_FOR_SUB[p.sub],
         hold: true,
         role: p.A === side ? 'A' : 'B',
         frame: p.frame,
-        mirror: false,
+        mirror: p.mirror ?? false,
         u: 0,
         progress: Math.max(0, Math.min(1, progress)),
         intensity: p.intensity,
+        pockets: matLegs ? p.pockets ?? 0 : undefined,
+        resistance: p.sub==='exposed' && (p.turnStyle==='cradle'||isArmBar(p.turnStyle)) ? Math.max(0,Math.min(1,p.fight)) : undefined,
         ...base,
       };
     }
     case 'move':
       return {
         mode: 'paired',
-        clip: p.id,
+        clip: isArmBar(p.turnStyle) && (p.id==='fightOff'||p.id==='fall') ? p.turnStyle+(p.id==='fightOff'?'Exit':'Fall') : p.turnStyle==='cradle' && p.id==='fightOff' ? 'cradleFightOff' : p.turnStyle==='cradle' && p.id==='fall' ? 'cradleFall' : p.id,
         hold: false,
         role: p.A === side ? 'A' : 'B',
         frame: p.frame,
@@ -155,7 +159,8 @@ export function wrestlerViews(sim: MatchSim): [AnimView, AnimView] {
       case 'wrestling':
       case 'setPosition': {
         const p = sim.bout.position;
-        const paired = pairedFor(p, side, ath);
+        const pressure=p.kind==='mat'?legRideQuality(sim.bout.wrestlers[p.A],p.legRide??0,ath[p.A].stamina,p.legCaught):1;
+        const paired = pairedFor(p, side, ath,pressure);
         v = paired ?? stanceView(me, them, p.kind === 'free');
         break;
       }

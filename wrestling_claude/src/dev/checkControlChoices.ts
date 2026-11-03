@@ -102,7 +102,8 @@ for (const shot of ['single','highCrotch','double','lowSingle'] as const) {
  const attack=readPrompts(promptSim,0),defense=readPrompts(promptSim,1);
  ok(attack.legActions?.join(',')===(shot==='single'||shot==='highCrotch'?'lift,trip,double,drive':'drive'),'finish buttons match secured grip');
  ok(defense.legActions?.length===0,'defender cannot request attacker leg finishes');
- ok(attack.meters.some(m=>m.label==='Finish'),'finish remains visible during lift');
+ const name={single:'Single leg',highCrotch:'High crotch',double:'Double leg',lowSingle:'Low single'}[shot];
+ ok([attack,defense].every(p=>p.meters.some(m=>m.label===name&&m.value===.6)),'both sides see captured leg type and finish progress');
  if(shot==='single')ok(attack.meters.some(m=>m.label==='Leg lift'),'lift and finish are distinct meters');
 }
 console.log('Leg finish controls respect grip type and preserve both progress meters');

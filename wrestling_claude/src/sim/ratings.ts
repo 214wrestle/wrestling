@@ -42,6 +42,12 @@ export function scoreCareer(seasons: readonly NcaaSeason[], eligibilitySeasons: 
 }
 const gableSource = 'https://nwhof.org/national-wrestling-hall-of-fame/champions-database?tab=ncaa&wrestler=38';
 export const CAREER_RECORDS: Record<string, NcaaSeason[]> = {
+ 'Levi Haines': [{year:2023,place:2,source:'https://www.psu.edu/news/students/story/haines-janecke-honored-mccoy-award'},{year:2024,place:1,source:'https://www.psu.edu/news/students/story/haines-janecke-honored-mccoy-award'},{year:2025,place:3,source:'https://pennstatewrestlingclub.org/team/haines-levi/'},{year:2026,place:1,source:'https://www.psu.edu/news/students/story/haines-janecke-honored-mccoy-award'}],
+'Aden Valencia': [{year:2026,place:1,source:'https://gostanford.com/news/2026/03/21/valencia-wins-national-title'}],
+'Landon Robideau': [{year:2026,place:1,source:'https://okstate.com/sports/wrestling/roster/landon-robideau/14640'}],
+'Sergio Vega': [{year:2026,place:1,source:'https://okstate.com/sports/wrestling/roster/sergio-vega/14648'}],
+'Jax Forrest': [{year:2026,place:1,source:'https://okstate.com/sports/wrestling/roster/jax-forrest/14628'}],
+'Max McEnelly': [{year:2025,place:3,source:'https://gophersports.com/sports/wrestling/roster/max-mcenelly/24153'},{year:2026,place:1,source:'https://gophersports.com/sports/wrestling/roster/max-mcenelly/24153'}],
 // 1990 competed before injury; 1993 was an explicitly planned redshirt.
 'Shane Camera': [{year:1990,place:0,source:'https://newspapers.digitalnc.org/lccn/sn92073228/1990-03-09/ed-1/seq-7.pdf'},{year:1991,place:8,source:'https://goheels.com/documents/download/2025/3/25/2025-26_Wrestling_Record_Book.pdf#page=5'},{year:1992,place:'qualifier',source:'https://goheels.com/documents/download/2025/3/25/2025-26_Wrestling_Record_Book.pdf#page=6'},{year:1994,place:6,source:'https://goheels.com/documents/download/2025/3/25/2025-26_Wrestling_Record_Book.pdf#page=5'}],
 // Dated varsity dual ledger supports 1979 participation; see Weaver source-conflict review.
@@ -557,6 +563,12 @@ export function placementRating(average: number): number {
 
 export interface CollegeRecord { wins: number; losses: number; ties?: number; source: string; evidenceStatus?: 'provisional-reconstruction'; }
 export const COLLEGE_RECORDS: Record<string, CollegeRecord> = {
+ 'Levi Haines': {wins:99,losses:4,source:'https://www.psu.edu/news/students/story/haines-janecke-honored-mccoy-award'},
+'Aden Valencia': {wins:21,losses:7,source:'https://storage.googleapis.com/stanford-prod/2025/11/06/BGGmRiffbR20Pf67wgk2xLFYzXMeeY1X3yl3gWkG.pdf#page=1'},
+'Landon Robideau': {wins:21,losses:2,source:'https://okstate.com/sports/wrestling/roster/landon-robideau/14640'},
+'Sergio Vega': {wins:24,losses:0,source:'https://okstate.com/sports/wrestling/roster/sergio-vega/14648'},
+'Jax Forrest': {wins:19,losses:0,source:'https://okstate.com/sports/wrestling/roster/jax-forrest/14628'},
+'Max McEnelly': {wins:49,losses:4,source:'https://gophersports.com/sports/wrestling/roster/max-mcenelly/24153'},
 'Richard Figueroa': {wins:48,losses:16,evidenceStatus:'provisional-reconstruction',source:'https://thesundevils.com/sports/wrestling/roster/player/richard-figueroa ; https://okstate.com/documents/download/2026/1/7/6_-_Oklahoma.pdf#page=11 ; https://okstate.com/documents/2026/9/29/2025-26_Final_Stats_Corrected.pdf'},
 'Mark Miller': {wins:82,losses:24,source:'https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/vatech.sidearmsports.com/documents/2018/4/30/wr07mg.pdf#page=21'},
 'Kevin Jackson': {wins:135,losses:17,ties:1,source:'https://ncaanewsarchive.s3.amazonaws.com/1986/19861103.pdf#page=5 ; https://cyclones.com/sports/2015/3/2/GEN_20140101210'},
@@ -991,6 +1003,8 @@ export function overallRating(name: string, career: CareerScore, record?: Colleg
   if (name === 'Dan Gable' || name === 'Cael Sanderson') return 99;
   // Owner-approved exception: Taylor's finals opposition included Kyle Dake.
   if (name === 'David Taylor') return 96;
+  // Owner-selected 2026 freshman champion tier, above developmental freshmen.
+  if (['Jax Forrest', 'Sergio Vega', 'Landon Robideau', 'Aden Valencia'].includes(name)) return 86;
   // Owner-approved all-time exception, 2026-10-06; only Gable/Sanderson are 99.
   if (name === 'Yojiro Uetake') return 98;
   // Owner override: limited college match sample warrants 87, despite two titles.
@@ -1009,6 +1023,11 @@ export function overallRating(name: string, career: CareerScore, record?: Colleg
 
 /** Completed-season evidence for careers still underway, not era exceptions. */
 export const ACTIVE_CAREERS: Record<string, {throughYear:number;source:string}> = {
+'Aden Valencia': {throughYear:2026,source:'https://gostanford.com/news/2026/03/21/valencia-wins-national-title'},
+'Landon Robideau': {throughYear:2026,source:'https://okstate.com/sports/wrestling/roster/landon-robideau/14640'},
+'Sergio Vega': {throughYear:2026,source:'https://okstate.com/sports/wrestling/roster/sergio-vega/14648'},
+'Jax Forrest': {throughYear:2026,source:'https://okstate.com/sports/wrestling/roster/jax-forrest/14628'},
+'Max McEnelly': {throughYear:2026,source:'https://gophersports.com/sports/wrestling/roster/max-mcenelly/24153'},
 'Ty Watters': {throughYear:2026,source:'https://wvusports.com/sports/wrestling/roster/ty-watters/19935'},
 'Cross Wasilewski': {throughYear:2026,source:'https://pennathletics.com/sports/wrestling/roster/cross-wasilewski/26153'},
 'Caleb Henson': {"throughYear": 2025, "source": "https://hokiesports.com/sports/wrestling/roster/season/2025-26/player/caleb-henson"},

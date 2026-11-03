@@ -127,7 +127,7 @@ const flatBPushing: PoseSpec = {
 
 const flatA: PoseSpec = {
   hips: [0.13, 0.33, -0.14],
-  rot: [-12, 80, 0],
+  rot: [0, 80, 0],
   spine: [6, -6, 0],
   head: [-25, -10, 0],
   look: 0,

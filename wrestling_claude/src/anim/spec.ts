@@ -243,6 +243,8 @@ export interface Key {
   /** Normalised time 0..1. */
   t: number;
   pose: PoseSpec;
+  /** Hip velocity in metres per unit normalized clip time; shared by both adjoining segments. */
+  hipsVelocity?: V3;
   /** Come to rest at this key (zero tangent) — a held position or a stop. */
   stop?: boolean;
   /** Arrive accelerating, like a body landing: ease-in into this key. */
@@ -254,6 +256,7 @@ export interface CompiledTrack {
   poses: LocalPose[];
   stop: boolean[];
   land: boolean[];
+  hipsVelocity?: (V3 | undefined)[];
 }
 
 /** Yaw-like channels: each key is unwrapped to sit within half a turn of the last. */
@@ -279,6 +282,7 @@ export function compileTrack(keys: Key[], base: LocalPose | null): CompiledTrack
     poses,
     stop: sorted.map((k) => !!k.stop),
     land: sorted.map((k) => !!k.land),
+    hipsVelocity: sorted.map(k => k.hipsVelocity),
   };
 }
 
@@ -323,8 +327,11 @@ export function sampleTrack(tr: CompiledTrack, u: number, out: LocalPose): void 
     const va = a[k];
     const vb = b[k];
     // Tangents in value-per-segment units.
-    const ma = stopA || land ? 0 : ((vb - pa![k]) / (t1 - ta)) * h;
-    const mb = stopB || land ? 0 : ((pb![k] - va) / (tb - t0)) * h;
+    const hipAxis = k >= P.HIPS && k < P.HIPS + 3 ? k - P.HIPS : -1;
+    const velocityA = hipAxis >= 0 ? tr.hipsVelocity?.[i]?.[hipAxis] : undefined;
+    const velocityB = hipAxis >= 0 ? tr.hipsVelocity?.[i + 1]?.[hipAxis] : undefined;
+    const ma = stopA || land ? 0 : (velocityA ?? ((vb - pa![k]) / (t1 - ta))) * h;
+    const mb = stopB || land ? 0 : (velocityB ?? ((pb![k] - va) / (tb - t0))) * h;
     out[k] = h00 * va + h10 * ma + h01 * vb + h11 * mb;
   }
 }

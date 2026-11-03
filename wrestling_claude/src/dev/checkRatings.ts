@@ -46,7 +46,9 @@ for (const h of Object.values(PIN_HISTORY)) {
 }
 assert(pinningMultiplier('Other athlete') === 1);
 assert(pinningMultiplier('Mark Perry') > 1);
-assert(pinningMultiplier('Jason Nolf') > pinningMultiplier('Ed Ruth'));
+// Both are owner-designated elite pinners; neither may lose the capped boost.
+assert(pinningMultiplier('Jason Nolf') === 1.4);
+assert(pinningMultiplier('Ed Ruth') === 1.4);
 console.log('Hodge award coverage 1995–2026, shared awards, rating bonuses and fall-rate tendencies passed');
 
 for (let titles = 0; titles <= 4; titles++) {
@@ -87,7 +89,7 @@ assert(careerCredentials(undefined,'Dave Schultz')==='2x World/Olympic Champ · 
 assert(careerCredentials(undefined,'Jordan Burroughs')==='7x World/Olympic Champ · 3x World/Olympic Bronze Medalist');
 assert(careerCredentials(undefined,'Unknown athlete')===undefined);
 
-assert(careerCredentials(undefined,'Cael Sanderson')==='1x World/Olympic Champ · 1x World/Olympic Silver Medalist');
+assert(careerCredentials(undefined,'Cael Sanderson')==='159–0, 61 career falls · 1x World/Olympic Champ · 1x World/Olympic Silver Medalist');
 assert(careerCredentials(undefined,'Dan Hodge')==='1x World/Olympic Silver Medalist');
 
 assert(careerCredentials(undefined,'Kenny Monday')==='2x World/Olympic Champ · 2x World/Olympic Silver Medalist');
@@ -110,3 +112,10 @@ assert(overallRating('Taylor Lujan', scoreKnownCareer('Taylor Lujan', CAREER_REC
 assert(JSON.stringify(CAREER_RECORDS['Taylor Lujan']) === lujanHistory && !CAREER_RECORDS['Taylor Lujan'].some(s => s.year === 2020));
 assert(careerCredentials(scoreKnownCareer('Taylor Lujan', CAREER_RECORDS['Taylor Lujan']), 'Taylor Lujan')!.includes('1x AA') && !careerCredentials(scoreKnownCareer('Taylor Lujan', CAREER_RECORDS['Taylor Lujan']), 'Taylor Lujan')!.includes('runner'));
 console.log('Lujan owner assumption changes rating only; verified history and AA bio preserved');
+
+// November 2 owner-requested addition: preserve NCAA history and senior honors.
+const haines = scoreKnownCareer('Levi Haines', CAREER_RECORDS['Levi Haines']);
+assert([...haines.counted].sort((a,b)=>a.year-b.year).map(s=>s.place).join(',') === '2,1,3,1');
+assert(COLLEGE_RECORDS['Levi Haines'].wins === 99 && COLLEGE_RECORDS['Levi Haines'].losses === 4);
+assert(careerCredentials(haines,'Levi Haines') === '2x National Champ · 4x AA · 99–4 college record · 4x Big Ten Champ · 1x World/Olympic Champ · 1x World/Olympic Silver Medalist');
+console.log('Owner elite-pinner bio and Haines college/senior credentials preserved');

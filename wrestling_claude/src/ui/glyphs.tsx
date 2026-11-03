@@ -29,7 +29,7 @@ export function Key({ children }: { children: React.ReactNode }) {
   return <kbd className="glyph glyph--key">{children}</kbd>;
 }
 
-/** Small silhouettes for the starting-position choice. */
+/** Starting-position cues, paired with explicit Top/Bottom text. */
 export function PositionIcon({ kind }: { kind: 'neutral' | 'top' | 'bottom' }) {
   const stroke = 'currentColor';
   if (kind === 'neutral') {
@@ -44,18 +44,18 @@ export function PositionIcon({ kind }: { kind: 'neutral' | 'top' | 'bottom' }) {
       </svg>
     );
   }
-  const topMan = kind === 'top';
+  // Abstract control/escape cues avoid ambiguous overlapping body silhouettes.
   return (
     <svg viewBox="0 0 120 64" className="posicon" aria-hidden="true">
-      <g fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
-        <g stroke={topMan ? 'var(--muted-ink)' : stroke}>
-          <circle cx="94" cy="30" r="6" fill={topMan ? 'var(--muted-ink)' : stroke} />
-          <path d="M86 34 L40 36 M40 36 L36 56 M44 36 L50 56 M84 36 L84 56" />
-        </g>
-        <g stroke={topMan ? stroke : 'var(--muted-ink)'}>
-          <circle cx="62" cy="10" r="6" fill={topMan ? stroke : 'var(--muted-ink)'} />
-          <path d="M58 16 L40 26 L34 54 M44 26 L58 30 L76 38 M40 26 L28 52" />
-        </g>
+      <g fill="none" stroke={stroke} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M24 54 H96" opacity=".4" />
+        {kind === 'top' ? <>
+          <path d="M36 12 H84 V28 C84 41 72 49 60 54 C48 49 36 41 36 28 Z" />
+          <path d="M48 30 L58 39 L75 21" />
+        </> : <>
+          <path d="M60 43 V10 M44 26 L60 10 L76 26" />
+          <path d="M38 40 V48 H82 V40" />
+        </>}
       </g>
     </svg>
   );

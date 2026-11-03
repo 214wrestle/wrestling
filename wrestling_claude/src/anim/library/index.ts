@@ -19,3 +19,5 @@ import './legRide';
 import './cradle';
 
 import './standingReturns';
+
+import './armBars';

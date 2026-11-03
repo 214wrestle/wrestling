@@ -185,8 +185,8 @@ const fhlB0: PoseSpec = {
   footR: [0.15, BALL, 0.86, 180, 75],
   kneeL: [-0.15, -0.3, 0.1],
   kneeR: [0.15, -0.3, 0.1],
-  handL: [-0.12, 0.35, -0.3],
-  handR: [0.12, 0.35, -0.3],
+  handL: [-0.22, 0.055, 0.02],
+  handR: [0.12, 0.38, -0.08],
   elbowL: [-0.5, 0.2, 0.2],
   elbowR: [0.5, 0.2, 0.2],
   wristL: GRIP,
@@ -194,6 +194,7 @@ const fhlB0: PoseSpec = {
   shrugL: [0, 0],
   shrugR: [0, 0],
   toes: [1, 1],
+  palms: [1, 0],
 };
 
 const fhlB1: PoseSpec = {
@@ -201,6 +202,8 @@ const fhlB1: PoseSpec = {
   rot: [180, 32, 0],
   spine: [16, 0, 0],
   head: [-30, 0, 0],
+  handL: [-0.22, 0.66, 0.08],
+  elbowL: [-0.4, 0.45, 0.3],
 };
 
 const fhlA0: PoseSpec = {
@@ -215,8 +218,8 @@ const fhlA0: PoseSpec = {
   kneeR: [-0.28, -0.6, -0.9],
   handL: [0.0, 0.42, 0.0],
   handR: [-0.2, 0.45, 0.1],
-  elbowL: [0.5, 0.9, 0.0],
-  elbowR: [-0.5, 0.9, -0.2],
+  elbowL: [0.35, 0.28, -0.15],
+  elbowR: [-0.35, 0.28, -0.1],
   wristL: GRIP,
   wristR: GRIP,
   shrugL: [0, 0],
@@ -239,8 +242,8 @@ registerHold({
   contacts: [
     { who: 'A', hand: 'L', on: 'neck', at: [0.0, 0.02, 0.08] },
     { who: 'A', hand: 'R', on: 'armL', at: [0.0, -0.14, -0.045] },
-    { who: 'B', hand: 'L', on: 'thighR', at: [0.0, -0.26, 0.07] },
-    { who: 'B', hand: 'R', on: 'thighL', at: [0.0, -0.26, 0.07] },
+    // One hand supports the base; the free hand peels the controlling forearm.
+    { who: 'B', hand: 'R', on: 'forearmL', at: [0.0, -0.16, 0.04] },
   ],
   struggle: { A: 0.6, B: 1 },
   tempo: 1.5,

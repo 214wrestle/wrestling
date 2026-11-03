@@ -1,3 +1,7 @@
+import {registerSupportedArmBarChain} from '../anim/supportedArmBar';
+let supportedStudyScaleKey='';
+import {playableMatchup} from '../sim/playerDifficulty';
+import {actionFraming} from './actionFraming';
 import {
   AdditiveBlending,
   BufferGeometry,
@@ -120,6 +124,8 @@ interface Body {
  * the simulation knows about three.js.
  */
 export class Game implements GameApi {
+  private topTurn: import('../sim/armBars').TopTurnChoice | undefined;
+  setTopTurn(choice: import('../sim/armBars').TopTurnChoice | undefined):void {this.topTurn=choice;}
   private renderer: Renderer;
   private cameraRig = new CameraRig();
   private input: Input;
@@ -237,6 +243,7 @@ export class Game implements GameApi {
         accent: w.school.accent,
         pattern: w.school.pattern,
         wordmark: w.school.mark,
+        blockC: w.school.id === 'cornell',
         band: band ?? '#111',
         shoe: '#15161b',
         shoeAccent: w.school.primary,
@@ -314,11 +321,11 @@ export class Game implements GameApi {
     });
   }
 
-  private beginMatch(options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean }): void {
+  private beginMatch(options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean }, practice = false): void {
     const bodies = this.bodies!;
     const wrestlers: [Wrestler, Wrestler] = [bodies[0].wrestler, bodies[1].wrestler];
     const human = options.humanSide;
-    const sim = new MatchSim(wrestlers, {
+    const sim = new MatchSim(playableMatchup(wrestlers,human,options.difficulty), {
       onScore: (e) => {
         this.audio.roar(e.points >= 3 ? 0.9 : 0.5);
         this.audio.score(e.side === human);
@@ -393,6 +400,8 @@ export class Game implements GameApi {
       },
     });
     sim.humanSide = human;
+    sim.practice = options.difficulty==='practice';
+    sim.bout.practicePartner = sim.practice ? otherSide(human) : null;
     sim.lengthScale = options.quick ? 0.5 : 1;
     this.sim = sim;
     this.ai = new WrestlerAI(otherSide(human), options.difficulty);
@@ -429,8 +438,24 @@ export class Game implements GameApi {
       flash: null,
     });
     this.running = true;
-    sim.startIntros();
+    if(practice || options.difficulty==='practice'){
+      sim.bout.setNeutral({x:0,z:0},Math.PI/2,1.05);
+      sim.phase='wrestling';
+      this.onPhase('wrestling');
+    }else sim.startIntros();
     for (const b of bodies) b.anim.instant = true;
+  }
+
+  /** Fresh referee state for development move trials, retaining loaded bodies. */
+  resetPractice(): MatchSim | null {
+    if((!import.meta.env.DEV && this.store.getSnapshot().difficulty!=='practice') || !this.bodies)return null;
+    const s=this.store.getSnapshot();
+    this.input.clearTouch();
+    this.teardownMatch();
+    this.renderer.setBloom(.3);
+    this.beginMatch({humanSide:s.humanSide,difficulty:s.difficulty,
+      matchup:[this.bodies[0].wrestler.id,this.bodies[1].wrestler.id],quick:s.quick},true);
+    return this.sim;
   }
 
   rematch(): void {
@@ -593,6 +618,7 @@ export class Game implements GameApi {
       moveX: move.x,
       moveZ: move.z,
       shoot: pad.shoot,
+      topTurn:this.topTurn,
       sustainedEffort: pad.sustainedEffort,
       legAction: pad.legAction,
       legRide: pad.legRide,
@@ -618,11 +644,33 @@ export class Game implements GameApi {
     const sim = this.sim!;
     const [a, b] = this.bodies!;
     const views = wrestlerViews(sim);
+    // Render the reviewed seated chain; simulation timing and scoring stay unchanged.
+    {
+      const first=views[0];
+      if(first.mode==='paired'){
+        const top=first.role==='A'?a:b,bottom=first.role==='A'?b:a;
+        const key=top.anim.scale+':'+bottom.anim.scale;
+        if(key!==supportedStudyScaleKey){registerSupportedArmBarChain(top.anim.scale,bottom.anim.scale);supportedStudyScaleKey=key;}
+        const clips:Record<string,string>={flat:'flatPressureDraft',armBarTurn:'armBarSupportedSeatedTurnDraft',armBarResisted:'armBarSupportedResistedDraft',armBarPin:'armBarSupportedSeatedFinishDraft',armBarExit:'armBarSupportedSeatedExitDraft',armBarFall:'armBarSupportedSeatedFallDraft'};
+        for(const view of views)if(view.mode==='paired' && clips[view.clip]){
+          view.clip=clips[view.clip];
+          if(view.hold)view.progress=0;
+        }
+      }
+    }
+
     const adt = Math.max(dt, 1e-4);
     a.anim.update(adt, views[0], b.anim);
     b.anim.update(adt, views[1], a.anim);
-    a.anim.applyContacts(adt, b.anim);
-    b.anim.applyContacts(adt, a.anim);
+    // Head control must settle before the bottom hand peels that moving arm, including its fading grip during the exit.
+    const secondControlsHead=views[1].mode==="paired" && ["fhl","recover","goBehind"].includes(views[1].clip) && views[1].role==="A";
+    if(secondControlsHead){
+      b.anim.applyContacts(adt,a.anim);
+      a.anim.applyContacts(adt,b.anim);
+    }else{
+      a.anim.applyContacts(adt,b.anim);
+      b.anim.applyContacts(adt,a.anim);
+    }
 
     // Camera: side-on to the action with the player's man on the left.
     const human = sim.humanSide;
@@ -668,7 +716,7 @@ export class Game implements GameApi {
     const r = Math.hypot(focus.x, focus.z);
     if (r > 4.6) focus.multiplyScalar(4.6 / r);
     this.camFocus.lerp(focus, Math.min(1, wall * 8));
-    this.cameraRig.update(wall, this.renderer.camera, this.camFocus, azimuth, sim.distance());
+    this.cameraRig.update(wall, this.renderer.camera, this.camFocus, azimuth, sim.distance(), actionFraming(pos,sim.phase==='wrestling',r));
 
     this.updateOfficial(adt, wall);
 
@@ -682,7 +730,7 @@ export class Game implements GameApi {
   }
 
   private isMatClip(id: string): boolean {
-    return ['breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'fightOff', 'fall', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
+    return /^(armBar|wristBar|barHalf|doubleBar)/.test(id) || ['breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'fightOff', 'fall', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
   }
 
   /** The official works the far side of the action and signals the score. */
@@ -816,7 +864,7 @@ export class Game implements GameApi {
       return;
     }
     const me = sim.humanSide;
-    const read = readPrompts(sim, me);
+    const read = readPrompts(sim, me, this.topTurn);
     const pos = sim.bout.position;
     const a = sim.bout.athletes;
     const snap = this.store.getSnapshot();
@@ -835,7 +883,7 @@ export class Game implements GameApi {
       topRestartCut: sim.topRestartCut,
       meters: read.meters,
       legActions: read.legActions,
-      nearFall: { active: pos.kind === 'mat' && pos.sub === 'exposed', timer: pos.kind === 'mat' ? pos.expo : 0 },
+      nearFall: { active: sim.earnedNearFallPoints > 0 || pos.kind === 'mat' && (pos.sub === 'exposed' || pos.sub === 'spladle'), timer: pos.kind === 'mat' ? pos.expo : 0, earned: sim.earnedNearFallPoints },
       stats: [{ ...a[0].stats }, { ...a[1].stats }],
       awaitingChoice: sim.phase === 'positionChoice',
       react,

@@ -13,6 +13,7 @@ import {
   SphereGeometry,
   SRGBColorSpace,
 } from 'three';
+import {addGripMorph} from './gripMorph';
 import { BIND_POSE, BONES } from './skeleton';
 import type { BoneName } from './skeleton';
 import type { Vector3 } from 'three';
@@ -64,7 +65,7 @@ function eyeTexture(iris: string): CanvasTexture {
 /** Shared rendering contract; anatomy implementations can change without coupling the sim. */
 export interface CharacterRig {
   /** Optional fine-hand flexion, driven by actual contact strength. */
-  setGrip?(hand: 'L' | 'R', amount: number): void;
+  setGrip?(hand: 'L' | 'R', amount: number, kind?: 'hook' | 'gable'): void;
   root: Group; bones: Record<BoneName, Bone>; boneList: Bone[]; scale: number;
   motion: WrestlingStyle;
   setExertion(sweat: number, flush: number): void;
@@ -82,6 +83,7 @@ export class Character implements CharacterRig {
   private meshes: Array<Mesh | SkinnedMesh> = [];
   private extraMaterials: Array<MeshStandardMaterial | MeshPhysicalMaterial> = [];
   readonly eyes: Mesh[] = [];
+  private gripMeshes: Partial<Record<'L'|'R',SkinnedMesh>> = {};
 
   constructor(buffers: BodyBuffers, opts: CharacterOptions) {
     this.motion = opts.motion ?? DEFAULT_MOTION;
@@ -110,7 +112,10 @@ export class Character implements CharacterRig {
 
     this.material = createBodyMaterial(opts.look, opts.shape);
     for (const geo of [buffers.body, buffers.head, ...buffers.hands]) {
+      const handIndex=buffers.hands.indexOf(geo);
+      if(handIndex>=0)addGripMorph(geo,handIndex===0?1:-1,s);
       const mesh = new SkinnedMesh(geo, this.material);
+      if(handIndex>=0)this.gripMeshes[handIndex===0?'L':'R']=mesh;
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       mesh.frustumCulled = false;
@@ -154,6 +159,11 @@ export class Character implements CharacterRig {
       this.bones.head.add(eye);
       this.eyes.push(eye);
     }
+  }
+
+  setGrip(hand:'L'|'R',amount:number,kind:'hook'|'gable'='hook'):void {
+    const weights=this.gripMeshes[hand]?.morphTargetInfluences;
+    if(weights){weights[0]=Math.max(0,Math.min(1,amount));weights[1]=kind==='gable'?weights[0]:0;}
   }
 
   /** Exertion drives sweat sheen and facial flush. */

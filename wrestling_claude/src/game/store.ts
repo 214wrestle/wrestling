@@ -67,7 +67,7 @@ export interface UiState {
   top: Side | null;
   meters: Meter[];
   legActions?: readonly ('lift' | 'trip' | 'double' | 'drive')[];
-  nearFall: { active: boolean; timer: number };
+  nearFall: { active: boolean; timer: number; earned: number };
   prompts: Record<ButtonId, ButtonPrompt>;
   /** A move to react to right now (the opponent just shot, say). */
   react: { button: ButtonId; label: string; id: number } | null;
@@ -123,7 +123,7 @@ export const initialState: UiState = {
   position: 'Neutral',
   top: null,
   meters: [],
-  nearFall: { active: false, timer: 0 },
+  nearFall: { active: false, timer: 0, earned: 0 },
   prompts: idlePrompts(),
   react: null,
   flash: null,
@@ -171,6 +171,7 @@ export class UiStore {
 
 /** Commands the UI can send back into the game. */
 export interface GameApi {
+  setTopTurn: (choice:import('../sim/armBars').TopTurnChoice | undefined)=>void;
   preview: (matchup: [string, string]) => void;
   start: (options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean }) => void;
   rematch: () => void;
