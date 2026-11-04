@@ -86,7 +86,7 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
               fight: P(counterAvailable ? 'Set spladle' : pos.shot !== 'double' ? 'Whizzer' : 'Down block', 'mash'),
               sprawl: P('Sprawl hips', 'mash'),
             },
-        legActions: attacking ? (pos.shot === 'single' || pos.shot === 'highCrotch' ? ['lift','trip','double','drive'] : ['drive']) : [],
+        legActions: attacking ? (pos.shot === 'single' || pos.shot === 'highCrotch' ? ['lift','trip','double','drive'] : pos.shot === 'double' && pos.legFinish === 'double' ? ['double','drive'] : ['drive']) : [],
         meters: [
           { label: {single:'Single leg',highCrotch:'High crotch',double:'Double leg',lowSingle:'Low single'}[pos.shot], value: pos.progress, tone: attacking ? 'you' : 'them' },
           ...((pos.counterGrip ?? 0) > 0 ? [{label:'Spladle setup',value:pos.counterGrip!,tone:attacking?'them' as const:'you' as const}] : []),

@@ -59,6 +59,7 @@ export class WrestlerAI {
   private lowLevel = false;
   private effortTime = 0;
   private legDefense: 'sprawl' | 'fight' | null = null;
+  private legFinishChoice: 'trip' | 'double' | 'drive' | null = null;
 
   constructor(
     private side: Side,
@@ -93,6 +94,7 @@ export class WrestlerAI {
     if (key !== this.lastPos) {
       this.lastPos = key;
       this.legDefense = null;
+      this.legFinishChoice = null;
       // A human beat to read the new position before acting on it.
       this.decideT = this.p.reaction * 1.6 + this.rng.next() * 0.3;
       this.mashT = this.p.reaction;
@@ -254,6 +256,18 @@ export class WrestlerAI {
     const me = bout.athletes[this.side];
     const them = bout.athletes[otherSide(this.side)];
     if (attacking) {
+      const pos = bout.position;
+      if (pos.kind === 'legs' && (pos.shot === 'single' || pos.shot === 'highCrotch')) {
+        // Choose once per capture: finish the movement instead of changing
+        // grips every frame. Low gas or an almost-won leg needs a simple drive.
+        if (!this.legFinishChoice) {
+          const doublePreference = bout.wrestlers[this.side].motion?.shots.double ?? .45;
+          const roll = this.rng.next();
+          this.legFinishChoice = me.stamina < .35 || pos.progress > .75 ? 'drive'
+            : roll < .45 ? 'trip' : roll < .45 + doublePreference * .5 ? 'double' : 'drive';
+        }
+        cmd.legAction = me.stamina > .15 ? this.legFinishChoice : 'drive';
+      }
       cmd.shoot = true;
       // Use the human hold cadence instead of continuous drive with no
       // repeated finishing effort. Both sides pay the shared effort costs.

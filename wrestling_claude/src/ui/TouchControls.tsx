@@ -50,7 +50,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
   const hint = (key: 'shoot' | 'fight' | 'sprawl') => {
     const prompt = state.prompts[key];
     if (prompt.label === '—') return 'Unavailable';
-    if (pinning || prompt.state === 'mash') return 'Tap or hold';
+    if (pinning || prompt.state === 'mash' || key === 'shoot' && prompt.label === 'Shoot') return 'Tap or hold';
     return prompt.state === 'hold' ? 'Hold' : 'Tap';
   };
   const padRef = useRef<HTMLDivElement>(null);
@@ -83,7 +83,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     };
   }, [api, reset]);
   const legActionSet = state.legActions?.join(',') ?? '';
-  useEffect(() => { reset(); }, [state.position, legActionSet, reset]);
+  const previousContext = useRef({position:state.position, legActionSet});
 
   // Top/Bottom labels stay the same across ride, standing and exposure.
   // A finger holding Stand up must not silently become a Turn out press.
@@ -94,8 +94,36 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
   const previousAvailable = useRef(available);
   useLayoutEffect(() => {
     let cancelled = false;
+    const oldShoot = previousLabels.current.shoot.label;
+    const newShoot = state.prompts.shoot.label;
+    // Shoot -> Drive -> Drive through is one continuous attack, unlike
+    // Drive -> Turn after scoring. Only an actually held finger carries over.
+    const continueShot = gestures.current.has('shoot')
+      && ['Shoot','Drive','Drive through'].includes(oldShoot)
+      && ['Drive','Drive through'].includes(newShoot)
+      && state.position === 'In on the legs';
+    const continueConversion = gestures.current.state().legAction === 'double'
+      && previousContext.current.position === 'In on the legs'
+      && state.position === 'In on the legs'
+      && state.legActions?.includes('double');
+    const changedContext = previousContext.current.position !== state.position
+      || previousContext.current.legActionSet !== legActionSet;
+    if (changedContext) {
+      if (!continueShot && !continueConversion) reset();
+      else {
+        for (const key of previousAvailable.current) {
+          if (key === 'shoot' && continueShot || key === 'legAction' && continueConversion) continue;
+          gestures.current.cancelKey(key); api.cancelTouch(key);
+          buttonGroup.current?.querySelectorAll<HTMLButtonElement>(`[data-touch-key="${key}"]`).forEach(b => { delete b.dataset.held; });
+        }
+        stick.current = {x:0,y:0}; stickPointer.current = null;
+        if (knobRef.current) knobRef.current.style.transform = '';
+        push();
+      }
+    }
+    previousContext.current = {position:state.position,legActionSet};
     for (const key of ['shoot','fight','sprawl'] as const) {
-      if (previousLabels.current[key].label === state.prompts[key].label) continue;
+      if (previousLabels.current[key].label === state.prompts[key].label || key === 'shoot' && continueShot) continue;
       cancelled = gestures.current.cancelKey(key) || cancelled;
       api.cancelTouch(key);
       buttonGroup.current?.querySelectorAll<HTMLButtonElement>(`[data-touch-key="${key}"]`).forEach(b => { delete b.dataset.held; });
@@ -113,7 +141,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
       setFeedback({ text: 'Position changed · Choose your next move', result: 'attempt', id: ++noticeId.current });
       push();
     }
-  }, [promptLabels, availableSignature, api, push]);
+  }, [promptLabels, availableSignature, state.position, legActionSet, api, push, reset]);
 
   const endAction = (e: React.PointerEvent<HTMLButtonElement>, cancelled: boolean) => {
     const key = gestures.current.end(e.pointerId);
@@ -196,7 +224,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
         </div>
         {(available.has('legRide') || available.has('closePockets')) && (available.has('legRide') ? ['legRide'] as const : ['closePockets','catchLeg'] as const).map(key => <button key={key} className="touch__btn touch__btn--small" {...bindAction(key)}>{ {legRide:'Work legs in',closePockets:'Close pockets',catchLeg:'Catch / clear leg'}[key] }<small className="touch__hint">Hold</small></button>)}
 
-        {state.legActions?.map(action => <button key={action} className="touch__btn touch__btn--small" {...bindAction('legAction', action)}>{ {lift:'Lift leg',trip:'Trip',double:'Switch double',drive:'Drive back'}[action] }<small className="touch__hint">Hold</small></button>)}
+        {state.legActions?.map(action => <button key={action} className="touch__btn touch__btn--small" {...bindAction('legAction', action)}>{ {lift:'Lift leg',trip:'Trip',double:state.legActions?.includes('lift')?'Switch double':'Finish double',drive:'Drive back'}[action] }<small className="touch__hint">Hold</small></button>)}
 
 
         {available.has('technique') && <details className="touch__techniques"><summary className="touch__btn touch__btn--small">Techniques</summary><div>{(['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).map((move,i)=><button key={move} type="button" className="touch__btn" {...bindAction('technique', move)}>{['Duck under','Super duck','Slide by','Fireman’s','Foot sweep'][i]}<small className="touch__hint">Tap</small></button>)}</div></details>}

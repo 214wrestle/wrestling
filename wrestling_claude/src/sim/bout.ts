@@ -370,7 +370,12 @@ export class Bout {
       this.scramblePending[a.side] = c.scramble && !p.scramble ? 2.5 : Math.max(0, this.scramblePending[a.side] - dt);
       if (c.lowSingle && !p.lowSingle) c = cmds[a.side] = {...c, shoot:true, level:true};
       // Buffer fresh presses so a tap just before an action opens still counts.
-      a.buffer.shoot = c.shoot && !p.shoot ? BOUT.buffer : Math.max(0, a.buffer.shoot - dt);
+      // A restart has a short stance cooldown longer than the normal tap buffer.
+      // Retain one accepted press through that cooldown; never repeat held shots
+      // or queue attacks through long recovery animations.
+      const shotBuffer = this.position.kind === 'neutral' && a.act === 'stance'
+        ? Math.max(BOUT.buffer, Math.min(0.4, a.cooldown + dt)) : BOUT.buffer;
+      a.buffer.shoot = c.shoot && !p.shoot ? shotBuffer : Math.max(0, a.buffer.shoot - dt);
       a.buffer.fight = c.fight && !p.fight ? BOUT.buffer : Math.max(0, a.buffer.fight - dt);
       a.buffer.sprawl = c.sprawl && !p.sprawl ? BOUT.buffer : Math.max(0, a.buffer.sprawl - dt);
       const position = this.position;
@@ -387,7 +392,10 @@ export class Bout {
           if (c.shoot && (position.kind === 'legs' && position.A === a.side || position.kind === 'mat' && (position.sub === 'exposed' || position.sub === 'spladle' || position.sub === 'flat' && position.A !== a.side))) a.buffer.shoot = BOUT.buffer;
         }
       } else this.effortClock[a.side] = 0;
-      this.lowRequest[a.side] = !!c.lowSingle;
+      // Keep the chosen entry attached to its buffered press after a quick release.
+      // A new ordinary shot replaces it; expiration clears it before another attack.
+      if (c.shoot && !p.shoot) this.lowRequest[a.side] = !!c.lowSingle;
+      else if (a.buffer.shoot <= 0) this.lowRequest[a.side] = false;
       this.scrambleCool[a.side] = Math.max(0, this.scrambleCool[a.side] - dt);
       if (this.scramblePending[a.side] > 0 && this.scrambleCool[a.side] <= 0 && a.stamina > 0.12) this.requestScramble(a);
       a.cooldown = Math.max(0, a.cooldown - dt);
@@ -944,20 +952,25 @@ export class Bout {
       this.spend(A, dt * 0.045);
     }
     if ((s.lifted ?? 0) > 0.7 && ca.legAction && ca.legAction !== 'lift') s.legFinish = ca.legAction;
-    if (s.legFinish === 'double') { s.shot = 'double'; s.lifted = 0; s.legFinish = undefined; }
-    const driving = ca.shoot || ca.legAction === 'drive' || fwdA > 0.3 || !!s.legFinish;
+    // Remember the conversion so the same held control can drive its finish.
+    if (s.legFinish === 'double' && s.shot !== 'double') { s.shot = 'double'; s.lifted = 0; }
+    const driving = ca.shoot || ca.legAction === 'drive' || ca.legAction === 'double' && s.shot === 'double' || fwdA > 0.3 || !!s.legFinish && s.legFinish !== 'double';
     const lifting = needsLift && (s.shot === 'single' || s.shot === 'highCrotch');
     if (ca.legAction && ca.legAction !== this.prev[A.side].legAction) {
-      const label = {lift:'Lift leg',trip:'Trip',double:'Switch double',drive:'Drive back'}[ca.legAction];
-      this.ev.announce?.(label, 'info', A.stamina <= 0.15 && needsLift ? 'Not enough stamina to lift' : needsLift && (s.lifted ?? 0) <= 0.7 ? 'Working to elevate the leg · keep holding' : 'Driving the finish');
+      const label = {lift:'Lift leg',trip:'Trip',double:s.shot === 'double' ? 'Finish double' : 'Switch double',drive:'Drive back'}[ca.legAction];
+      this.ev.announce?.(label, 'info', A.stamina <= 0.15 && lifting ? 'Not enough stamina to lift' : lifting && (s.lifted ?? 0) <= 0.7 ? 'Working to elevate the leg' : 'Driving the finish');
     }
     if (s.legFinish === 'drive') { s.frame.x += sn * dt * 0.35; s.frame.z += c * dt * 0.35; }
     if (s.legFinish === 'trip') s.frame.yaw += dt * (s.mirror ? -0.4 : 0.4);
-    let rate = lifting && !driving ? 0.015 : driving ? (0.10 + wa.strength * 0.12 + wa.quickness * 0.05) * (0.55 + 0.45 * A.stamina) : -0.14;
+    // Let a fresh capture settle while the player recognizes the finish controls.
+    // This only removes idle grip decay: sprawls, grip clearing and poor position
+    // still beat the entry; this grants no driving force or automatic finish.
+    const settlingGrip = s.t <= 1.2 && !driving && !lifting;
+    let rate = lifting && !driving ? 0.015 : driving ? (0.10 + wa.strength * 0.12 + wa.quickness * 0.05) * (0.55 + 0.45 * A.stamina) : settlingGrip ? 0 : -0.14;
     if (cd.sprawl) rate -= (0.18 + wd.defense * 0.12) * (0.55 + 0.45 * D.stamina);
     // A defended grip can remain contested instead of automatically snowballing.
     rate += (s.progress - 0.5) * 0.12;
-    if (s.legFinish) rate += 0.07 * (0.5 + A.stamina);
+    if (s.legFinish && s.legFinish !== 'double') rate += 0.07 * (0.5 + A.stamina);
     if (cd.fight && s.lifted) s.lifted = Math.max(0, s.lifted - dt * 0.18);
     // Let a learner inspect finish choices without the idle partner escaping.
     if (cooperative && !driving) rate = lifting ? Math.max(0, rate) : 0;
