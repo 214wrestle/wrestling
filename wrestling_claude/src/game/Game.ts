@@ -38,6 +38,8 @@ import { wrestlerViews } from './views';
 import { readPrompts } from './prompts';
 import type { GameApi, UiStore } from './store';
 
+export type PracticeStart = 'standing' | 'top' | 'bottom' | 'single' | 'double' | 'lowSingle' | 'highCrotch';
+
 /** Celebration confetti. */
 class Confetti {
   readonly points: Points;
@@ -307,6 +309,7 @@ export class Game implements GameApi {
 
   start(options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean }): void {
     this.input.clearTouch();
+    this.input.clearKeyboardPresses();
     void this.audio.resume();
     this.teardownMatch();
     this.store.set({ screen: 'loading', loading: 0.2, matchup: options.matchup });
@@ -322,6 +325,7 @@ export class Game implements GameApi {
   }
 
   private beginMatch(options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean }, practice = false): void {
+    this.input.clearKeyboardPresses();
     const bodies = this.bodies!;
     const wrestlers: [Wrestler, Wrestler] = [bodies[0].wrestler, bodies[1].wrestler];
     const human = options.humanSide;
@@ -382,9 +386,6 @@ export class Game implements GameApi {
         if (what === 'shot') {
           this.store.set({ react: { button: 'sprawl', label: 'Sprawl!', id: this.feedbackId++ } });
           this.reactUntil = this.clockT + 0.55;
-        } else if (what === 'standup') {
-          this.store.set({ react: { button: 'sprawl', label: 'Return him!', id: this.feedbackId++ } });
-          this.reactUntil = this.clockT + 1.1;
         }
       },
       onFeedback: (side, button, result) => {
@@ -446,16 +447,27 @@ export class Game implements GameApi {
     for (const b of bodies) b.anim.instant = true;
   }
 
-  /** Fresh referee state for development move trials, retaining loaded bodies. */
-  resetPractice(): MatchSim | null {
+  /** Start a fresh cooperative repetition, retaining the selected athletes. */
+  resetPractice(start: PracticeStart = 'standing'): MatchSim | null {
     if((!import.meta.env.DEV && this.store.getSnapshot().difficulty!=='practice') || !this.bodies)return null;
     const s=this.store.getSnapshot();
     this.input.clearTouch();
+    this.input.clearKeyboardPresses();
     this.teardownMatch();
     this.renderer.setBloom(.3);
     this.beginMatch({humanSide:s.humanSide,difficulty:s.difficulty,
       matchup:[this.bodies[0].wrestler.id,this.bodies[1].wrestler.id],quick:s.quick},true);
-    return this.sim;
+    const sim=this.sim;
+    if(!sim)return null;
+    if(start==='top'||start==='bottom') {
+      sim.bout.setReferee(start==='top'?s.humanSide:otherSide(s.humanSide),{x:0,z:0},Math.PI/2);
+    } else if(start!=='standing') {
+      sim.bout.position={kind:'legs',A:s.humanSide,shot:start,mirror:false,t:0,
+        frame:{x:0,z:0,yaw:s.humanSide===0?Math.PI/2:-Math.PI/2},progress:.6,intensity:0};
+    }
+    this.setPaused(false);
+    this.syncUi();
+    return sim;
   }
 
   rematch(): void {
@@ -467,6 +479,7 @@ export class Game implements GameApi {
 
   toTitle(): void {
     this.input.clearTouch();
+    this.input.clearKeyboardPresses();
     this.teardownMatch();
     this.running = false;
     this.cameraRig.setMode('showcase');
@@ -482,6 +495,7 @@ export class Game implements GameApi {
 
   setPaused(paused: boolean): void {
     this.input.clearTouch();
+    this.input.clearKeyboardPresses();
     this.store.set({ paused });
   }
 
@@ -495,7 +509,9 @@ export class Game implements GameApi {
     this.store.set({ muted });
   }
 
-  cancelTouch(key?: import("../engine/TouchGestures").TouchKey): void { this.input.cancelTouch(key); }
+  cancelTouch(key?: import("../engine/TouchGestures").TouchKey): void {
+    if (this.input.cancelTouch(key) && this.sim) this.sim.bout.cancelPendingShot(this.sim.humanSide);
+  }
 
   setTouch(state: PadState): void {
     this.input.touch = state;
@@ -868,7 +884,17 @@ export class Game implements GameApi {
     const pos = sim.bout.position;
     const a = sim.bout.athletes;
     const snap = this.store.getSnapshot();
-    const react = snap.react && this.clockT > this.reactUntil ? null : snap.react;
+    let react = snap.react && this.clockT > this.reactUntil ? null : snap.react;
+    // The stand-up tell begins an uninterruptible rise. Cue the human only
+    // once the rear-standing return is actionable, with its full response time.
+    // The AI still receives the original tell and keeps its existing timing.
+    const canReturn = read.prompts.sprawl.label === 'Mat return';
+    if (canReturn && snap.prompts.sprawl.label !== 'Mat return') {
+      react = { button: 'sprawl', label: 'Return him!', id: this.feedbackId++ };
+      this.reactUntil = this.clockT + 1.1;
+    } else if (!canReturn && react?.label === 'Return him!') {
+      react = null;
+    }
     this.store.set({
       phase: sim.phase,
       period: sim.period,

@@ -71,7 +71,10 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete], rideQu
         frame: p.frame,
         mirror: p.mirror,
         u: 0,
-        progress: Math.max(0, Math.min(1, (p.counterGrip ?? 0) > 0.01 ? p.counterGrip! : p.lifted ?? p.progress)),
+        // Single-leg elevation is separate from finishing pressure. An unlifted
+        // capture stays low until the player lifts or commits to the finish.
+        progress: Math.max(0, Math.min(1, (p.counterGrip ?? 0) > 0.01 ? p.counterGrip!
+          : p.shot === 'single' || p.shot === 'highCrotch' ? p.lifted ?? 0 : p.progress)),
         intensity: p.intensity,
         ...base,
       };
@@ -82,7 +85,7 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete], rideQu
         hold: true,
         role: p.A === side ? 'A' : 'B',
         frame: p.frame,
-        mirror: false,
+        mirror: p.mirror ?? false,
         u: 0,
         progress: Math.max(0, Math.min(1, p.recover)),
         intensity: p.intensity,

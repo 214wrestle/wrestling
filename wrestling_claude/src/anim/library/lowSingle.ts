@@ -18,9 +18,10 @@ registerMove({id:'shotLowSingle',startDist:1,warpBy:0.7,A:[
 const END={x:-0.3,z:0.88,yaw:90};
 registerMove({id:'finishLowSingle',A:[
  {t:0,pose:{base:holdAt('legsLowSingle','A',1)}},
- {t:0.35,pose:{hips:[0.3,0.32,0.35],rot:[30,48,0],handL:[0.12,0.12,0.42],handR:[0.12,0.22,0.42],footR:[0,BALL,0.05,30,40]}},
- {t:0.5,pose:{hips:[0.16,0.33,0.53],rot:[55,48,0],kneeL:[0.1,0.055,0.47],footL:[0.04,BALL,0.18,55,60],footR:[-0.08,BALL,0.34,55,45]}},
- {t:0.68,land:true,pose:{hips:[-0.06,0.35,0.7],rot:[75,35,0],handL:[-0.2,0.12,0.75],handR:[-0.22,0.24,0.72],footL:[-0.18,BALL,0.35,85,55],footR:[-0.26,BALL,0.8,85,55]}},
+ // Keep facing into the captured ankle while circling; turn with the hips only after cover.
+ {t:0.35,pose:{hips:[0.3,0.32,0.35],rot:[-35,48,0],handL:[0.12,0.12,0.42],handR:[0.12,0.22,0.42],footR:[0,BALL,0.05,-30,40]}},
+ {t:0.5,pose:{hips:[0.16,0.33,0.53],rot:[-45,48,0],kneeL:[0.1,0.055,0.47],footL:[0.04,BALL,0.18,-45,60],footR:[-0.08,BALL,0.34,-45,45]}},
+ {t:0.68,land:true,pose:{hips:[-0.06,0.35,0.7],rot:[-25,35,0],handL:[-0.2,0.12,0.75],handR:[-0.22,0.24,0.72],footL:[-0.18,BALL,0.35,0,55],footR:[-0.26,BALL,0.8,0,55]}},
  {t:1,pose:{base:holdAt('ride','A',0,END)}}],B:[
  {t:0,pose:{base:holdAt('legsLowSingle','B',1)}},
  {t:0.35,pose:{hips:[-0.16,0.48,0.78],rot:[140,52,-12],footR:[0.12,0.24,0.44,160,40],handL:[0.25,0.18,0.65],handR:[0.18,0.32,0.42]}},

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { NO_PAD, type PadState } from '../engine/Input';
 import { TouchGestures, type TouchKey } from '../engine/TouchGestures';
 import { availableTouchKeys } from './touchActions';
+import { actionInstruction } from '../game/prompts';
 import type { GameApi, UiState } from '../game/store';
 
 /**
@@ -44,15 +45,9 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     ? state.top === state.humanSide ? 'Tap or hold Squeeze to tighten' : 'Tap or hold to fight off your back'
     : state.position === 'In on the legs' ? 'Hold a finish; watch your progress'
     : state.position === 'Defending the shot' ? 'Tap or hold to resist the finish'
-    : state.meters.some(m => m.label === 'Base') ? state.top === state.humanSide ? 'Break down their base to open a turn' : 'Build your base to set up an escape'
+    : state.meters.some(m => m.label === 'Base') ? state.top === state.humanSide ? state.prompts.fight.label === 'Break down' ? 'Tap Break down again to lower their base' : 'Tap your turn to work for a pin' : 'Build your base to set up an escape'
     : state.meters.some(m => m.label === 'Escape') ? state.top === state.humanSide ? 'Return or cut; stop their escape' : 'Keep working to break their grip'
     : 'Keep working; watch the hold progress';
-  const hint = (key: 'shoot' | 'fight' | 'sprawl') => {
-    const prompt = state.prompts[key];
-    if (prompt.label === '—') return 'Unavailable';
-    if (pinning || prompt.state === 'mash' || key === 'shoot' && prompt.label === 'Shoot') return 'Tap or hold';
-    return prompt.state === 'hold' ? 'Hold' : 'Tap';
-  };
   const padRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLSpanElement>(null);
   const stick = useRef({ x: 0, y: 0 });
@@ -102,6 +97,20 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
       && ['Shoot','Drive','Drive through'].includes(oldShoot)
       && ['Drive','Drive through'].includes(newShoot)
       && state.position === 'In on the legs';
+    // A late sprawl becomes resistance at the captured legs. The held finger
+    // still means hips back; it must not disappear just because the label changes.
+    const continueSprawl = gestures.current.has('sprawl')
+      && previousContext.current.position === 'Defending the shot'
+      && state.position === 'Defending the shot'
+      && previousLabels.current.sprawl.label === 'Sprawl!'
+      && state.prompts.sprawl.label === 'Sprawl hips';
+    // Switching to a double changes the grip, but the defender is still
+    // fighting the same capture. Keep that live hold through the new label.
+    const continueFight = gestures.current.has('fight')
+      && previousContext.current.position === 'Defending the shot'
+      && state.position === 'Defending the shot'
+      && previousLabels.current.fight.label === 'Whizzer'
+      && state.prompts.fight.label === 'Down block';
     const continueConversion = gestures.current.state().legAction === 'double'
       && previousContext.current.position === 'In on the legs'
       && state.position === 'In on the legs'
@@ -123,7 +132,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     }
     previousContext.current = {position:state.position,legActionSet};
     for (const key of ['shoot','fight','sprawl'] as const) {
-      if (previousLabels.current[key].label === state.prompts[key].label || key === 'shoot' && continueShot) continue;
+      if (previousLabels.current[key].label === state.prompts[key].label || key === 'shoot' && continueShot || key === 'sprawl' && continueSprawl || key === 'fight' && continueFight) continue;
       cancelled = gestures.current.cancelKey(key) || cancelled;
       api.cancelTouch(key);
       buttonGroup.current?.querySelectorAll<HTMLButtonElement>(`[data-touch-key="${key}"]`).forEach(b => { delete b.dataset.held; });
@@ -148,8 +157,11 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     if (!key) return; // Normal release already handled before lostpointercapture.
     if (!gestures.current.has(key)) {
       delete e.currentTarget.dataset.held;
-      if (cancelled) api.cancelTouch(key);
     }
+    // Finish buttons share one value channel. Purge a canceled queued choice,
+    // then push the surviving finger's finish back into that channel.
+    // Boolean actions keep their existing shared-finger ownership.
+    if (cancelled && (!gestures.current.has(key) || key === 'legAction')) api.cancelTouch(key);
     setHeld(gestures.current.size ? 'Working' : null);
     push();
     // Reveal the attempted move after a completed selection; cancellation stays put.
@@ -237,7 +249,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
             disabled={state.prompts[key].state === 'off' && state.prompts[key].label === '—'}
             {...bindAction(key)}
           >
-<span className="touch__label">{state.prompts[key].label}</span><small className="touch__hint">{hint(key)}</small>
+<span className="touch__label">{state.prompts[key].label}</span><small className="touch__hint">{actionInstruction(state.prompts[key], key)}</small>
           </button>
         ))}
         <button

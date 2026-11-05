@@ -383,6 +383,7 @@ registerMove({
         spine: [14, -10, 0],
         footL: [0.36, BALL, 0.06, -40, 15],
         footR: [0.0, BALL, -0.12, -60, 20],
+        kneeR: [-0.3, 0.1, 0.2],
       },
     },
     { t: .52, pose: { handR: [.16, .68, .70], elbowR: [.44, .72, .45] } },
@@ -395,7 +396,9 @@ registerMove({
         spine: [20, 0, 0],
         footL: [0.66, BALL, 0.28, -85, 15],
         footR: [0.18, BALL, 0.76, -90, 20],
-        kneeR: [0.28, 0.12, 0.62],
+        // Keep the bent knees on a continuous path into the ride.
+        kneeL: [0, -0.3, 0.8],
+        kneeR: [-0.4, 0.2, 0.5],
         handR: [.24, .48, .84],
         elbowR: [.54, .63, .62],
       },
@@ -716,7 +719,9 @@ registerMove({
         elbowL: [0.6, 0.0, 0.2],
       },
     },
-    { t: 0.72, land: true, pose: { hips: [0, 0.15, 0.05], rot: [0, 90, -4], spine: [-6, 0, 0] } },
+    // Carry the chopped wrist forward as the hips settle, keeping the elbow
+    // on the outside of the folded arm instead of flipping under the shoulder.
+    { t: 0.72, land: true, pose: { hips: [0, 0.15, 0.05], rot: [0, 90, -4], spine: [-6, 0, 0], handL: [0.32, 0.05, 0.4], elbowL: [0.6, 0, 0.3] } },
     { t: 1, pose: { base: holdAt('flat', 'B', 0, { x: 0, z: 0.05, yaw: 0 }) } },
   ],
   contacts: [

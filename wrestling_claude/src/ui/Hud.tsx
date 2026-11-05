@@ -3,6 +3,7 @@ import { formatClock, formatRidingTime, periodLabel } from '../sim/rules';
 import { MEET } from '../sim/roster';
 import type { ButtonId, GameApi, UiState } from '../game/store';
 import type { Side } from '../sim/types';
+import { actionInstruction } from '../game/prompts';
 import { Glyph, Key, PositionIcon } from './glyphs';
 
 const CORNER = ['red', 'green'] as const;
@@ -124,7 +125,7 @@ function ActionPad({ state }: { state: UiState }) {
           >
             <Glyph id={id} device={state.device} />
             <span className="pad__label">{p.label}</span>
-            {(p.state === 'mash' || p.state === 'hold') && <span className="pad__hint">{p.state === 'mash' ? 'mash' : 'hold'}</span>}
+            <span className="pad__hint">{actionInstruction(p, id)}</span>
           </div>
         );
       })}
@@ -253,10 +254,11 @@ export function Hud({ state, api }: { state: UiState; api: GameApi }) {
           {state.announcement.detail && <em>{state.announcement.detail}</em>}
         </div>
       )}
-      {state.react && live && (
-        <div className="react" key={`react-${state.react.id}`}>
-          <Glyph id={state.react.button} device={state.device} />
+      {state.react && live && state.prompts[state.react.button].label !== '—' && (
+        <div className={`react${state.touchControls ? ' react--touch' : ''}`} key={`react-${state.react.id}`}>
+          {!state.touchControls && <Glyph id={state.react.button} device={state.device} />}
           <strong>{state.react.label}</strong>
+          {state.touchControls && <small>{actionInstruction(state.prompts[state.react.button], state.react.button)} {state.prompts[state.react.button].label}</small>}
         </div>
       )}
       {(state.phase === 'intros' || state.phase === 'handshake') && (

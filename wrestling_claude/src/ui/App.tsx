@@ -1,6 +1,6 @@
 import {isArmBar} from '../sim/armBars';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Game } from '../game/Game';
+import { Game, type PracticeStart } from '../game/Game';
 import { UiStore } from '../game/store';
 import type { UiState } from '../game/store';
 import { TitleScreen } from './TitleScreen';
@@ -11,6 +11,7 @@ import {TopTurnPicker} from './TopTurnPicker';
 import { HelpPanel } from './HelpPanel';
 
 const store = new UiStore();
+const LEG_DRILLS = [['single','Single leg'],['double','Double leg'],['lowSingle','Low single'],['highCrotch','High crotch']] as const;
 
 function Loading({ state }: { state: UiState }) {
   return (
@@ -29,7 +30,15 @@ function Loading({ state }: { state: UiState }) {
 export function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [game, setGame] = useState<Game | null>(null);
+  const [practiceReset, setPracticeReset] = useState(0);
+  const [legDrill, setLegDrill] = useState<typeof LEG_DRILLS[number][0]>('single');
   const state: UiState = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const restartPractice = (start: PracticeStart) => {
+    if (!game?.resetPractice(start)) return;
+    // A repeated drill may keep the same labels. Remount to discard every old
+    // finger/joystick gesture, rather than relying on a position change.
+    setPracticeReset(value => value + 1);
+  };
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -49,20 +58,26 @@ export function App() {
       {state.screen === 'loading' && <Loading state={state} />}
       {(state.screen === 'playing' || state.screen === 'results') && game && <Hud state={state} api={game} />}
       {state.screen === 'results' && game && <ResultCard state={state} api={game} />}
-      {state.screen === 'playing' && state.phase === 'wrestling' && state.touchControls && game && !state.result && <TouchControls state={state} api={game} />}
+      {state.screen === 'playing' && state.phase === 'wrestling' && state.touchControls && game && !state.result && <TouchControls key={practiceReset} state={state} api={game} />}
       {state.difficulty==='practice' && (state.screen==='playing'||state.screen==='results') && game && <div className="practice-panel" aria-label="Practice controls">
         <strong>Practice · unlimited time</strong>
         <span>Cooperative partner · choose a position to reset</span>
-        {(['Standing','Top','Bottom'] as const).map(position=><button key={position} onClick={()=>{
-          const sim=game.resetPractice();if(!sim)return;game.setPaused(false);
-          if(position==='Standing')sim.bout.setNeutral({x:0,z:0},0);
-          else sim.bout.setReferee(position==='Top'?state.humanSide:(state.humanSide===0?1:0),{x:0,z:0},0);
-        }}>{position}</button>)}
+        {(['standing','top','bottom'] as const).map(position=><button key={position} onClick={()=>restartPractice(position)}>{position[0].toUpperCase()+position.slice(1)}</button>)}
+        <details className="practice-drills">
+          <summary>Leg finishes</summary>
+          <label>Start with a captured leg
+            <select aria-label="Leg finish drill" value={legDrill} onKeyDown={event=>event.stopPropagation()} onChange={event=>setLegDrill(event.target.value as typeof legDrill)}>
+              {LEG_DRILLS.map(([value,label])=><option key={value} value={value}>{label}</option>)}
+            </select>
+          </label>
+          <button onClick={()=>restartPractice(legDrill)}>Restart finish</button>
+        </details>
       </div>}
       {import.meta.env.DEV && new URLSearchParams(location.search).has('practice') && (state.screen === 'playing'||state.screen === 'results') && game && <div style={{position:'absolute',left:8,top:110,zIndex:20,display:'flex',flexWrap:'wrap',maxWidth:'95vw',gap:4}}>
         {(['Pin top','Pin bottom','Bar top','Bar bottom','Spladle top','Spladle bottom','Ride top','Ride bottom','Flat top','Flat bottom','Leg ride bottom','Weak base','Single','Lifted single','Double','Low single','High crotch'] as const).map(label => <button style={{color:'#fff',background:'#223145',fontSize:11,padding:6,borderRadius:5}} key={label} onClick={() => {
           const sim = game.resetPractice();
           if (!sim) return;
+          setPracticeReset(value=>value+1);
           game.setPaused(false);
           sim.phase = 'wrestling'; sim.clock = 180;
           game.cancelTouch();

@@ -113,7 +113,7 @@ export type Position =
       counterGrip?: number;
       legFinish?: 'trip' | 'double' | 'drive';
     }
-  | { kind: 'fhl'; A: Side; t: number; frame: Frame; recover: number; intensity: number; cooldown: number }
+  | { kind: 'fhl'; A: Side; mirror?: boolean; t: number; frame: Frame; recover: number; intensity: number; cooldown: number }
   | {
       kind: 'mat';
       A: Side;
@@ -159,6 +159,10 @@ export type Position =
       awarded: boolean;
       impacted: boolean;
       scrambleGuard?: number;
+      /** Preserve the actual capture if a defender interrupts an unscored finish. */
+      sourceContest?:
+        | { kind: 'legs'; shot: ShotKind; lifted?: number; legFinish?: 'trip' | 'double' | 'drive' }
+        | { kind: 'fhl'; recover: number };
       /** Where each role starts, in the frame, for root placement. */
       startA: Place;
       startB: Place;
@@ -189,6 +193,7 @@ export const BOUT = {
   shotMin: 0.5,
   shotMax: 1.5,
   shotIdeal: 0.92,
+  shotStamina: 0.04,
   buffer: 0.2,
   reachDur: 0.24,
   snapDur: 0.24,
@@ -361,6 +366,13 @@ export class Bout {
     };
   }
 
+  /** Cancel an unconsumed shot press; an already committed move keeps wrestling. */
+  cancelPendingShot(side: Side): void {
+    this.athletes[side].buffer.shoot = 0;
+    this.lowRequest[side] = false;
+    this.prev[side] = {...this.prev[side], shoot:false, lowSingle:false};
+  }
+
   /* ----------------------------------------------------------------- tick */
 
   tick(dt: number, cmds: [Command, Command]): void {
@@ -370,11 +382,20 @@ export class Bout {
       this.scramblePending[a.side] = c.scramble && !p.scramble ? 2.5 : Math.max(0, this.scramblePending[a.side] - dt);
       if (c.lowSingle && !p.lowSingle) c = cmds[a.side] = {...c, shoot:true, level:true};
       // Buffer fresh presses so a tap just before an action opens still counts.
-      // A restart has a short stance cooldown longer than the normal tap buffer.
-      // Retain one accepted press through that cooldown; never repeat held shots
-      // or queue attacks through long recovery animations.
-      const shotBuffer = this.position.kind === 'neutral' && a.act === 'stance'
-        ? Math.max(BOUT.buffer, Math.min(0.4, a.cooldown + dt)) : BOUT.buffer;
+      // Keep one fresh press through a restart or a short return to stance.
+      // Fakes, hand fighting and failed attacks should chain into a shot after
+      // their recovery completes, rather than swallowing an early tap/hold.
+      // Snap/sprawl commitments and paired moves do not get an extended queue.
+      const shortRecovery = a.act === 'fake' || a.act === 'reach'
+        || a.act === 'attackAttempt' || a.act === 'stagger' || a.act === 'sprawlRecover';
+      // A fresh spin-behind press can wait through the initial sprawl recovery
+      // or one failed spin's cooldown. Holding never schedules another try.
+      const shotBuffer = this.position.kind === 'fhl' && this.position.A === a.side
+        ? Math.max(BOUT.buffer, Math.min(0.7, this.position.cooldown + dt))
+        : this.position.kind !== 'neutral' ? BOUT.buffer
+        : a.act === 'stance' ? Math.max(BOUT.buffer, Math.min(0.4, a.cooldown + dt))
+        : shortRecovery ? Math.max(BOUT.buffer, Math.min(0.5, Math.max(a.actDur - a.actT, a.cooldown) + dt))
+        : BOUT.buffer;
       a.buffer.shoot = c.shoot && !p.shoot ? shotBuffer : Math.max(0, a.buffer.shoot - dt);
       a.buffer.fight = c.fight && !p.fight ? BOUT.buffer : Math.max(0, a.buffer.fight - dt);
       a.buffer.sprawl = c.sprawl && !p.sprawl ? BOUT.buffer : Math.max(0, a.buffer.sprawl - dt);
@@ -387,7 +408,9 @@ export class Bout {
           this.effortClock[a.side] %= 0.18;
           // Effort becomes the same buffered struggle press used by tapping.
           // Neutral attacks, stand-ups, switches and throws never auto-repeat.
-          if (c.fight) a.buffer.fight = BOUT.buffer;
+          // Rear-standing hand control repeats for bottom; top's Crotch lift
+          // remains one committed attempt per press, like the other returns.
+          if (c.fight && !(position.kind === 'mat' && position.sub === 'standing' && position.A === a.side)) a.buffer.fight = BOUT.buffer;
           if (c.sprawl && !(position.kind === 'mat' && position.sub === 'standing')) a.buffer.sprawl = BOUT.buffer;
           if (c.shoot && (position.kind === 'legs' && position.A === a.side || position.kind === 'mat' && (position.sub === 'exposed' || position.sub === 'spladle' || position.sub === 'flat' && position.A !== a.side))) a.buffer.shoot = BOUT.buffer;
         }
@@ -474,10 +497,22 @@ export class Bout {
       const chance = clamp(0.22 - (s.scrambleGuard ? 0.18 : 0) + this.wrestlers[a.side].attributes.quickness * 0.24 - this.wrestlers[otherSide(a.side)].attributes.quickness * 0.12, 0.1, 0.5);
       this.scramblePending[a.side] = 0; this.scrambleCool[a.side] = 1.4; this.spend(a, 0.07);
       if (a.side !== attacker && this.rng.chance(chance)) {
-        if (def.award.kind === 'takedown') this.position = {kind:'legs', A:s.A, shot:s.id.toLowerCase().includes('double') ? 'double' : s.id.toLowerCase().includes('highcrotch') ? 'highCrotch' : 'single', mirror:s.mirror, t:0, frame:s.frame, progress:0.48, intensity:1};
+        if (def.award.kind === 'takedown') {
+          const source = s.sourceContest;
+          if (source?.kind === 'fhl') {
+            // The defender squares up where the spin was stopped; do not send
+            // the top wrestler all the way back around to the old front.
+            this.position = {kind:'fhl', A:s.A, mirror:s.mirror, t:0, frame:this.pairFrame(s.A), recover:source.recover, intensity:1, cooldown:0.35};
+          } else {
+            // Clip names cannot identify the original leg in a lifted finish.
+            // Keep ankle attacks low and keep an elevated capture elevated.
+            const shot = source?.shot ?? (s.id.toLowerCase().includes('double') ? 'double' : s.id.toLowerCase().includes('highcrotch') ? 'highCrotch' : s.id === 'finishLowSingle' ? 'lowSingle' : 'single');
+            this.position = {kind:'legs', A:s.A, shot, lifted:source?.lifted, legFinish:source?.legFinish, mirror:s.mirror, t:0, frame:s.frame, progress:0.48, intensity:1};
+          }
+        }
         else {
           const mat = this.matPosition(s.A, s.frame, def.award.kind === 'escape' ? 'standing' : 'ride', 0.8);
-          if (mat.kind === 'mat') { mat.control = 0.3; mat.escape = 0.4; }
+          if (mat.kind === 'mat') { mat.mirror = s.mirror; mat.control = 0.3; mat.escape = 0.4; }
           this.position = mat;
         }
         this.placeHold(); this.ev.announce?.('Scramble!', 'info', 'Finish disrupted — control still contested');
@@ -605,14 +640,18 @@ export class Bout {
 
     if (a.buffer.shoot > 0) {
       this.take(a, 'shoot');
-      if (dist >= BOUT.shotMin && dist <= BOUT.shotMax && a.stamina > 0.04) {
+      const inRange = dist >= BOUT.shotMin && dist <= BOUT.shotMax;
+      const exhausted = inRange && a.stamina <= BOUT.shotStamina;
+      if (inRange && a.stamina > BOUT.shotStamina) {
         this.startShot(a, o, dist);
       } else {
-        // Out of range: a level-change fake that can pull a sprawl.
+        // Keep the level-change attempt and recovery; explain when fatigue,
+        // rather than range, prevents the wrestler from committing to a shot.
         this.setAct(a, 'fake', BOUT.fakeDur);
         a.sinceFake = 0;
         this.spend(a, 0.015);
-        this.ev.feedback?.(a.side, 'shoot', dist > BOUT.shotMax ? 'blocked' : 'ok');
+        if (exhausted) this.ev.announce?.('Too tired to shoot', 'info', `${this.wrestlers[a.side].lastName}: recover stamina, then try again`);
+        this.ev.feedback?.(a.side, 'shoot', exhausted || dist > BOUT.shotMax ? 'blocked' : 'ok');
       }
       return;
     }
@@ -951,17 +990,26 @@ export class Bout {
       s.lifted = Math.min(1, (s.lifted ?? 0) + dt * (0.6 + wa.strength * 0.5));
       this.spend(A, dt * 0.045);
     }
+    // A deliberate Drive choice replaces an earlier Trip even after defense
+    // lowers the leg. With a low capture, run the ordinary shot finish instead.
+    // Release/cancel still remembers the choice; converted doubles keep theirs.
+    if (ca.legAction === 'drive' && this.prev[A.side].legAction !== 'drive' && (s.shot === 'single' || s.shot === 'highCrotch')) {
+      s.legFinish = (s.lifted ?? 0) > 0.7 ? 'drive' : undefined;
+    }
     if ((s.lifted ?? 0) > 0.7 && ca.legAction && ca.legAction !== 'lift') s.legFinish = ca.legAction;
     // Remember the conversion so the same held control can drive its finish.
     if (s.legFinish === 'double' && s.shot !== 'double') { s.shot = 'double'; s.lifted = 0; }
-    const driving = ca.shoot || ca.legAction === 'drive' || ca.legAction === 'double' && s.shot === 'double' || fwdA > 0.3 || !!s.legFinish && s.legFinish !== 'double';
+    // A selected finish keeps its identity, but pressure still needs live input
+    // until the finishing animation commits. Releasing/cancelling a hold rests
+    // the attacker instead of supplying free pressure from the stored choice.
+    const driving = ca.shoot || ca.legAction === 'drive' || ca.legAction === 'double' && s.shot === 'double' || fwdA > 0.3 || ca.legAction === 'trip' && s.legFinish === 'trip';
     const lifting = needsLift && (s.shot === 'single' || s.shot === 'highCrotch');
     if (ca.legAction && ca.legAction !== this.prev[A.side].legAction) {
       const label = {lift:'Lift leg',trip:'Trip',double:s.shot === 'double' ? 'Finish double' : 'Switch double',drive:'Drive back'}[ca.legAction];
       this.ev.announce?.(label, 'info', A.stamina <= 0.15 && lifting ? 'Not enough stamina to lift' : lifting && (s.lifted ?? 0) <= 0.7 ? 'Working to elevate the leg' : 'Driving the finish');
     }
-    if (s.legFinish === 'drive') { s.frame.x += sn * dt * 0.35; s.frame.z += c * dt * 0.35; }
-    if (s.legFinish === 'trip') s.frame.yaw += dt * (s.mirror ? -0.4 : 0.4);
+    if (driving && s.legFinish === 'drive') { s.frame.x += sn * dt * 0.35; s.frame.z += c * dt * 0.35; }
+    if (driving && s.legFinish === 'trip') s.frame.yaw += dt * (s.mirror ? -0.4 : 0.4);
     // Let a fresh capture settle while the player recognizes the finish controls.
     // This only removes idle grip decay: sprawls, grip clearing and poor position
     // still beat the entry; this grants no driving force or automatic finish.
@@ -970,7 +1018,7 @@ export class Bout {
     if (cd.sprawl) rate -= (0.18 + wd.defense * 0.12) * (0.55 + 0.45 * D.stamina);
     // A defended grip can remain contested instead of automatically snowballing.
     rate += (s.progress - 0.5) * 0.12;
-    if (s.legFinish && s.legFinish !== 'double') rate += 0.07 * (0.5 + A.stamina);
+    if (driving && s.legFinish && s.legFinish !== 'double') rate += 0.07 * (0.5 + A.stamina);
     if (cd.fight && s.lifted) s.lifted = Math.max(0, s.lifted - dt * 0.18);
     // Let a learner inspect finish choices without the idle partner escaping.
     if (cooperative && !driving) rate = lifting ? Math.max(0, rate) : 0;
@@ -1020,7 +1068,9 @@ export class Bout {
     if (s.progress >= 1) {
       // A double won quickly, by a strong man with gas left, often goes up in the air.
       const lift = s.shot === 'double' && s.t < 1.2 && A.stamina > 0.4 && this.rng.chance(0.06 + wa.strength * 0.2);
-      this.startMove(s.legFinish === 'trip' ? 'liftedLegTrip' : s.legFinish === 'drive' ? 'liftedLegDrive' : s.shot === 'lowSingle' ? 'finishLowSingle' : s.shot === 'highCrotch' ? 'finishHighCrotch' : s.shot === 'single' ? 'finishSingle' : lift ? 'liftDouble' : 'finishDouble', s.A, s.frame, s.mirror);
+      // Defense may lower a previously raised leg while Drive is held.
+      // Keep the effort, but finish from the capture's actual elevation.
+      this.startMove(s.legFinish === 'trip' ? 'liftedLegTrip' : s.legFinish === 'drive' && (s.lifted ?? 0) > 0.7 ? 'liftedLegDrive' : s.shot === 'lowSingle' ? 'finishLowSingle' : s.shot === 'highCrotch' ? 'finishHighCrotch' : s.shot === 'single' ? 'finishSingle' : lift ? 'liftDouble' : 'finishDouble', s.A, s.frame, s.mirror);
       return;
     }
     if (s.progress <= 0) {
@@ -1434,6 +1484,10 @@ export class Bout {
   private startMove(id: MoveId, A: Side, frame: Frame, mirror: boolean, dist = 1): void {
     const def = MOVES[id];
     const from = this.position;
+    // Held actions continue on the side where control was established,
+    // including front-headlock grips carried out of a mirrored sprawl.
+    // An explicit left/right arm-bar choice is the deliberate side-change case.
+    const choosesBarSide = isArmBar(id.replace(/(?:Turn|Resisted)$/, ''));
     const holdA = this.athletes[A];
     const holdB = this.athletes[otherSide(A)];
     // Record where each role's root sits in the move's frame right now.
@@ -1451,7 +1505,9 @@ export class Bout {
       id,
       A,
       turnStyle: from.kind==='mat'?from.turnStyle:undefined,
-      mirror: from.kind==='mat' && from.turnStyle ? from.mirror??mirror : mirror,
+      sourceContest: from.kind === 'legs' ? {kind:'legs', shot:from.shot, lifted:from.lifted, legFinish:from.legFinish}
+        : from.kind === 'fhl' ? {kind:'fhl', recover:from.recover} : undefined,
+      mirror: (from.kind === 'mat' || from.kind === 'fhl') && !choosesBarSide ? from.mirror ?? mirror : mirror,
       t: 0,
       dur,
       frame: { ...frame },
@@ -1534,16 +1590,17 @@ export class Bout {
         };
         break;
       case 'fhl':
-        this.position = { kind: 'fhl', A: sideOf(next.A), t: 0, frame: sub(next.frame), recover: 0.15, intensity: 0.5, cooldown: 0.35 };
+        this.position = { kind: 'fhl', A: sideOf(next.A), mirror: m.mirror, t: 0, frame: sub(next.frame), recover: 0.15, intensity: 0.5, cooldown: 0.35 };
         break;
       case 'mat': {
         const mat = this.matPosition(sideOf(next.A), sub(next.frame), next.sub, next.base ?? 0);
         if (mat.kind === 'mat') {
           if (next.sub === 'standing') mat.escape = 0.15;
-          if (next.sub === 'spladle') mat.mirror = m.mirror;
+          // next.frame already reflects the finish; preserve its handed hold too.
+          mat.mirror = m.mirror;
           if (m.id === 'cradle') mat.turnStyle = 'cradle';
           const bar=m.id.replace(/Turn$/,'');
-          if(isArmBar(bar)){mat.turnStyle=bar;mat.mirror=m.mirror;}
+          if(isArmBar(bar))mat.turnStyle=bar;
           if(m.id.endsWith('Resisted'))mat.turnCool=.8;
           // Fighting off your back leaves you scrambling, not flat and helpless.
           if (next.sub === 'flat') mat.base = m.id === 'fightOff' ? 0.45 : 0;
@@ -1579,7 +1636,7 @@ export class Bout {
       case 'legs':
         return { ...(HOLD_PLACES[LEG_HOLDS[p.shot]]), frame: p.frame, ASide: p.A, mirror: p.mirror };
       case 'fhl':
-        return { ...HOLD_PLACES.fhl, frame: p.frame, ASide: p.A, mirror: false };
+        return { ...HOLD_PLACES.fhl, frame: p.frame, ASide: p.A, mirror: p.mirror ?? false };
       case 'mat':
         return { ...HOLD_PLACES[p.sub], frame: p.frame, ASide: p.A, mirror: p.mirror ?? false };
       case 'shot':

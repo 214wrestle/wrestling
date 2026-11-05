@@ -25,6 +25,15 @@ export interface PromptRead {
 
 const P = (label: string, state: ButtonPrompt['state'] = 'idle'): ButtonPrompt => ({ label, state });
 
+/** Input instructions are independent of readiness and shared by every device. */
+export function actionInstruction(prompt: ButtonPrompt, key: ButtonId): 'Tap' | 'Hold' | 'Tap or hold' | 'Unavailable' {
+  if (prompt.label === '—') return 'Unavailable';
+  if (prompt.state === 'mash' || ['Squeeze', 'Snap him down', 'Clear capture'].includes(prompt.label)
+    || key === 'shoot' && prompt.label === 'Shoot' || key === 'sprawl' && prompt.label === 'Sprawl!') return 'Tap or hold';
+  return prompt.state === 'hold' ? 'Hold' : 'Tap';
+}
+
+
 export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): PromptRead {
   const bout = sim.bout;
   const pos = bout.position;
@@ -57,7 +66,7 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
       return {
         position: 'Neutral',
         prompts: {
-          shoot: P(inRange ? 'Shoot' : 'Fake', inRange && ideal && opening ? 'hot' : 'idle'),
+          shoot: P(inRange ? 'Shoot' : 'Fake', inRange && you.stamina <= BOUT.shotStamina ? 'off' : inRange && ideal && opening ? 'hot' : 'idle'),
           fight: P(snapOn ? 'Snap down' : 'Hand fight', snapHot ? 'hot' : dist > BOUT.tieRange + 0.2 ? 'off' : 'idle'),
           sprawl: P('Sprawl', 'idle'),
         },
@@ -126,7 +135,7 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
           prompts: top
             ? { shoot: P('Trip', 'hot'), fight: P('Crotch lift', 'hot'), sprawl: P('Mat return', 'hot') }
             : { shoot: P('Turn out', pos.escape >= BOUT.turnOut ? 'hot' : 'idle'), fight: P('Hand control', 'mash'), sprawl: P('—', 'off') },
-          meters: [{ label: 'Escape', value: pos.escape, tone: top ? 'them' : 'you', mark: 0.55 }],
+          meters: [{ label: 'Escape', value: pos.escape, tone: top ? 'them' : 'you', mark: BOUT.turnOut }],
         };
       }
       if (pos.sub === 'flat') {
@@ -150,11 +159,11 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
               sprawl: P('Ride tight', 'idle'),
             }
           : {
-              shoot: P('Stand up', pos.base > 0.3 ? 'idle' : 'off'),
+              shoot: P('Stand up', pos.base > 0.4 ? 'idle' : 'off'),
               fight: P('Switch', pos.commit > 0 ? 'hot' : 'idle'),
               sprawl: P('Base up', pos.base < 0.5 ? 'hot' : 'idle'),
             },
-        meters: [{ label: 'Base', value: pos.base, tone: top ? 'them' : 'you', mark: 0.35 }, ...legMeters],
+        meters: [{ label: 'Base', value: pos.base, tone: top ? 'them' : 'you', mark: top ? 0.35 : 0.4 }, ...legMeters],
       };
     }
     case 'move': {

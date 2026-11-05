@@ -49,10 +49,10 @@ registerMove({
   id: 'finishHighCrotch',
   A: [
     { t: 0, pose: { base: holdAt('legsHighCrotch', 'A', 1) } },
-    { t: 0.3, pose: { hips: [0.18, 0.92, 0.4], rot: [25, 6, 0], spine: [8, 0, 0], footL: [0.35, BALL, 0.34, 20, 15], footR: [0.02, BALL, 0.18, 30, 15] } },
+    { t: 0.3, pose: { hips: [0.18, 0.92, 0.4], rot: [25, 6, 0], spine: [8, 0, 0], footL: [0.35, BALL, 0.34, 20, 15], footR: [0.02, BALL, 0.18, 30, 15], kneeR: [0.2, 0.1, 0.5] } },
     // Step around the support foot before lowering; preserve a visible drive arc.
     { t: 0.48, pose: { hips: [0.04, 0.77, 0.6], rot: [52, 22, 0], spine: [12, 0, 0], footL: [0.12, BALL, 0.51, 55, 25], footR: [-0.19, BALL, 0.37, 65, 35] } },
-    { t: 0.65, land: true, pose: { hips: [-0.12, 0.52, 0.76], rot: [75, 42, 0], footL: [-0.2, BALL, 0.35, 85, 50], footR: [-0.3, BALL, 0.85, 85, 60] } },
+    { t: 0.65, land: true, pose: { hips: [-0.12, 0.52, 0.76], rot: [75, 42, 0], footL: [-0.2, BALL, 0.35, 85, 50], footR: [-0.3, BALL, 0.85, 85, 60], kneeR: [0.3, -0.3, 0.8] } },
     { t: 1, pose: { base: holdAt('ride', 'A', 0, END) } },
   ],
   B: [

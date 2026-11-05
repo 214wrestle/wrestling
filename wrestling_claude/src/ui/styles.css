@@ -944,16 +944,9 @@ button:focus-visible {
 }
 
 .pad__hint {
-  position: absolute;
-  top: -0.55rem;
-  right: 0.5rem;
-  padding: 0.1rem 0.4rem;
-  border-radius: 4px;
-  background: var(--ink);
-  color: #0b0e14;
-  font: 800 0.56rem/1.3 var(--body);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  color: var(--muted-ink);
+  font: 600 0.65rem/1.1 var(--body);
+  text-align: center;
 }
 
 .pad__btn--off {
@@ -1179,6 +1172,23 @@ button:focus-visible {
   font-stretch: 85%;
   font-style: italic;
   text-transform: uppercase;
+}
+
+.react--touch {
+  flex-direction: column;
+  gap: 0.2rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.5rem 0.8rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.react--touch strong {
+  font-size: 1.25rem;
+}
+
+.react--touch small {
+  font: 600 0.75rem/1.25 var(--body);
 }
 
 @keyframes reactIn {
@@ -1997,6 +2007,21 @@ button:focus-visible {
 .practice-panel{position:absolute;left:12px;top:110px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:calc(100vw - 24px);padding:8px;border-radius:8px;background:#172332ee;color:white;font-size:12px}.practice-panel span{flex-basis:100%}.practice-panel button{min-height:44px;padding:8px 16px;background:#344b63;color:white;border:1px solid #7592ab;border-radius:6px}.seg{flex-wrap:wrap}
 
 .practice-panel{width:340px;box-sizing:border-box}
+.practice-drills{width:100%;min-width:0}.practice-drills summary{cursor:pointer;min-height:32px;display:flex;align-items:center;gap:6px}.practice-drills summary::before{content:'\25b8'}.practice-drills[open] summary::before{content:'\25be'}.practice-drills label{display:grid;gap:4px;font-size:11px}.practice-drills select{width:100%;min-width:0;min-height:44px;background:#223145;color:white;border:1px solid #7592ab;border-radius:6px;padding:6px}.practice-drills button{width:100%;margin-top:6px}
+
+/* Brief explanations stay legible above Practice menus without blocking taps. */
+.app:has(.practice-panel) .call {
+  z-index: 21;
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* The narrow-phone feedback strip must clear the Practice menu on the left. */
+@media (orientation: portrait) and (max-width: 360px) and (min-height: 700px) {
+  .app:has(.practice-panel) .touch__status { left: auto; width: calc(50vw - 12px); }
+}
 
 /* Keep practice resets and the turn picker independently tappable on phones. */
 @media (max-width: 600px) and (orientation: portrait) {

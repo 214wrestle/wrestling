@@ -111,6 +111,9 @@ export class Animator {
   private local: LocalPose = createLocal();
   private feetDesired: Posture = createPosture();
   private recoveryStart: Posture | null = null;
+  private legFinishStart: Posture | null = null;
+  private legFinishBlendEnd = 0;
+  private legFinishTarget = createPosture();
   private seatedKneeContinuity = false;
   private proneKneeContinuity = false;
   private barElbowContinuity = false;
@@ -237,6 +240,25 @@ export class Animator {
     const modeKey = view.mode + (view.mode === 'paired' ? view.clip : view.mode === 'solo' ? view.clip : '');
     const changed = modeKey !== this.lastMode;
     if(this.gripTransfer)this.gripTransfer.age+=Math.max(0,dt);
+    if(changed || this.instant) {
+      this.legFinishStart = null;
+      // A captured leg may still be low when Drive wins. Start the finish at
+      // the pose actually held, then join its first running/lifting key.
+      const finishEntry = view.mode === 'paired' && !view.hold
+        ? view.clip === 'finishSingle' ? 0.35 : view.clip === 'finishHighCrotch' ? 0.3
+        : view.clip === 'liftedLegTrip' || view.clip === 'liftedLegDrive' ? 0.35 : 0 : 0;
+      if (!this.instant && finishEntry && ['pairedlegsSingle','pairedlegsHighCrotch'].includes(this.lastMode)) {
+        this.legFinishStart = this.display.slice();
+        this.legFinishBlendEnd = finishEntry;
+        for (const side of ['L','R'] as const) {
+          for (const [at,bone] of [[side==='L'?P.FOOT_L:P.FOOT_R,`toe${side}`],
+            [side==='L'?P.HAND_L:P.HAND_R,`hand${side}`]] as const) {
+            const point = this.bonePos(bone as BoneName, new Vector3());
+            for (let axis=0;axis<3;axis++) this.legFinishStart[at+axis] = point.getComponent(axis);
+          }
+        }
+      }
+    }
     if(changed) {
       this.gripTransfer=null;
       const gatherDouble=view.mode==='paired' && view.role==='A' && view.clip==='legsDouble' && ['pairedlegsSingle','pairedlegsHighCrotch'].includes(this.lastMode);
@@ -1244,6 +1266,12 @@ if(!v.hold && v.role==='A')applyArmBarTurnSteps(lp,v.clip,v.u,v.mirror);
       }
     }
     localToWorld(lp, v.frame, this.target);
+    if (this.legFinishStart) {
+      const t = Math.min(1, v.u / this.legFinishBlendEnd);
+      blendPosture(this.legFinishStart, this.target, t*t*(3-2*t), this.legFinishTarget);
+      this.target.set(this.legFinishTarget);
+      if (t === 1) this.legFinishStart = null;
+    }
     const recovery=v.clip==='recoverSeatedLegDefense'?this.recoveryStart:this.legReleaseStart;
     if(recovery) {
       const t=Math.min(1,v.clip==='recoverSeatedLegDefense'?v.u/.65:this.legReleaseAge/.8),w=t*t*(3-2*t),start=recovery;

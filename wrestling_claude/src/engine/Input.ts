@@ -71,13 +71,36 @@ export type Device = 'keyboard' | 'gamepad' | 'touch';
 
 export class Input {
   private held = new Set<string>();
+  private heldKeys = new Set<string>();
+  // Keep short keyboard presses between fixed steps, just like touch taps.
+  private keyboardBuffer = new TouchBuffer();
   private listeners = new Map<ActionName, Array<() => void>>();
   /** Set by the on-screen controls on touch devices. */
   private touchBuffer = new TouchBuffer();
   get touch(): PadState { return this.touchBuffer.current; }
   set touch(value: PadState) { this.touchBuffer.set(value); }
   clearTouch(): void { this.touchBuffer.clear(); }
-  cancelTouch(key?: TouchKey): void { if (key) this.touchBuffer.cancel(key); else this.clearTouch(); }
+  /** Menus/resets discard released taps while retaining keys physically down. */
+  clearKeyboardPresses(): void {
+    this.keyboardBuffer.clear();
+    this.queueKeyboard();
+  }
+  // Remember who supplied a queued shot even after a normal quick release.
+  // A keyboard/controller shot takes ownership so touch cancellation cannot erase it.
+  private touchShotOwner: 'shoot' | 'lowSingle' | undefined;
+  private previousShotCommand = false;
+  private previousLowSingle = false;
+  cancelTouch(key?: TouchKey): boolean {
+    const cancelShot = !!this.touchShotOwner && (!key || key === this.touchShotOwner);
+    if (cancelShot) {
+      this.touchShotOwner = undefined;
+      // Game also clears Bout's corresponding command history for a fresh re-press.
+      this.previousShotCommand = false;
+      this.previousLowSingle = false;
+    }
+    if (key) this.touchBuffer.cancel(key); else this.clearTouch();
+    return cancelShot;
+  }
   private padIndex: number | null = null;
   private padPrev: boolean[] = [];
   /** Last device the player touched, for button glyphs. */
@@ -102,18 +125,43 @@ export class Input {
     if (!action) return;
     // Let form controls keep their keys.
     const t = e.target as HTMLElement | null;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return;
     if (action !== 'confirm' || this.held.size > 0) e.preventDefault();
     this.setDevice('keyboard');
+    if (this.heldKeys.has(e.code)) return; // OS key repeat is not another attempt.
+    this.heldKeys.add(e.code);
     if (!this.held.has(action)) this.emit(action as ActionName);
     this.held.add(action);
+    this.queueKeyboard();
   };
 
   private onKeyUp = (e: KeyboardEvent) => {
     const action = KEY_MAP[e.code];
     if (!action) return;
-    this.held.delete(action);
+    this.heldKeys.delete(e.code);
+    // J/Space, both shifts and movement aliases share an action. Releasing
+    // one physical key must not release another key that is still down.
+    if (![...this.heldKeys].some(code => KEY_MAP[code] === action)) this.held.delete(action);
+    this.queueKeyboard();
   };
+
+  private queueKeyboard(): void {
+    const has = (action: string) => this.held.has(action);
+    // A fresh finish choice wins while an older key is still down. This lets
+    // Lift flow into Trip/Drive without requiring a precisely timed release.
+    const finishKeys: Partial<Record<string, NonNullable<PadState['legAction']>>> = {
+      KeyE: 'lift', KeyR: 'trip', KeyT: 'double', KeyF: 'drive',
+    };
+    const legAction = [...this.heldKeys].reverse().map(code => finishKeys[code]).find(Boolean);
+    this.keyboardBuffer.set({
+      ...NO_PAD,
+      shoot: has('shoot'), fight: has('fight'), sprawl: has('sprawl'), level: has('level'),
+      lowSingle: has('lowSingle'), scramble: has('scramble'),
+      legRide: has('legRide'), closePockets: has('closePockets'), catchLeg: has('catchLeg'),
+      technique: (['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).find(has),
+      legAction,
+    });
+  }
 
   private onPad = (e: GamepadEvent) => {
     this.padIndex = e.gamepad.index;
@@ -121,6 +169,8 @@ export class Input {
 
   private onBlur = () => {
     this.held.clear();
+    this.heldKeys.clear();
+    this.keyboardBuffer.clear();
     this.clearTouch();
   };
 
@@ -169,13 +219,14 @@ export class Input {
   state(): PadState {
     const pad = this.gamepad();
     const touch = this.touchBuffer.sample();
+    const keyboard = this.keyboardBuffer.sample();
     const dead = (v: number) => (Math.abs(v) < 0.2 ? 0 : (v - Math.sign(v) * 0.2) / 0.8);
     let x = (this.held.has('right') ? 1 : 0) - (this.held.has('left') ? 1 : 0);
     let y = (this.held.has('up') ? 1 : 0) - (this.held.has('down') ? 1 : 0);
-    let shoot = this.held.has('shoot');
-    let fight = this.held.has('fight');
-    let sprawl = this.held.has('sprawl');
-    let level = this.held.has('level');
+    let shoot = keyboard.shoot;
+    let fight = keyboard.fight;
+    let sprawl = keyboard.sprawl;
+    let level = keyboard.level;
     if (pad) {
       x += dead(pad.axes[0] ?? 0);
       y -= dead(pad.axes[1] ?? 0);
@@ -184,6 +235,18 @@ export class Input {
       sprawl = sprawl || !!pad.buttons[1]?.pressed || !!pad.buttons[5]?.pressed;
       level = level || (pad.buttons[7]?.value ?? 0) > 0.4 || (pad.buttons[6]?.value ?? 0) > 0.4;
     }
+    const otherLowSingle = !!keyboard.lowSingle || !!pad?.buttons[4]?.pressed;
+    const lowSingle = otherLowSingle || !!touch.lowSingle;
+    const lowEdge = lowSingle && !this.previousLowSingle;
+    // Match Bout's low-single-to-shoot edge. Switching devices without a
+    // released sample does not create a new shot or transfer its ownership.
+    const shotCommand = shoot || touch.shoot || lowEdge;
+    if (shoot || otherLowSingle) this.touchShotOwner = undefined;
+    else if (shotCommand && !this.previousShotCommand) {
+      this.touchShotOwner = lowEdge && touch.lowSingle ? 'lowSingle' : touch.shoot ? 'shoot' : undefined;
+    }
+    this.previousShotCommand = shotCommand;
+    this.previousLowSingle = lowSingle;
     x += touch.x;
     y += touch.y;
     shoot = shoot || touch.shoot;
@@ -195,8 +258,8 @@ export class Input {
       x /= len;
       y /= len;
     }
-    const technique = (['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).find(k=>this.held.has(k)) ?? touch.technique ?? (pad?.buttons[12]?.pressed ? 'duckUnder' : pad?.buttons[13]?.pressed ? 'superDuck' : pad?.buttons[14]?.pressed ? 'slideBy' : pad?.buttons[15]?.pressed ? 'firemansCarry' : undefined);
-    return { x, y, shoot, fight, sprawl, level, technique, legRide: this.held.has('legRide') || touch.legRide, closePockets: this.held.has('closePockets') || touch.closePockets, catchLeg: this.held.has('catchLeg') || touch.catchLeg, legAction: this.held.has('liftLeg') ? 'lift' : this.held.has('tripLeg') ? 'trip' : this.held.has('doubleLeg') ? 'double' : this.held.has('driveLeg') ? 'drive' : touch.legAction, sustainedEffort: shoot || fight || sprawl, lowSingle: this.held.has('lowSingle') || !!touch.lowSingle || !!pad?.buttons[4]?.pressed, scramble: this.held.has('scramble') || !!touch.scramble || !!pad?.buttons[3]?.pressed };
+    const technique = keyboard.technique ?? touch.technique ?? (pad?.buttons[12]?.pressed ? 'duckUnder' : pad?.buttons[13]?.pressed ? 'superDuck' : pad?.buttons[14]?.pressed ? 'slideBy' : pad?.buttons[15]?.pressed ? 'firemansCarry' : undefined);
+    return { x, y, shoot, fight, sprawl, level, technique, legRide: keyboard.legRide || touch.legRide, closePockets: keyboard.closePockets || touch.closePockets, catchLeg: keyboard.catchLeg || touch.catchLeg, legAction: keyboard.legAction ?? touch.legAction, sustainedEffort: shoot || fight || sprawl, lowSingle, scramble: keyboard.scramble || !!touch.scramble || !!pad?.buttons[3]?.pressed };
   }
 
   /** A short controller buzz for impacts and scores. */
