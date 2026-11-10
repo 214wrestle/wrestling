@@ -6,8 +6,8 @@ import { BALL, POST, holdAt, stanceAt } from './kit';
 registerHold({
   id: 'legsHighCrotch',
   A: [
-    { base: holdAt('legsSingle', 'A', 0), hips: [0.22, 0.62, 0.04], rot: [-12, 12, 0], spine: [8, 0, 0], head: [-12, -15, 0], footL: [0.22, BALL, 0.25, 0, 15], footR: [-0.06, BALL, -0.35, -15, 45], handL: [0.08, 0.75, 0.45], handR: [0.2, 0.66, 0.48] },
-    { hips: [0.22, 0.86, 0.15], rot: [-12, 8, 0], footR: [-0.04, BALL, 0.02, -15, 15], head: [-8, -15, 0] },
+    { base: holdAt('legsSingle', 'A', 0), hips: [0.25, 0.62, 0.05], rot: [-30, 14, 0], spine: [8, 0, 0], head: [-12, -15, 0], footL: [0.22, BALL, 0.25, 0, 15], footR: [-0.06, BALL, -0.35, -15, 45], handL: [0.08, 0.75, 0.45], handR: [0.2, 0.66, 0.48] },
+    { hips: [0.28, 0.84, 0.15], rot: [-34, 12, 0], footR: [0.04, BALL, 0.0, -30, 15], head: [-8, -15, 0] },
   ],
   B: [
     { base: holdAt('legsSingle', 'B', 0), hips: [0, 0.9, 0.48], rot: [180, 12, -6], footL: [-0.2, BALL, 0.65, 180, 15], footR: [0.15, 0.14, 0.36, 180, 30] },
@@ -39,8 +39,9 @@ registerMove({
   contacts: [
     { who: 'A', hand: 'L', on: 'thighR', at: [0.04, -0.12, 0.06], from: 0.82, to: 1 },
     { who: 'A', hand: 'R', on: 'thighR', at: [-0.04, -0.24, -0.06], from: 0.82, to: 1 },
-    { who: 'B', hand: 'R', on: 'head', at: [0, 0.09, -0.03], from: 0.55, to: 1 },
-    { who: 'B', hand: 'L', on: 'chest', at: [-0.1, 0.14, 0.1], from: 0.65, to: 1 },
+    // Fade the defender's hands onto the head and chest; they switched on at full strength and snapped.
+    { who: 'B', hand: 'R', on: 'head', at: [0, 0.09, -0.03], from: 0.45, to: 1, fade: 0.2 },
+    { who: 'B', hand: 'L', on: 'chest', at: [-0.1, 0.14, 0.1], from: 0.55, to: 1, fade: 0.2 },
   ],
 });
 
@@ -70,7 +71,7 @@ registerMove({
     // Slide the outside arm to the torso while the inside hand retains the leg,
     // then establish the existing ride grip after the landing.
     { who: 'A', hand: 'R', on: 'chest', at: [0.1, -0.08, 0.08], from: 0.64, to: 0.79 },
-    { who: 'A', hand: 'R', on: 'spine', at: [0, 0.02, 0.11], from: 0.85, to: 1 },
+    { who: 'A', hand: 'R', on: 'spine', at: [-0.04, 0.03, 0.12], from: 0.85, to: 1 },
     { who: 'A', hand: 'L', on: 'forearmL', at: [0, -0.04, -0.035], from: 0.9, to: 1 },
   ],
 });

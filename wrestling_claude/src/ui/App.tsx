@@ -4,6 +4,8 @@ import { Game, type PracticeStart } from '../game/Game';
 import { UiStore } from '../game/store';
 import type { UiState } from '../game/store';
 import { TitleScreen } from './TitleScreen';
+import { DualScreen } from './DualScreen';
+import { TournamentScreen } from './TournamentScreen';
 import { Hud } from './Hud';
 import { ResultCard } from './ResultCard';
 import { TouchControls } from './TouchControls';
@@ -55,6 +57,8 @@ export function App() {
       </div>
 
       {state.screen === 'title' && game && <TitleScreen state={state} api={game} />}
+      {state.screen === 'dual' && state.dual && game && <DualScreen state={state} api={game} />}
+      {state.screen === 'tournament' && state.tournament && game && <TournamentScreen state={state} api={game} />}
       {state.screen === 'loading' && <Loading state={state} />}
       {(state.screen === 'playing' || state.screen === 'results') && game && <Hud state={state} api={game} />}
       {state.screen === 'results' && game && <ResultCard state={state} api={game} />}

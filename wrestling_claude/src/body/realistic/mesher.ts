@@ -21,6 +21,8 @@ export interface MeshData {
   skinIndex: Uint16Array;
   skinWeight: Float32Array;
   part: Float32Array;
+  /** Photo-fitted faces: per vertex photo u, v, blend and how far the warp moved it (base head only). */
+  photo?: Float32Array;
 }
 
 export interface MeshRegion {

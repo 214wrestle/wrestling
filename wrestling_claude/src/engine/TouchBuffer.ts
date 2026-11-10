@@ -1,5 +1,5 @@
 import { NO_PAD, type PadState } from './Input';
-const buttons = ['shoot','fight','sprawl','level','lowSingle','scramble','legRide','closePockets','catchLeg'] as const;
+const buttons = ['shoot','fight','sprawl','level','lowSingle','scramble','sitOut','legRide','closePockets','catchLeg'] as const;
 import type { TouchKey } from './TouchGestures';
 type Key = TouchKey;
 /** Preserve pointer edges between fixed simulation steps, including rapid retaps. */

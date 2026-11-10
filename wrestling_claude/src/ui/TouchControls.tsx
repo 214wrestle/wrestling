@@ -45,7 +45,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     ? state.top === state.humanSide ? 'Tap or hold Squeeze to tighten' : 'Tap or hold to fight off your back'
     : state.position === 'In on the legs' ? 'Hold a finish; watch your progress'
     : state.position === 'Defending the shot' ? 'Tap or hold to resist the finish'
-    : state.meters.some(m => m.label === 'Base') ? state.top === state.humanSide ? state.prompts.fight.label === 'Break down' ? 'Tap Break down again to lower their base' : 'Tap your turn to work for a pin' : 'Build your base to set up an escape'
+    : state.meters.some(m => m.label === 'Base') ? state.top === state.humanSide ? state.prompts.fight.label === 'Break down' ? 'Tap Break down again to lower their base' : state.prompts.fight.label === 'Pressure' ? 'Tap Pressure to keep them flat, then turn' : 'Tap your turn to work for a pin' : 'Build your base to set up an escape'
     : state.meters.some(m => m.label === 'Escape') ? state.top === state.humanSide ? 'Return or cut; stop their escape' : 'Keep working to break their grip'
     : 'Keep working; watch the hold progress';
   const padRef = useRef<HTMLDivElement>(null);
@@ -91,10 +91,11 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     let cancelled = false;
     const oldShoot = previousLabels.current.shoot.label;
     const newShoot = state.prompts.shoot.label;
-    // Shoot -> Drive -> Drive through is one continuous attack, unlike
-    // Drive -> Turn after scoring. Only an actually held finger carries over.
+    // One held shot continues into its finish. The display can still say Fake
+    // for one HUD interval after the player steps into shooting range. Once
+    // the shot commits, preserve that live finger; neutral relabels still reset.
     const continueShot = gestures.current.has('shoot')
-      && ['Shoot','Drive','Drive through'].includes(oldShoot)
+      && ['Fake','Shoot','Drive','Drive through'].includes(oldShoot)
       && ['Drive','Drive through'].includes(newShoot)
       && state.position === 'In on the legs';
     // A late sprawl becomes resistance at the captured legs. The held finger
@@ -103,7 +104,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
       && previousContext.current.position === 'Defending the shot'
       && state.position === 'Defending the shot'
       && previousLabels.current.sprawl.label === 'Sprawl!'
-      && state.prompts.sprawl.label === 'Sprawl hips';
+      && state.prompts.sprawl.label === 'Crossface';
     // Switching to a double changes the grip, but the defender is still
     // fighting the same capture. Keep that live hold through the new label.
     const continueFight = gestures.current.has('fight')
@@ -111,15 +112,22 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
       && state.position === 'Defending the shot'
       && previousLabels.current.fight.label === 'Whizzer'
       && state.prompts.fight.label === 'Down block';
-    const continueConversion = gestures.current.state().legAction === 'double'
+    // A fresh Drive can arrive before the HUD catches up with a single-to-double
+    // conversion. Preserve a live finish that still exists in the new grip.
+    const heldFinish = gestures.current.state().legAction;
+    const continueConversion = (heldFinish === 'double' || heldFinish === 'drive')
       && previousContext.current.position === 'In on the legs'
       && state.position === 'In on the legs'
-      && state.legActions?.includes('double');
+      && state.legActions?.includes(heldFinish);
     const changedContext = previousContext.current.position !== state.position
       || previousContext.current.legActionSet !== legActionSet;
     if (changedContext) {
       if (!continueShot && !continueConversion) reset();
       else {
+        // A removed Lift/Trip finger must not reappear after Drive is released.
+        if (continueConversion && gestures.current.cancelUnavailable('legAction', state.legActions ?? [])) {
+          api.cancelTouch('legAction');
+        }
         for (const key of previousAvailable.current) {
           if (key === 'shoot' && continueShot || key === 'legAction' && continueConversion) continue;
           gestures.current.cancelKey(key); api.cancelTouch(key);
@@ -152,7 +160,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     }
   }, [promptLabels, availableSignature, state.position, legActionSet, api, push, reset]);
 
-  const endAction = (e: React.PointerEvent<HTMLButtonElement>, cancelled: boolean) => {
+  const endAction = (e: React.PointerEvent<HTMLButtonElement>, cancelled: boolean, value?: boolean | NonNullable<PadState['technique']> | NonNullable<PadState['legAction']>) => {
     const key = gestures.current.end(e.pointerId);
     if (!key) return; // Normal release already handled before lostpointercapture.
     if (!gestures.current.has(key)) {
@@ -160,8 +168,9 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     }
     // Finish buttons share one value channel. Purge a canceled queued choice,
     // then push the surviving finger's finish back into that channel.
-    // Boolean actions keep their existing shared-finger ownership.
-    if (cancelled && (!gestures.current.has(key) || key === 'legAction')) api.cancelTouch(key);
+    // Boolean actions and identical technique fingers keep shared ownership.
+    // A canceled different choice must not survive in the pending enum queue.
+    if (cancelled && (!gestures.current.has(key) || key === 'legAction' || key === 'technique' && gestures.current.state().technique !== value)) api.cancelTouch(key);
     setHeld(gestures.current.size ? 'Working' : null);
     push();
     // Reveal the attempted move after a completed selection; cancellation stays put.
@@ -176,9 +185,9 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
       gestures.current.begin(e.pointerId, key, value);
       push();
     },
-    onPointerUp: (e: React.PointerEvent<HTMLButtonElement>) => endAction(e, false),
-    onPointerCancel: (e: React.PointerEvent<HTMLButtonElement>) => endAction(e, true),
-    onLostPointerCapture: (e: React.PointerEvent<HTMLButtonElement>) => endAction(e, true),
+    onPointerUp: (e: React.PointerEvent<HTMLButtonElement>) => endAction(e, false, value),
+    onPointerCancel: (e: React.PointerEvent<HTMLButtonElement>) => endAction(e, true, value),
+    onLostPointerCapture: (e: React.PointerEvent<HTMLButtonElement>) => endAction(e, true, value),
   });
 
   const track = (e: React.PointerEvent) => {
@@ -228,6 +237,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
       <div ref={buttonGroup} className="touch__buttons" onPointerDownCapture={capture}>
         <div className="touch__status">
           <div className={`touch__notice touch__notice--${feedback?.result ?? 'idle'}`} role="status" key={feedback?.id}>{feedback?.text ?? (held ? 'Keep working' : 'Tap a move to attempt it')}</div>
+          {state.edgeHint && <div className="touch__edge" role="status">{state.edgeHint}</div>}
           {contest && <div className="touch__contest">
             {state.meters.map(m => <label key={m.label} data-tone={m.tone}>{m.label}<progress max="1" value={Math.max(0, Math.min(1, m.value))} />{Math.round(Math.max(0, Math.min(1, m.value)) * 100)}%</label>)}
             {([state.humanSide, state.humanSide === 0 ? 1 : 0] as const).map(side => <label key={side}>{side === state.humanSide ? 'Your stamina' : 'Rival stamina'}<progress max="1" value={state.stamina[side]} />{Math.round(state.stamina[side] * 100)}%</label>)}
@@ -240,7 +250,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
 
 
         {available.has('technique') && <details className="touch__techniques"><summary className="touch__btn touch__btn--small">Techniques</summary><div>{(['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).map((move,i)=><button key={move} type="button" className="touch__btn" {...bindAction('technique', move)}>{['Duck under','Super duck','Slide by','Fireman’s','Foot sweep'][i]}<small className="touch__hint">Tap</small></button>)}</div></details>}
-        {(['lowSingle', 'scramble'] as const).map(key => <button key={key} hidden={!available.has(key)} type="button" className="touch__btn" {...bindAction(key)}>{key === 'lowSingle' ? 'Low single' : 'Scramble'}<small className="touch__hint">Tap</small></button>)}
+        {(['sitOut', 'lowSingle', 'scramble'] as const).map(key => <button key={key} hidden={!available.has(key)} type="button" className="touch__btn" {...bindAction(key)}>{key === 'sitOut' ? 'Sit out' : key === 'lowSingle' ? 'Low single' : 'Scramble'}<small className="touch__hint">Tap</small></button>)}
         {(['sprawl', 'fight', 'shoot'] as const).map((key) => (
           <button
             key={key}
@@ -249,7 +259,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
             disabled={state.prompts[key].state === 'off' && state.prompts[key].label === '—'}
             {...bindAction(key)}
           >
-<span className="touch__label">{state.prompts[key].label}</span><small className="touch__hint">{actionInstruction(state.prompts[key], key)}</small>
+<span className={`touch__label${state.prompts[key].label.length > 10 ? ' touch__label--long' : ''}`}>{state.prompts[key].label}</span><small className="touch__hint">{actionInstruction(state.prompts[key], key)}</small>{state.prompts[key].alt && <small className="touch__alt">{state.prompts[key].alt}</small>}
           </button>
         ))}
         <button
@@ -258,8 +268,8 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
           hidden={!available.has('level')}
           {...bindAction('level')}
         >
-          <span className="touch__label">{state.top === state.humanSide ? 'Cut' : 'Lower'}</span>
-          <small className="touch__hint">{state.top === state.humanSide ? 'Tap · give 1' : 'Hold'}</small>
+          <span className="touch__label">Lower</span>
+          <small className="touch__hint">{state.top === state.humanSide ? 'Tap: cut (give 1) · Hold: legs in' : state.position === 'In on the legs' ? 'With Drive: double' : state.top !== null ? 'Hold: catch leg' : 'Hold'}</small>
         </button>
       </div>
     </div>

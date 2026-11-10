@@ -1,4 +1,5 @@
 import { DEFAULT_MATCHUP } from '../sim/roster';
+import { DEFAULT_PLAN, type MatchPlan } from '../sim/strategy';
 import type { Difficulty } from '../sim/ai';
 import type { Device } from '../engine/Input';
 import type {
@@ -19,7 +20,7 @@ import type {
  * React re-renders from them, with no reconciler work in the frame loop.
  */
 
-export type Screen = 'title' | 'loading' | 'playing' | 'results';
+export type Screen = 'title' | 'dual' | 'tournament' | 'loading' | 'playing' | 'results';
 
 export interface WrestlerStats {
   takedowns: number;
@@ -36,6 +37,8 @@ export interface ButtonPrompt {
   label: string;
   /** idle: available; hot: an opening right now; off: nothing to do; mash: hammer it. */
   state: 'idle' | 'hot' | 'off' | 'mash' | 'hold';
+  /** The same button with the stick or Lower: what else it does here (e.g. "Sideways: Slide-by"). */
+  alt?: string;
 }
 
 export interface Meter {
@@ -67,6 +70,8 @@ export interface UiState {
   top: Side | null;
   meters: Meter[];
   legActions?: readonly ('lift' | 'trip' | 'double' | 'drive')[];
+  /** Which way to move at the edge of the mat right now, or when locked hands is a risk (edgeHintFor, handsHintFor). */
+  edgeHint?: string;
   nearFall: { active: boolean; timer: number; earned: number };
   prompts: Record<ButtonId, ButtonPrompt>;
   /** A move to react to right now (the opponent just shot, say). */
@@ -79,6 +84,17 @@ export interface UiState {
   scoreLog: ScoreEvent[];
   result: MatchResult | null;
   awaitingChoice: boolean;
+  /** Toss winner once the disc is flipped; null before. */
+  coinTossWinner: Side | null;
+  /** The toss winner may defer this choice to the third period. */
+  canDefer: boolean;
+  /** Your match plan and the opponent corner's current one. */
+  plan: MatchPlan;
+  opponentPlan: MatchPlan;
+  /** Tonight's referee, as he reads stalling (e.g. "is quick on stalling"). */
+  refereeNote: string;
+  /** Per wrestler: warned for stalling yet, and how many stalling points he has given up. */
+  stalls: [{ warned: boolean; points: number }, { warned: boolean; points: number }];
   topRestartCut: boolean;
   introFocus: Side | null;
   showHelp: boolean;
@@ -89,6 +105,12 @@ export interface UiState {
   device: Device;
   /** Selected matchup on the title screen. */
   matchup: [string, string];
+  /** The dual meet in progress (dual mode), or null for a single match. */
+  dual: import('../sim/dual').Dual | null;
+  /** The tournament in progress, or null. */
+  tournament: import('../sim/tournament').Tournament | null;
+  /** Other bouts in the bracket are being simmed. */
+  tournamentBusy: boolean;
 }
 
 const emptyStats = (): WrestlerStats => ({
@@ -133,6 +155,12 @@ export const initialState: UiState = {
   scoreLog: [],
   result: null,
   awaitingChoice: false,
+  coinTossWinner: null,
+  canDefer: false,
+  plan: DEFAULT_PLAN,
+  opponentPlan: DEFAULT_PLAN,
+  refereeNote: '',
+  stalls: [{ warned: false, points: 0 }, { warned: false, points: 0 }],
   topRestartCut: false,
   introFocus: null,
   showHelp: false,
@@ -142,6 +170,9 @@ export const initialState: UiState = {
   touchControls: false,
   device: 'keyboard',
   matchup: [...DEFAULT_MATCHUP],
+  dual: null,
+  tournament: null,
+  tournamentBusy: false,
 };
 
 export class UiStore {
@@ -173,10 +204,11 @@ export class UiStore {
 export interface GameApi {
   setTopTurn: (choice:import('../sim/armBars').TopTurnChoice | undefined)=>void;
   preview: (matchup: [string, string]) => void;
-  start: (options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean }) => void;
+  start: (options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean; choice?: Side | null }) => void;
   rematch: () => void;
   toTitle: () => void;
-  choosePosition: (pos: StartPosition) => void;
+  choosePosition: (pos: StartPosition | 'defer') => void;
+  setPlan: (plan: MatchPlan) => void;
   setPaused: (paused: boolean) => void;
   toggleHelp: () => void;
   toggleMute: () => void;
@@ -184,4 +216,20 @@ export interface GameApi {
   cancelTouch: (key?: import("../engine/TouchGestures").TouchKey) => void;
   skipIntros: () => void;
   chooseTopRestart: (cut: boolean) => void;
+  /** Dual meet: start one, pick the wrestler at the current weight, wrestle or sim the bout, back to the dual. */
+  startDual: (options: { teams: [string, string]; difficulty: Difficulty; quick: boolean; draw?: boolean }) => void;
+  pickDual: (id: string) => void;
+  /** The dual's toss winner (the player's team) picks odd or even bouts. */
+  pickOddEven: (odd: boolean) => void;
+  wrestleDual: () => void;
+  simDual: () => void;
+  toDual: () => void;
+  leaveDual: () => void;
+  /** Tournament: start one at a weight with his pick, wrestle or sim his next match, sim the rest, back, leave. */
+  startTournament: (options: { pick: string; difficulty: Difficulty; quick: boolean }) => void;
+  wrestleTournament: () => void;
+  simTournamentBout: () => void;
+  simTournamentRest: () => void;
+  toTournament: () => void;
+  leaveTournament: () => void;
 }

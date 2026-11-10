@@ -8,12 +8,12 @@ import { blendPosture, createPosture, FOOT, P, PostureSpring } from './posture';
 import type { Posture } from './posture';
 import { createLocal, localToWorld, mirrorLocal } from './spec';
 import type { Frame, LocalPose } from './spec';
-import { DEFAULT_STANCE, scaleLocal, stancePose } from './stance';
+import { DEFAULT_STANCE, downBlock, scaleLocal, stancePose } from './stance';
 import type { StanceParams } from './stance';
 import { Footwork } from './footwork';
 import { moveClip, sampleHold, sampleMove, sampleFootContacts } from './clips';
 import type { ActiveContact, Role } from './clips';
-import { hasSolo, sampleSolo } from './solo';
+import { sampleSolo } from './solo';
 import { applyRideEffort } from './matEffort';
 import { applyLegEffort } from './legEffort';
 import { EffortPulse, effortEnvelope } from './effortPulse';
@@ -47,6 +47,9 @@ export type AnimView =
       /** My hand-fight control and his, 0..1. */
       hand: number;
       oppHand: number;
+      /** Which tie he holds once hand >= 0.62. */
+      tie?: 'collar' | 'underhook' | 'bodyLock';
+      oppTie?: 'collar' | 'underhook' | 'bodyLock';
       stamina: number;
       exertion: number;
       /** Hands relaxed and standing tall (between whistles). */
@@ -103,6 +106,8 @@ const _m = new Matrix4();
 const _v = new Vector3();
 const _v2 = new Vector3();
 
+const LEG_BATTLE_CLIPS = new Set(['legsSingle', 'legsDouble', 'legsHighCrotch', 'legsLowSingle']);
+
 export class Animator {
   readonly solver: Solver;
   private spring = new PostureSpring();
@@ -116,6 +121,10 @@ export class Animator {
   private legFinishTarget = createPosture();
   private seatedKneeContinuity = false;
   private proneKneeContinuity = false;
+  private stanceExit = 0;
+  private prevWasStance = false;
+  private moveElbowCarry = 0;
+  private exposedElbowCarry = 0;
   private barElbowContinuity = false;
   private barGuideWeight=0;
   private barGuideHand:'L'|'R'='L';
@@ -123,6 +132,18 @@ export class Animator {
   private footW = 0;
   private walkingOverlay = 0;
   private walkingStride = 0;
+  /** 0..1: how spent the walk looks (hands on hips, head down), from the view's stamina. */
+  private walkTired = 0;
+  /** 0..1: how much the walk has become a run. */
+  private walkRun = 0;
+  /** Leg battles: hips travel (for leading the steps) and which feet may step. */
+  private legPrevX = NaN;
+  private legPrevZ = NaN;
+  private legVx = 0;
+  private legVz = 0;
+  private legFree: [number, number] = [1, 1];
+  /** Seconds left of getting up off the mat into a walk: a slower blend than a step. */
+  private riseT = 0;
   private gazeTarget = new Vector3();
   private phase = Math.random() * 10;
   private breath = Math.random() * 6;
@@ -134,8 +155,10 @@ export class Animator {
     R: {bone:null as BoneName|null,valid:false,age:1,acquiring:false,start:new Vector3(),rotation:new Quaternion(),last:new Vector3(),lastRotation:new Quaternion()}
   };
   private cradleClaspLocked=false;
+  /** 0..1: hands easing into the cradle lock point once it locks (it used to jump there in one frame). */
+  private cradleClaspBlend=0;
   private gripTransfer: {age:number; near:'L'|'R'|null; duration:number; anchors:Record<'L'|'R',{bone:BoneName;at:Vector3}>}|null=null;
-  private legReleaseAge=1;
+  private legReleaseAge=1.2;
   private legReleaseStart: Posture | null=null;
   private gripRelease = {
     L: { age: 1, wrist: new Vector3(), rotation: new Quaternion() },
@@ -145,6 +168,10 @@ export class Animator {
   private gripAt = { L: new Vector3(), R: new Vector3() };
   private gripPalm = { L: false, R: false };
   private lastMode = '';
+  private handFightAnchor = {
+    L: {bone: null as BoneName | null, at: new Vector3(), from: new Vector3(), last: new Vector3(), age: 1, dur: .2},
+    R: {bone: null as BoneName | null, at: new Vector3(), from: new Vector3(), last: new Vector3(), age: 1, dur: .2},
+  };
   private gaitRotation = new Quaternion();
   private gaitYaw = new Quaternion();
   private gaitAxis = new Vector3(0, 1, 0);
@@ -197,7 +224,11 @@ export class Animator {
   /* --------------------------------------------------------------- update */
 
   update(dt: number, view: AnimView, opp: Animator | null): void {
-    this.solver.softFreeReach.L=this.solver.softFreeReach.R=0;
+    // On the feet the hands reach across for wrists, ties and taps right at the end of the arm, where a
+    // straight arm and a bent one are a centimetre apart and the elbow snapped between them (forearm pops
+    // with the hand moving slowly). Ease the reach in the last stretch so the arm never locks straight.
+    this.solver.softFreeReach.L=this.solver.softFreeReach.R=view.mode==='stance'?1:0;
+    this.solver.minReach=view.mode==='stance'?0.22:0;
     if(view.mode==='paired' && view.role==='A' && view.clip==='armBarSupportedSeatedTurnDraft'){
       const ease=(x:number)=>{const t=Math.max(0,Math.min(1,x));return t*t*(3-2*t);};
       this.solver.softFreeReach[view.mirror?'L':'R']=ease((view.u-.52)/.08)*(1-ease((view.u-.80)/.06));
@@ -229,16 +260,46 @@ export class Animator {
     if(proneCatch)this.proneKneeContinuity=true;
     else if(view.mode!=='paired'||view.clip!=='flat')this.proneKneeContinuity=false;
     const flatSupportDraft=view.mode==='paired'&&['armBarSupportedResistedDraft','armBarSupportedSeatedTurnDraft','flatGroundedDraft','flatPressureDraft','armBarPressureSeatedExitDraft','armBarSupportedSeatedExitDraft'].includes(view.clip);
-    this.solver.beginKneeFrame(dt*jointClock,this.proneKneeContinuity?4:this.seatedKneeContinuity?5:Infinity,flatSupportDraft?(view.mode==='paired'&&view.clip==='armBarSupportedSeatedExitDraft'?.06:.07):.04);
+    // A move can swing a folded knee across the leg faster than any body could,
+    // so rate-limit the bend on the mat and in stance. Excluded: finishSingle, whose
+    // foot passes through the hip, where a limit makes it worse; shotLowSingle, whose
+    // deep lunge presses the knee to the mat; spladles, whose knees carry a grip.
+    // Solo poses too: rising off the mat into the celebration swung the knees across the leg in one frame.
+    const freeBend=(view.mode!=='paired'&&view.mode!=='stance'&&view.mode!=='walk'&&view.mode!=='solo')||this.instant||(view.mode==='paired'&&(view.clip==='finishSingle'||view.clip==='shotLowSingle'||/spladle/i.test(view.clip)));
+    const kneeRate=this.proneKneeContinuity?4:this.seatedKneeContinuity?5:freeBend?Infinity:6;
+    // Leg rides, seated leg defense and the flat drafts hold their knees on the mat: keep the ground correction whole.
+    const groundRate=this.proneKneeContinuity||this.seatedKneeContinuity||seatedSequence||proneCatch||flatSupportDraft?Infinity:kneeRate;
+    this.solver.beginKneeFrame(dt*jointClock,kneeRate,flatSupportDraft?(view.mode==='paired'&&view.clip==='armBarSupportedSeatedExitDraft'?.06:.07):.04,groundRate);
     if(view.mode==='paired'&&/^(armBar|wristBar|barHalf|doubleBar)/.test(view.clip))this.barElbowContinuity=true;
     else if(view.mode!=='paired'||!['flat','flatPressureDraft'].includes(view.clip))this.barElbowContinuity=false;
+    // Coming off the back, the arm settles for a moment before flat's own hand work.
+    this.exposedElbowCarry=view.mode==='paired'&&(view.clip==='exposed'||view.clip==='fightOff')?.6:Math.max(0,this.exposedElbowCarry-dt);
     // Carry the solved bend into the flat ride after a bar clears. Dropping
     // continuity at that boundary can flip the elbow in a single frame.
-    this.solver.beginElbowFrame(dt,!this.instant&&this.barElbowContinuity?4:Infinity);
+    // A move limits how fast an elbow can swing; a hold does not. Keep the move's limit for a
+    // moment after it hands off to its hold, or the elbow finishes any held-back swing in one
+    // frame (the "jump at the hand-off": double finish into the ride, breakdown into flat...).
+    // A hold that switches straight to another hold (a high crotch run to the double, say) changes every
+    // grip at once with no move in between; give it the move's elbow limit for a moment too.
+    const holdSwitch=view.mode==='paired'&&view.hold&&this.lastMode.startsWith('paired')&&this.lastMode!=='paired'+view.clip;
+    this.moveElbowCarry=view.mode==='paired'&&!view.hold||holdSwitch?.4:Math.max(0,this.moveElbowCarry-dt);
+    // A carried limit glides the elbow to the hold's own bend; lifting it clear of the mat as a
+    // move does would park it somewhere the hold never goes (flat: tucked under the chest).
+    const carriedIntoHold=view.mode==='paired'&&view.hold&&view.clip!=='exposed'&&!this.barElbowContinuity;
+    // On the feet the hands reach across a metre for wrists, ties and taps, often near full extension,
+    // where the elbow's bend plane is ill-defined and used to flip sides in one frame (forearm pops in
+    // hand fighting with the hand itself moving slowly). Limit how fast it turns there too.
+    const footElbow=!this.instant&&(view.mode==='stance'||view.mode==='walk')?12:Infinity;
+    this.solver.beginElbowFrame(dt,!this.instant&&this.barElbowContinuity?4:view.mode==='paired'&&!freeBend&&(!view.hold||view.clip==='exposed'||(view.clip==='flat'&&this.exposedElbowCarry>0)||this.moveElbowCarry>0)?14:footElbow,!carriedIntoHold);
     this.contacts = [];
     this.footContacts = [];
     const modeKey = view.mode + (view.mode === 'paired' ? view.clip : view.mode === 'solo' ? view.clip : '');
     const changed = modeKey !== this.lastMode;
+    // Getting up off the mat takes a moment: into the walk back, and into the celebration or the
+    // loser's pose when the match ends in a hold on the mat (that one sprang up in a single beat).
+    if (changed && view.mode === 'walk' && /^(paired|solo)/.test(this.lastMode)) this.riseT = 0.9;
+    if (changed && view.mode === 'solo' && /^paired/.test(this.lastMode)) this.riseT = 0.9;
+    this.riseT = view.mode === 'walk' || view.mode === 'solo' ? Math.max(0, this.riseT - dt) : 0;
     if(this.gripTransfer)this.gripTransfer.age+=Math.max(0,dt);
     if(changed || this.instant) {
       this.legFinishStart = null;
@@ -273,7 +334,7 @@ export class Animator {
         this.gripTransfer={age:0,near:gatherDouble?(view.mirror?'R':'L'):null,duration:gatherDouble ? .34 : .24,anchors};
       }
       this.fhlPeelRelease=null;
-      if(view.mode==='paired' && view.role==='B' && ['recover','goBehind'].includes(view.clip) && this.lastMode==='pairedfhl' && !this.instant){
+      if(view.mode==='paired' && view.role==='B' && ['recover','goBehind','chinWhip','shuck','cementMixer'].includes(view.clip) && this.lastMode==='pairedfhl' && !this.instant){
         const hand=view.mirror?'L':'R';
         const start=this.bonePos(`hand${hand}`,new Vector3());
         this.fhlPeelRelease={hand,start,age:0};
@@ -341,20 +402,24 @@ export class Animator {
     switch (view.mode) {
       case 'stance':
         this.buildStance(view, opp);
-        footTarget = view.act === 'sprawl' || view.act === 'sprawlRecover' ? 0 : 1;
+        // Footwork keeps the feet through the down block too and steps them back to its hop; letting go
+        // made the feet jump from where they were planted to the posed spot (toe pops).
+        footTarget = 1;
         this.halfLife = view.act === 'sprawl' ? 0.045 : view.act === 'snap' ? 0.05 : 0.075;
         if (view.act === 'stance') this.halfLife += .025 * this.walkingOverlay;
         break;
       case 'walk':
         this.buildWalk(view, opp);
         footTarget = 1;
-        this.halfLife = 0.1;
+        // Getting up from the mat takes a moment; a plain stop-and-walk is quick.
+        this.halfLife = this.riseT > 0 ? 0.22 : 0.1;
         break;
       case 'paired':
         this.buildPaired(view, opp);
         // Standing control keeps live foot plants as the defender turns out.
         // Throws and mat returns retain their authored airborne trajectories.
-        footTarget = view.hold && view.clip === 'standing' ? 1 : 0;
+        // Leg battles step too (owner: he walks him around the mat): only the free feet, see legFeetFree.
+        footTarget = view.hold && (view.clip === 'standing' || LEG_BATTLE_CLIPS.has(view.clip)) ? 1 : 0;
         // Preserve the authored timing on fast moves; a fixed pose delay can
         // otherwise leave a defensive post airborne after its grip releases.
         this.halfLife = view.hold ? (view.clip==='legRidePressure'?.2:view.clip==='catchRidingLegFlat'?.12:.09) : changed ? 0.06
@@ -363,7 +428,7 @@ export class Animator {
       case 'solo':
         this.buildSolo(view, opp);
         footTarget = 0;
-        this.halfLife = 0.09;
+        this.halfLife = this.riseT > 0 ? 0.22 : 0.09;
         break;
     }
 
@@ -382,9 +447,24 @@ export class Animator {
     this.character.setExertion(Math.min(1, 0.12 + (1 - st) * 0.6 + ex * 0.3), Math.min(1, ex * 0.8 + (1 - st) * 0.5));
 
     // Transitions get a slightly longer blend so the body travels between states.
-    const hl = this.legReleaseAge<1.2 ? Math.max(this.halfLife,.18-.09*this.legReleaseAge/1.2) : changed ? Math.max(this.halfLife, 0.07) : this.halfLife;
+    // Ease out of the slow post-release spring. Dropping it all at once would make
+    // any move started in that window lurch forward at the 1.2 s mark.
+    const releaseHalfLife=Math.min(.18-.09*this.legReleaseAge/1.2,(1.2-this.legReleaseAge)/.3*.1125);
+    // Leaving stance for a move, ease across the gap between the real stance and the
+    // clip's opening pose. Tightening at once snaps the whole body in two frames.
+    if(changed&&view.mode==='paired'&&!view.hold&&this.prevWasStance)this.stanceExit=.14;
+    this.stanceExit=Math.max(0,this.stanceExit-dt);
+    this.prevWasStance=view.mode==='stance';
+    if(this.stanceExit>0)this.halfLife=Math.max(this.halfLife,.012+.07*this.stanceExit/.14);
+    const hl = this.legReleaseAge<1.2 ? Math.max(this.halfLife,releaseHalfLife) : changed ? Math.max(this.halfLife, 0.07) : this.halfLife;
     if (this.instant) {
       this.spring.reset(this.target);
+      // A hard cut also moves the feet and leaves no momentum behind.
+      this.footwork.invalidate();
+      this.prevHx = NaN;
+      this.prevHz = NaN;
+      this.velX = 0;
+      this.velZ = 0;
       this.instant = false;
     } else {
       if((timedRecovery || (view.mode==='paired' && ['armBarSupportedSeatedTurnDraft','armBarSupportedResistedDraft'].includes(view.clip))) && !changed && dt>0){
@@ -407,13 +487,39 @@ export class Animator {
     this.footW += (footTarget - this.footW) * Math.min(1, dt * (footTarget > this.footW ? 9 : 14));
     if (footTarget > 0) {
       if (!wasPlanted || !this.footwork.isPrimed) this.footwork.reset(this.display);
-      const vx = 'vx' in view ? view.vx : 0;
-      const vz = 'vz' in view ? view.vz : 0;
-      this.footwork.update(dt, this.feetDesired, vx, vz, view.mode === 'walk' ? 1 : 1.05 * this.character.motion.tempo, view.mode === 'walk', this.scale);
+      let vx = 'vx' in view ? view.vx : 0;
+      let vz = 'vz' in view ? view.vz : 0;
+      const legBattle = view.mode === 'paired' && LEG_BATTLE_CLIPS.has(view.clip);
+      if (legBattle) {
+        // The hold travels and circles: lead the steps with how fast his hips are moving over the mat.
+        if (Number.isFinite(this.legPrevX) && dt > 0) {
+          const k = Math.min(1, dt * 10);
+          this.legVx += ((this.target[P.HIPS] - this.legPrevX) / dt - this.legVx) * k;
+          this.legVz += ((this.target[P.HIPS + 2] - this.legPrevZ) / dt - this.legVz) * k;
+        }
+        this.legPrevX = this.target[P.HIPS];
+        this.legPrevZ = this.target[P.HIPS + 2];
+        vx = this.legVx;
+        vz = this.legVz;
+        // A foot held up in his hands, or a knee down on the mat, stays with the pose; the others step.
+        for (let i = 0; i < 2; i++) {
+          const at = i === 0 ? P.FOOT_L : P.FOOT_R;
+          const want = Math.max(0, Math.min(1, (0.09 * this.scale - this.target[at + 1]) / (0.04 * this.scale)))
+            * Math.max(0, Math.min(1, (0.75 - this.target[at + FOOT.HEEL]) / 0.25));
+          this.legFree[i] += (want - this.legFree[i]) * Math.min(1, dt * 8);
+        }
+      } else {
+        this.legPrevX = NaN;
+        this.legVx = this.legVz = 0;
+        this.legFree[0] = this.legFree[1] = 1;
+      }
+      this.footwork.update(dt, this.feetDesired, vx, vz, view.mode === 'walk' ? 1 : 1.05 * this.character.motion.tempo, view.mode === 'walk', this.scale, this.legFree);
       this.footwork.apply(this.display, this.footW);
       this.display[P.HIPS + 1] += this.footwork.bounce * this.footW;
       const support = this.footwork.support * this.footW;
-      const sway = .018 - .004 * this.walkingOverlay;
+      // In stance the weight rides over the planted foot while the other steps, as fighters
+      // do (reference: EA UFC 5 footwork, AlbohmgKCoM); walking keeps its gentler shift.
+      const sway = .035 - .021 * this.walkingOverlay;
       const yaw = 'yaw' in view ? view.yaw : view.mode === 'paired' ? view.frame.yaw : 0;
       this.display[P.HIPS] += Math.cos(yaw) * support * sway * this.scale;
       this.display[P.HIPS + 2] -= Math.sin(yaw) * support * sway * this.scale;
@@ -425,7 +531,10 @@ export class Animator {
         // staggered stance feet must not start another walking arm swing.
         if (view.mode === 'walk') this.walkingStride = (dx * Math.sin(yaw) + dz * Math.cos(yaw)) / this.scale;
         const stride = this.walkingStride;
-        const swing = Math.max(-.17, Math.min(.17, stride * .42)) * this.scale * this.walkingOverlay;
+        // Hands on the hips don't swing.
+        // Running pumps the arms harder (owner: run back to the center).
+        const pump = 1 + this.walkRun * 0.6;
+        const swing = Math.max(-.17 * pump, Math.min(.17 * pump, stride * .42 * pump)) * this.scale * this.walkingOverlay * (1 - this.walkTired);
         for (const [at, sign] of [[P.HAND_L, -1], [P.HAND_R, 1]] as const) {
           this.display[at] += Math.sin(yaw) * swing * sign;
           this.display[at + 2] += Math.cos(yaw) * swing * sign;
@@ -446,6 +555,11 @@ export class Animator {
         this.display[P.SPINE + 1] += swing / this.scale * .35 - hipTurn;
         this.display[P.SPINE + 2] -= support * .018 * this.walkingOverlay;
       }
+    } else if (this.footW >= 0.01 && this.footwork.isPrimed) {
+      // Letting go of the planted feet (a shot, a solo pose, a move): fade out from where they were
+      // planted. Dropping footwork at once snapped the feet to the new pose in one frame (toe pops as a
+      // shot starts, shin pops on the first frame of the celebration).
+      this.footwork.apply(this.display, this.footW);
     } else if (this.footW < 0.01) {
       this.footwork.invalidate();
     }
@@ -477,10 +591,10 @@ export class Animator {
       const floor=flatSupportDraft?(view.mode==='paired'&&view.clip==='armBarSupportedSeatedExitDraft'?.06:.07):.04;
       for(let i=1;i<=steps;i++){
         blendPosture(this.previousLegPose,this.display,i/steps,this.legPathPose);
-        this.solver.beginKneeFrame(dt*jointClock/steps,4,floor);
+        this.solver.beginKneeFrame(dt*jointClock/steps,4,floor,Infinity);
         this.solver.applyLegPath(this.legPathPose);
       }
-      this.solver.beginKneeFrame(0,4,floor);
+      this.solver.beginKneeFrame(0,4,floor,Infinity);
     }
     this.previousLegPose.set(this.display);this.legPathReady=legPath;
     this.solver.apply(this.display);
@@ -589,6 +703,7 @@ export class Animator {
         return new Vector3().fromArray(c.at).multiplyScalar(opp.scale).applyMatrix4(b.matrixWorld);
       });
       if(anchors[0].distanceTo(anchors[1])<.22*this.scale)this.cradleClaspLocked=true;
+      this.cradleClaspBlend=this.cradleClaspLocked?Math.min(1,this.cradleClaspBlend+dt*7):0;
       if(this.cradleClaspLocked){
         const neckContact=claspContacts.find(c=>c.on==='neck'||c.on==='head');
         const legContact=claspContacts.find(c=>c.on.startsWith('shin')||c.on.startsWith('thigh'));
@@ -603,7 +718,7 @@ export class Animator {
         clasp.addScaledVector(outside,.13*this.scale);
         clasp.y+=.035*this.scale;
       }
-    }else this.cradleClaspLocked=false;
+    }else{this.cradleClaspLocked=false;this.cradleClaspBlend=0;}
     const backClasp=this.contacts.find(c=>c.backClasp);
     if(opp&&backClasp){
       const anchor=opp.character.bones[backClasp.on];anchor.updateWorldMatrix(true,false);
@@ -695,10 +810,26 @@ this.authoredGripWant[hand]=want;
         bone?.startsWith('forearm')?.72:bone?.startsWith('hand')?.85:
         bone?.startsWith('shin')?.6:bone?.startsWith('thigh')?.35:.4;
       this.character.setGrip?.(hand,w*(clasp?.8:aperture),clasp?'gable':'hook');
-      if (w < 0.01 || !bone || !opp) { this.gripRelease[hand].age=1; continuity();saveHand();continue; }
+      // A free hand forgets its old anchor, so a later grip never glides from a stale spot.
+      if (w < 0.01 || !bone || !opp) { this.gripRelease[hand].age=1; this.handFightAnchor[hand].bone=null; continuity();saveHand();continue; }
       const ob = opp.character.bones[bone];
       ob.updateWorldMatrix(true, false);
       _v.copy(this.gripAt[hand]).multiplyScalar(opp.scale).applyMatrix4(ob.matrixWorld);
+      // A held grip that moves to another bone (wrist to arm to neck, waist to thigh...) glides
+      // there at hand speed instead of teleporting, in stance and in every move. The arm-bar
+      // drafts keep their own hand-over above.
+      const fight=this.handFightAnchor[hand];
+      if(!handoffDraft){
+        // Also when the grip moves on the same bone (front of the chest to the back when a high crotch goes to
+        // the double): that jumped 20 cm in one frame.
+        const moved=fight.bone===bone&&fight.at.distanceTo(this.gripAt[hand])>.05;
+        if(fight.bone&&(fight.bone!==bone||moved)){fight.from.copy(fight.last);fight.age=0;fight.dur=Math.max(.12,Math.min(.35,fight.from.distanceTo(_v)/1.5));}
+        fight.bone=bone;fight.at.copy(this.gripAt[hand]);
+        fight.age+=dt;
+        const glide=Math.min(1,fight.age/(fight.dur||.2));
+        if(glide<1)_v.lerpVectors(fight.from,_v,glide*glide*(3-2*glide));
+        fight.last.copy(_v);
+      }else fight.bone=null;
       const boneRotation=ob.getWorldQuaternion(new Quaternion());
       const doubleExit=this.lastMode==='paireddoubleBarExit' && bone==='chest';
       const lock=doubleExit ? backGableGrip(_v,boneRotation,hand,this.scale) : clasp && c?.backClasp ? backGableGrip(clasp,boneRotation,hand,this.scale)
@@ -749,7 +880,7 @@ this.authoredGripWant[hand]=want;
         const elbow=hand==='L'?P.ELBOW_L:P.ELBOW_R;
         for(let axis=0;axis<3;axis++)this.display[elbow+axis]+=(pole.getComponent(axis)-this.display[elbow+axis])*blend;
       }
-      if(lock)_v.copy(lock.wrist);
+      if(lock){const k=c?.clasp&&!c.backClasp&&!doubleExit?this.cradleClaspBlend:1;_v.lerp(lock.wrist,k*k*(3-2*k));}
       if(lock&&!c?.backClasp&&!doubleExit){
         // Follow the opponent's anatomy rather than a fixed-size elbow pole.
         // The head elbow passes beyond the neck; the leg elbow scoops below
@@ -835,6 +966,11 @@ this.authoredGripWant[hand]=want;
   /* --------------------------------------------------------------- stance */
 
   private stanceParams: StanceParams = { ...DEFAULT_STANCE };
+  /** 0..1 while the lead hand is tapping or pulling his head (read by the opponent). */
+  headTapW = 0;
+  /** Lead leg as a blend, -1..1, so a stance switch flows over half a second instead of snapping. */
+  private leadBlend = 1;
+  private stanceAlt: LocalPose = createLocal();
 
   private buildStance(v: Extract<AnimView, { mode: 'stance' }>, opp: Animator | null): void {
     const s = this.stanceParams;
@@ -845,22 +981,43 @@ this.authoredGripWant[hand]=want;
     const forward = v.vx * sn + v.vz * c;
     this.breath += Math.min(0.05, this.frameDt) * (2.1 + v.exertion * 2.4 + (1 - v.stamina) * 2);
     s.level = v.relaxed ? 0.95 : Math.max(0.1, Math.min(0.8, v.level + this.character.motion.levelOffset));
-    s.lead = v.lead;
+    // Blend a lead switch over about half a second.
+    if (this.instant) this.leadBlend = v.lead;
+    else {
+      const step = Math.min(0.05, this.frameDt) / 0.22;
+      this.leadBlend += Math.max(-step, Math.min(step, v.lead - this.leadBlend));
+    }
+    const effLead: 1 | -1 = this.leadBlend >= 0 ? 1 : -1;
+    s.lead = effLead;
     s.lean = Math.max(-1, Math.min(1, v.lean + forward * 0.08));
     const settle = v.relaxed || v.act !== 'stance' ? 0 : 1;
     const rhythm = this.time * 1.7 * this.character.motion.tempo + this.seed;
-    s.side = Math.max(-1, Math.min(1, lateral * 0.35 + Math.sin(rhythm) * 0.12 * settle));
-    s.level += Math.sin(rhythm * 0.71) * 0.013 * settle;
+    const bounce = this.character.motion.bounce ?? 1;
+    s.side = Math.max(-1, Math.min(1, lateral * 0.35 + Math.sin(rhythm) * 0.16 * settle * bounce));
+    s.level += Math.sin(rhythm * 0.71) * 0.013 * settle * bounce;
+    // A slow rock between the front and back foot while set, never still.
+    s.lean = Math.max(-1, Math.min(1, s.lean + Math.sin(rhythm * 0.43 + 1.1) * 0.18 * settle * bounce));
     s.phase = this.breath;
     s.fatigue = 1 - v.stamina;
     s.width = v.relaxed ? 0.75 : this.character.motion.stanceWidth;
     s.guard = v.relaxed ? 0 : 1;
-    stancePose(s, this.local);
+    s.stagger = v.relaxed ? 0.6 : this.character.motion.stagger ?? 1;
+    s.handHeight = this.character.motion.handHeight ?? 0;
+    if (Math.abs(this.leadBlend) >= 0.999) stancePose(s, this.local);
+    else {
+      s.lead = 1;
+      stancePose(s, this.local);
+      s.lead = -1;
+      stancePose(s, this.stanceAlt);
+      const w = (1 - this.leadBlend) / 2;
+      for (let i = 0; i < this.local.length; i++) this.local[i] += (this.stanceAlt[i] - this.local[i]) * w;
+      s.lead = effLead;
+    }
 
     const lp = this.local;
     const u = v.actDur > 0 && Number.isFinite(v.actDur) ? Math.min(1, v.actT / v.actDur) : 0;
     const bell = Math.sin(u * Math.PI);
-    const leadHand = v.lead === 1 ? P.HAND_L : P.HAND_R;
+    const leadHand = effLead === 1 ? P.HAND_L : P.HAND_R;
 
     if (v.relaxed) {
       // Hands on the hips, chest up, breathing.
@@ -933,11 +1090,16 @@ this.authoredGripWant[hand]=want;
       lp[P.HAND_R + 1] -= 0.16 * bell;
       lp[P.HEAD] += 0.2 * bell;
     } else if (v.act === 'sprawl' || v.act === 'sprawlRecover') {
-      const w = v.act === 'sprawl' ? Math.min(1, u * 3.2) : 1 - u;
-      if (hasSolo('sprawlSolo')) {
-        sampleSolo('sprawlSolo', 0.6, this.scratch);
-        for (let i = 0; i < P.SIZE; i++) lp[i] += (this.scratch[i] - lp[i]) * w;
-      }
+      // In neutral there is never a shot under him: a real shot moves the bout to the legs position, where
+      // the paired clip does the full sprawl. Here it is a bite on a fake or a read, so a down block that
+      // keeps him on his feet (it was the full sprawl to the mat, which looked like a dive at nothing).
+      const ramp = v.act === 'sprawl' ? Math.min(1, u * 3.2) : 1 - u;
+      downBlock(lp, ramp * ramp * (3 - 2 * ramp));
+    } else if (v.act === 'swim') {
+      // Pummel: the shoulder turns in and dips as the arm swims under his.
+      lp[P.SPINE + 1] += 0.22 * bell * (effLead === 1 ? 1 : -1);
+      lp[P.SPINE] += 0.06 * bell;
+      lp[P.HIPS + 1] -= 0.03 * bell;
     } else if (v.act === 'stagger') {
       lp[P.SPINE] += 0.25 * bell;
       lp[P.HIPS + 1] -= 0.05 * bell;
@@ -960,10 +1122,26 @@ this.authoredGripWant[hand]=want;
       lp[P.HAND_R + 1] += Math.sin(t * 6.1 + 4) * amp;
       lp[P.HAND_R + 2] += Math.sin(t * 4.6 + 5) * amp * 1.4;
     }
-    // His collar tie on me pulls my head down.
-    if (v.oppHand >= 0.62 && !v.relaxed) {
-      lp[P.SPINE] += 0.1;
-      lp[P.HEAD] += 0.12;
+    // A reach is a head tap or pull, and a fake in range taps too: lead hand to the back of
+    // his head, with a small lean and dip to sell it. The sim makes him answer it.
+    this.headTapW = !v.relaxed && close < 1.3 && v.hand < 0.62 && (v.act === 'reach' || v.act === 'fake') ? bell : 0;
+    lp[P.SPINE] += 0.07 * this.headTapW;
+    lp[P.HIPS + 1] -= 0.02 * this.headTapW;
+    // His answers. A bite: the head and hips come up. A swat or a wrist tie turns the shoulders into it.
+    if (v.act === 'headUp') {
+      lp[P.HEAD] -= 0.3 * bell;
+      lp[P.SPINE] -= 0.12 * bell;
+    }
+    if (v.act === 'swat' || v.act === 'tieArm') lp[P.SPINE + 1] += 0.12 * bell * (v.lead === 1 ? -1 : 1);
+    // His tap on my head dips it.
+    const tapped = opp && !v.relaxed ? opp.headTapW : 0;
+    lp[P.HEAD] += 0.2 * tapped;
+    lp[P.SPINE] += 0.05 * tapped;
+    // His collar tie on me pulls my head down, in pulses rather than a fixed hold.
+    if (v.oppHand >= 0.62 && v.oppTie !== 'underhook' && v.oppTie !== 'bodyLock' && !v.relaxed) {
+      const pull = 0.6 + 0.4 * Math.max(0, Math.sin(this.time * 2.3 + this.seed));
+      lp[P.SPINE] += 0.1 * pull;
+      lp[P.HEAD] += 0.12 * pull + 0.06 * Math.max(0, Math.sin(this.time * 2.3 + this.seed));
     }
     // Tied up: heads meet, hips stay back.
     if (!v.relaxed && close < 0.95) {
@@ -971,6 +1149,12 @@ this.authoredGripWant[hand]=want;
       lp[P.SPINE] += 0.16 * tie;
       lp[P.HIPS + 2] -= 0.06 * tie;
       lp[P.HEAD] -= 0.1 * tie;
+      // Heads go beside each other, cheek to cheek on the shoulder, as in a real tie, not head-on into
+      // the chest (owner: heads passing through bodies "like a ghost"). Each bends to his own side, so the
+      // two heads pass. Frames with a head over 5 cm inside the other man in stance: 6,656 -> 1,184 of
+      // 331,169 over 24 AI matches.
+      lp[P.SPINE + 2] += 0.35 * tie;
+      lp[P.HEAD + 2] += 0.28 * tie;
     }
 
     scaleLocal(lp, this.scale);
@@ -984,30 +1168,50 @@ this.authoredGripWant[hand]=want;
 
     // Hands: ties become grips on the other body; without a tie they still go
     // looking for his wrists, so hands meet hands instead of passing through.
+    const gripsFrom = this.contacts.length;
     if (opp && !v.relaxed && close < 1.3 && v.act !== 'sprawl' && v.act !== 'sprawlRecover') {
-      const myLead: 'L' | 'R' = v.lead === 1 ? 'L' : 'R';
+      const myLead: 'L' | 'R' = effLead === 1 ? 'L' : 'R';
       const myRear: 'L' | 'R' = myLead === 'L' ? 'R' : 'L';
       const opposite = (h: 'L' | 'R'): 'L' | 'R' => (h === 'L' ? 'R' : 'L');
       const t = this.time * this.character.motion.tempo + this.seed;
-      if (v.hand >= 0.62) {
+      if (this.headTapW > 0.02) {
+        this.contacts.push({ hand: myLead, on: 'head', at: [0, 0.06, -0.07], weight: this.headTapW });
+      }
+      // Swat the tapping arm away, or catch its wrist.
+      if (v.act === 'swat') this.contacts.push({ hand: myRear, on: `forearm${opposite(myRear)}` as BoneName, at: [0, -0.14, 0.03], weight: bell });
+      if (v.act === 'tieArm') this.contacts.push({ hand: myLead, on: `hand${opposite(myLead)}` as BoneName, at: [0, 0.0, 0.03], weight: Math.min(1, u * 3) });
+      if (v.hand >= 0.62 && v.tie === 'bodyLock') {
+        // Body lock: both arms under his, hands clasped behind his back, chest to chest.
+        this.contacts.push({ hand: 'L', on: 'spine', at: [0.04, 0.0, -0.13], weight: 1 });
+        this.contacts.push({ hand: 'R', on: 'spine', at: [-0.04, 0.0, -0.13], weight: 1 });
+      } else if (v.act === 'swim') {
+        // Pummel: the swimming hand goes in under his arm to the shoulder blade, the other stays on him.
+        this.contacts.push({ hand: myRear, on: 'chest', at: [myRear === 'L' ? -0.12 : 0.12, 0.1, -0.1], weight: bell });
+        this.contacts.push({ hand: myLead, on: `forearm${opposite(myLead)}` as BoneName, at: [0, -0.1, 0.02], weight: 0.7 });
+      } else if (v.hand >= 0.62 && v.tie === 'underhook') {
+        // Underhook: the lead arm goes under his arm, hand flat on the shoulder blade;
+        // the other hand holds his wrist (reference cna5d3Bg5Ik, 0:25 to 0:34).
+        this.contacts.push({ hand: myLead, on: 'chest', at: [myLead === 'L' ? -0.12 : 0.12, 0.1, -0.1], weight: 1 });
+        this.contacts.push({ hand: myRear, on: `forearm${opposite(myRear)}` as BoneName, at: [0, -0.1, 0.02], weight: 0.9 });
+      } else if (v.hand >= 0.62) {
         this.contacts.push({ hand: myLead, on: 'neck', at: [0, 0.045, -0.07], weight: 1 });
         this.contacts.push({ hand: myRear, on: `forearm${opposite(myRear)}` as BoneName, at: [0, -0.1, 0.02], weight: 0.9 });
       } else if (v.hand >= 0.3) {
-        this.contacts.push({ hand: myLead, on: `forearm${opposite(myLead)}` as BoneName, at: [0, -0.2, 0.02], weight: 0.95 });
+        this.contacts.push({ hand: myLead, on: `forearm${opposite(myLead)}` as BoneName, at: [0, -0.2, 0.02], weight: 0.95 * (1 - this.headTapW) });
         this.contacts.push({ hand: myRear, on: `hand${opposite(myRear)}` as BoneName, at: [0, 0.0, 0.03], weight: 0.35 + 0.3 * Math.sin(t * 3.1) ** 2 });
       } else if (v.oppHand < 0.3 && close < 1.2) {
         // Fighting for inside position: reach, touch, pull back.
         const reachLead = v.act === 'reach' ? 1 : 0.3 + 0.45 * Math.max(0, Math.sin(t * 2.6));
         const reachRear = 0.2 + 0.4 * Math.max(0, Math.sin(t * 2.1 + 1.7));
-        this.contacts.push({ hand: myLead, on: `forearm${opposite(myLead)}` as BoneName, at: [0, -0.22, 0.03], weight: reachLead });
+        this.contacts.push({ hand: myLead, on: `forearm${opposite(myLead)}` as BoneName, at: [0, -0.22, 0.03], weight: reachLead * (1 - this.headTapW) });
         this.contacts.push({ hand: myRear, on: `forearm${opposite(myRear)}` as BoneName, at: [0, -0.18, 0.03], weight: reachRear });
       } else if (v.act === 'reach') {
         this.contacts.push({ hand: myLead, on: 'neck', at: [0, 0.05, -0.05], weight: Math.sin(u * Math.PI) });
       }
     }
+    // Mid-switch the hands trade roles: fade the grips through the middle so neither jumps.
+    for (let i = gripsFrom; i < this.contacts.length; i++) this.contacts[i].weight *= Math.abs(this.leadBlend);
   }
-
-  private scratch: LocalPose = createLocal();
 
   private distanceTo(opp: Animator, x: number, z: number): number {
     const h = opp.character.bones.hips.position;
@@ -1077,6 +1281,39 @@ this.authoredGripWant[hand]=want;
     lp[P.WRIST_R] = 0;
     lp[P.WRIST_L + 2] = 0;
     lp[P.WRIST_R + 2] = 0;
+    // Running back to the center (owner): lean into it, elbows bent near 90 degrees, hands up by the ribs; the
+    // arm swing itself grows with the stride (below).
+    const speed = Math.hypot(v.vx, v.vz) / this.scale;
+    const run = Math.max(0, Math.min(1, (speed - 1.4) / 1.2));
+    this.walkRun += (run - this.walkRun) * Math.min(1, this.frameDt * 6);
+    const r = this.walkRun;
+    if (r > 0.001) {
+      lp[P.SPINE] += 0.22 * r;
+      lp[P.HIPS_Q + 1] += 0.08 * r;
+      lp[P.HEAD] -= 0.12 * r;
+      lp[P.HIPS + 1] -= 0.035 * r;
+      for (const [hand, elbow, side] of [[P.HAND_L, P.ELBOW_L, 1], [P.HAND_R, P.ELBOW_R, -1]] as const) {
+        lp[hand] += (0.17 * side - lp[hand]) * r;
+        lp[hand + 1] += (1.02 - lp[hand + 1]) * r;
+        lp[hand + 2] += (0.12 - lp[hand + 2]) * r;
+        lp[elbow] += (0.5 * side - lp[elbow]) * r;
+        lp[elbow + 1] += (-0.3 - lp[elbow + 1]) * r;
+        lp[elbow + 2] += (-0.7 - lp[elbow + 2]) * r;
+      }
+    }
+    // Gassed after a long scramble: hands on the hips, elbows out, head and chest down (walking it, not running).
+    const tired = Math.max(0, Math.min(1, (0.45 - v.stamina) / 0.3)) * (1 - r);
+    this.walkTired += (tired - this.walkTired) * Math.min(1, this.frameDt * 3);
+    const k = this.walkTired;
+    if (k > 0.001) {
+      const mix = (at: number, value: number) => { lp[at] += (value - lp[at]) * k; };
+      mix(P.HAND_L, 0.2); mix(P.HAND_L + 1, 1.0); mix(P.HAND_L + 2, 0.0);
+      mix(P.HAND_R, -0.2); mix(P.HAND_R + 1, 1.0); mix(P.HAND_R + 2, 0.0);
+      mix(P.ELBOW_L, 1.0); mix(P.ELBOW_L + 1, 0.1); mix(P.ELBOW_L + 2, -0.25);
+      mix(P.ELBOW_R, -1.0); mix(P.ELBOW_R + 1, 0.1); mix(P.ELBOW_R + 2, -0.25);
+      lp[P.HEAD] += 0.3 * k;
+      lp[P.SPINE] += 0.1 * k;
+    }
     scaleLocal(lp, this.scale);
     localToWorld(lp, { x: v.x, z: v.z, yaw: v.yaw }, this.target);
     this.feetDesired.set(this.target);
@@ -1085,13 +1322,24 @@ this.authoredGripWant[hand]=want;
 
   /* --------------------------------------------------------------- paired */
 
+  /** Base is hit and rebuilt press by press; the body follows smoothly, not in jerks. */
+  private rideProgress = 0;
+  private wasRiding = false;
+  private easedRideProgress(v: Extract<AnimView, { mode: 'paired' }>): number {
+    const riding = v.clip === 'ride';
+    if (!riding || !this.wasRiding || this.instant) this.rideProgress = v.progress;
+    else this.rideProgress += (v.progress - this.rideProgress) * Math.min(1, this.frameDt * 5);
+    this.wasRiding = riding;
+    return this.rideProgress;
+  }
+
   private buildPaired(v: Extract<AnimView, { mode: 'paired' }>, opp: Animator | null): void {
     const lp = this.local;
     const smoothGuide=(x:number)=>{const t=Math.max(0,Math.min(1,x));return t*t*(3-2*t);};
     this.barGuideHand=v.mirror?'R':'L';
     this.barGuideWeight=v.role!=='A'?0:v.clip==='armBarSupportedSeatedTurnDraft'?smoothGuide((v.u-.5)/.12):v.clip==='armBarSupportedSeatedFinishDraft'?1:v.clip==='armBarSupportedSeatedExitDraft'?smoothGuide((.3-v.u)/.3):0;
     const contacts = v.hold
-      ? sampleHold(v.clip, v.role, v.progress, (this.phase += this.frameDt), v.intensity, v.mirror, lp)
+      ? sampleHold(v.clip, v.role, this.easedRideProgress(v), (this.phase += this.frameDt), v.intensity, v.mirror, lp)
       : sampleMove(v.clip, v.role, v.u, v.mirror, lp);
     if(!v.hold && v.clip==='armBarSupportedSeatedExitDraft'){
  const list=(moveClip(v.clip)?.contacts??[]).filter(c=>c.who===v.role);
@@ -1164,13 +1412,16 @@ if(!v.hold && v.role==='A')applyArmBarTurnSteps(lp,v.clip,v.u,v.mirror);
     if(v.hold && isArmBarPin(v.clip))applyArmBarResistance(lp,v.role==='A',v.resistance??0,v.mirror,v.clip==='armBarSupportedSeatedFinishDraft',this.scale);
     const failedRise = v.clip === 'ride' && this.effortPulse.button === 'shoot' && this.effortPulse.result === 'lost'
       && (v.role === 'B' ? !this.effortPulse.reaction : this.effortPulse.reaction);
-    const effortDuration = failedRise ? 0.65 : 0.42;
+    // Owner, November 10: with him on his back the top man adjusts and drives him deeper. A squeeze that tightens
+    // the hold ('won' on a pin) is a bigger, slower pulse than an ordinary squeeze.
+    const tighten = this.effortPulse.result === 'won' && ['exposed','cradleHold','spladle'].includes(v.clip) && !isArmBarPin(v.clip);
+    const effortDuration = failedRise ? 0.65 : tighten ? 0.62 : 0.42;
     if (v.hold && this.effortPulse.age < effortDuration) {
       // Local paired motion happens before IK/contact closure: locked hands stay
       // attached while the trunk, head and controlled limbs actually yield.
       const pulse = effortEnvelope(this.effortPulse.age, effortDuration);
       const reaction = this.effortPulse.reaction;
-      const amount = pulse * (reaction ? 0.5 : 1) * (0.65 + 0.35 * v.stamina);
+      const amount = pulse * (reaction ? 0.5 : 1) * (0.65 + 0.35 * v.stamina) * (tighten ? 1.8 : 1);
       const top = v.role === 'A';
       const pin = ['exposed','cradleHold','spladle'].includes(v.clip);
       if(applyArmBarEffort(lp,v.clip,top,reaction,this.effortPulse.button,amount,v.mirror,v.resistance??0,this.scale,pulse*(.65+.35*v.stamina))){

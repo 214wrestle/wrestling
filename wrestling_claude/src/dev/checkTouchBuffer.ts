@@ -1,7 +1,7 @@
 import { TouchBuffer } from '../engine/TouchBuffer';
 import { NO_PAD } from '../engine/Input';
 const ok=(v:unknown,m:string)=>{if(!v)throw Error(m)};
-for(const key of ['shoot','fight','sprawl','level','lowSingle','scramble','legRide','closePockets','catchLeg'] as const){
+for(const key of ['shoot','fight','sprawl','level','lowSingle','scramble','sitOut','legRide','closePockets','catchLeg'] as const){
  const b=new TouchBuffer();
  b.set({...NO_PAD,[key]:true}); b.set({...NO_PAD});
  ok(b.sample()[key],`${key}: sub-frame tap retained`);
@@ -22,7 +22,7 @@ for(const [key,value] of [['technique','slideBy'],['legAction','lift']] as const
 console.log('Touch taps, rapid retaps, holds, special controls and clearing verified');
 
 // A cancelled pointer must not replay a queued tap on the next simulation step.
-for (const key of ['shoot','fight','sprawl','level','lowSingle','scramble','legRide','closePockets','catchLeg','technique','legAction'] as const) {
+for (const key of ['shoot','fight','sprawl','level','lowSingle','scramble','sitOut','legRide','closePockets','catchLeg','technique','legAction'] as const) {
  const b = new TouchBuffer();
  const value = key === 'technique' ? 'slideBy' : key === 'legAction' ? 'lift' : true;
  b.set({...NO_PAD,[key]:value}); b.cancel(key);

@@ -1,6 +1,6 @@
 import { applyOwnerPace, HIGH_PACE_NAMES, isScrambleSpecialist, heavyweightActivity } from '../sim/athleteProfiles';
 import { ROSTER } from '../sim/roster';
-import { Bout } from '../sim/bout';
+import { Bout, type Position } from '../sim/bout';
 import { PROTOTYPE_ROSTER } from '../sim/roster';
 import { NO_COMMAND } from '../sim/types';
 const ok=(v:boolean,m:string)=>{if(!v)throw Error(m)};
@@ -48,3 +48,31 @@ ok((metcalf?.motion?.shots.highCrotch??0)>0.6,'Metcalf must favor high crotches'
 
 for(const name of HIGH_PACE_NAMES)ok(applyOwnerPace(name).tempo>=1.2,`${name} must sustain higher pace`);
 ok(applyOwnerPace('Bo Bassett').tempo>applyOwnerPace('David Taylor').tempo,'Bassett receives strongest sustained tempo');
+
+// Owner-selected 2026 champion profiles must reach actual contest mechanics.
+const vega=ROSTER.find(w=>w.firstName==='Sergio'&&w.lastName==='Vega')!;
+const forrest=ROSTER.find(w=>w.firstName==='Jax'&&w.lastName==='Forrest')!;
+let cradleSelected=false;
+for(let seed=1;seed<=30&&!cradleSelected;seed++){
+ const bout=new Bout([vega,PROTOTYPE_ROSTER[1]],{},seed);
+ bout.setReferee(0,{x:0,z:0},0);
+ if(bout.position.kind!=='mat')throw Error('Expected referee mat position');
+ bout.position.sub='flat';bout.position.base=0;bout.position.control=.8;
+ bout.tick(1/60,[{...NO_COMMAND,shoot:true},{...NO_COMMAND}]);
+ const after = bout.position as Position;
+ if(after.kind==='move'){
+  ok(after.id==='cradle','Vega successful turn uses cradle');
+  cradleSelected=true;
+ }
+}
+ok(cradleSelected,'Vega has a successful cradle attempt');
+function scrambleProgress(specialist:boolean){
+ const wrestler=specialist?forrest:{...forrest,firstName:'Control',lastName:'Wrestler'};
+ const bout=new Bout([PROTOTYPE_ROSTER[0],wrestler],{},31);
+ bout.position={kind:'legs',A:0,shot:'single',mirror:false,t:0,frame:{x:0,z:0,yaw:0},progress:.5,intensity:.5};
+ bout.tick(1/60,[{...NO_COMMAND},{...NO_COMMAND,scramble:true}]);
+ return bout.position.kind==='legs'?bout.position.progress:1;
+}
+ok(scrambleProgress(true)<scrambleProgress(false),'Forrest specialist improves defensive scramble versus identical ordinary attributes');
+ok((forrest.motion?.attackRate??0)>1,'Forrest retains elevated attack pace');
+console.log('Vega cradle selection and Forrest pace/scramble mechanics verified');

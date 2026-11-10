@@ -27,6 +27,8 @@ export interface HairOptions {
   /** Comb direction in head space (forward, to the side...). */
   flow: [number, number, number];
   scale: number;
+  /** Texture, 0 tightly coiled .. 1 straight (default coiled, the shell's original look). */
+  straight?: number;
 }
 
 export function createHairShell(scalp: MeshData, lengths: Float32Array, opts: HairOptions): InstancedMesh {
@@ -45,6 +47,7 @@ export function createHairShell(scalp: MeshData, lengths: Float32Array, opts: Ha
     uFlow: { value: new Vector3(...opts.flow).normalize() },
     uLayers: { value: HAIR_LAYERS },
     uS: { value: opts.scale },
+    uStraight: { value: opts.straight ?? 0 },
   };
   mat.userData.uLen = uniforms.uLen;
   mat.onBeforeCompile = (s) => {
@@ -57,7 +60,9 @@ export function createHairShell(scalp: MeshData, lengths: Float32Array, opts: Ha
         uniform float uLen;
         uniform vec3 uFlow;
         uniform float uLayers;
+        uniform float uStraight;
         varying vec3 vRoot;
+        varying vec3 vRootN;
         varying float vT;
         varying float vLen;
         varying vec3 vFlowV;
@@ -68,14 +73,17 @@ export function createHairShell(scalp: MeshData, lengths: Float32Array, opts: Ha
         `#include <begin_vertex>
         float t = (float(gl_InstanceID) + 1.0) / uLayers;
         float h = t * uLen * aLen;
-        // Hair leaves the scalp along the normal and bends over in the comb direction.
+        // Hair leaves the scalp along the normal and bends over in the comb direction; coiled hair
+        // stands up off the scalp, straight hair lies down along the comb.
         vec3 lean = uFlow - normal * dot(uFlow, normal);
-        transformed += normal * h * 0.6 + lean * h * 1.1 * t + normal * 0.0003;
+        float rise = mix(0.6, 0.3, uStraight), lay = mix(1.1, 2.2, uStraight);
+        transformed += normal * h * rise + lean * h * lay * t + normal * 0.0003;
         vRoot = position;
+        vRootN = normal;
         vT = t;
         vLen = aLen;
         // Strand direction and the world up, in view space, for the sheen band.
-        vFlowV = (modelViewMatrix * vec4(normalize(normal * 0.6 + lean * 1.1 * t + 1e-4), 0.0)).xyz;
+        vFlowV = (modelViewMatrix * vec4(normalize(normal * rise + lean * lay * t + 1e-4), 0.0)).xyz;
         vUpV = (viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz;`,
       );
     s.fragmentShader = s.fragmentShader
@@ -84,7 +92,10 @@ export function createHairShell(scalp: MeshData, lengths: Float32Array, opts: Ha
         `#include <common>
         uniform vec3 uHairCol;
         uniform float uS;
+        uniform float uStraight;
+        uniform vec3 uFlow;
         varying vec3 vRoot;
+        varying vec3 vRootN;
         varying float vT;
         varying float vLen;
         varying vec3 vFlowV;
@@ -105,7 +116,16 @@ export function createHairShell(scalp: MeshData, lengths: Float32Array, opts: Ha
           // length, thickness and shade. Cells are 1.1 mm: at broadcast
           // distances that is about a pixel, so a strand reads as texture
           // rather than per-pixel noise.
+          // Straight hair: the strand cells stretch along the comb direction into long strands (about
+          // 1 cm), with a gentle wave across them in between; coiled hair keeps round cells, a peppercorn texture.
+          vec3 n0 = normalize(vRootN);
+          vec3 tdir = uFlow - n0 * dot(uFlow, n0);
+          tdir = dot(tdir, tdir) > 1e-6 ? normalize(tdir) : vec3(0.0, 0.0, -1.0);
           vec3 q = vRoot / uS / 0.0011;
+          float along = dot(q, tdir);
+          float wave = uStraight * (1.0 - uStraight) * 4.0;
+          q += cross(n0, tdir) * sin(along * 0.9) * 0.8 * wave;
+          q -= tdir * along * mix(0.0, 0.88, uStraight);
           vec3 i = floor(q);
           vec3 f = fract(q);
           float best = 9.0;
@@ -122,11 +142,11 @@ export function createHairShell(scalp: MeshData, lengths: Float32Array, opts: Ha
           // Clumps: neighbouring strands share a length, so the top reads as
           // tufts with a broken silhouette instead of an even cap.
           float clump = hh13(floor(vRoot / uS / 0.004) + 3.7);
-          float dens = smoothstep(0.0, 0.28, vLen);
+          float dens = smoothstep(0.0, 0.28, vLen) * mix(1.0, 1.25, uStraight);
           if (hh13(i + 9.1) > dens * 1.15) discard;
           float reach = 0.35 + 0.45 * bestH + 0.35 * clump;
           float alive = step(vT, reach);
-          float rad = mix(0.75, 0.35, vT / reach);
+          float rad = mix(0.75, 0.35, vT / reach) * mix(1.0, 1.2, uStraight);
           gCov = alive * smoothstep(rad, rad * 0.5, sqrt(best));
           // Outer layers fade where the scalp turns away: no fuzzy halo.
           float ndv = abs(dot(normalize(vNormal), normalize(vViewPosition)));
@@ -135,7 +155,7 @@ export function createHairShell(scalp: MeshData, lengths: Float32Array, opts: Ha
           // Root-to-tip value: dark at the scalp, lighter and warmer at the tips,
           // with per-strand and per-clump variation.
           float tip = vT / reach;
-          gShade = mix(0.32, 1.0, tip) * (0.8 + 0.3 * bestH) * (0.85 + 0.3 * clump);
+          gShade = mix(mix(0.32, 0.55, uStraight), 1.0, tip) * (0.8 + 0.3 * bestH) * (0.85 + 0.3 * clump);
           vec3 col = uHairCol * gShade;
           col = mix(col, col * vec3(1.12, 1.04, 0.9), tip * 0.5);
           // Anisotropic sheen band (Kajiya-Kay) from the overhead lights.
@@ -145,14 +165,16 @@ export function createHairShell(scalp: MeshData, lengths: Float32Array, opts: Ha
           vec3 Hh = normalize(Lup + V);
           float th = dot(T, Hh);
           float aniso = pow(sqrt(max(0.0, 1.0 - th * th)), 60.0);
-          col += uHairCol * 1.6 * aniso * 0.35 * tip + vec3(0.04) * aniso * tip;
+          // Straight hair lies in a sheet: a broad, bright band along it. Coiled hair scatters the light.
+          float sheen = mix(0.35, 0.8, uStraight) * mix(tip, 1.0, uStraight * 0.6);
+          col += uHairCol * 1.6 * aniso * sheen + vec3(0.04 + 0.06 * uStraight) * aniso * sheen;
           diffuseColor.rgb = col;
           diffuseColor.a = gCov;
         }`,
       )
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(0.75, 0.55, vT);');
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(0.75, 0.55, vT) - uStraight * 0.12;');
   };
-  mat.customProgramCacheKey = () => 'real-hair-shell';
+  mat.customProgramCacheKey = () => 'real-hair-shell-2';
 
   const mesh = new InstancedMesh(g, mat, HAIR_LAYERS);
   const id = new Matrix4();

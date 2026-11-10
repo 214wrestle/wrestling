@@ -78,12 +78,18 @@ export class Solver {
   authoredPalmRelease=false;
  continuousPost=false;
  softFreeReach={L:0,R:0};
+ /** Metres: keep the hand at least this far from its own shoulder (0 off). */
+ minReach=0;
  authoredPostDirection:{L:Vector3|null,R:Vector3|null}={L:null,R:null};
  private postDelta={L:null as Quaternion|null,R:null as Quaternion|null};
   private elbowPlanes = new Map<Bone, Vector3>();
   private elbowFramePlanes = new Map<Bone, Vector3>();
   private elbowTurnBudget = new Map<Bone, number>();
-  beginElbowFrame(dt:number,radiansPerSecond=Infinity):void {
+  private elbowClearMat = true;
+  /** clearMat false keeps the speed limit but not the mat-clearance lift: a hold never lifts its
+   * elbows, so a limit carried into one must not either, or the elbow drops when it ends. */
+  beginElbowFrame(dt:number,radiansPerSecond=Infinity,clearMat=true):void {
+    this.elbowClearMat=clearMat;
     for(const side of ['L','R'] as const){
       const bone=this.rig.bones[`arm${side}`];
       this.elbowTurnBudget.set(bone,dt*radiansPerSecond);
@@ -94,11 +100,19 @@ export class Solver {
   private kneePlanes = new Map<Bone, Vector3>();
   private kneeTurnBudget = new Map<Bone, number>();
   private kneeGroundHeight = .04;
+  /** Radians the keep-the-knee-off-the-mat correction may turn the bend this frame (per thigh). */
+  private kneeGroundBudget = new Map<Bone, number>();
   /** Opt-in bend-plane continuity for experimental entanglement transitions.
    * Both the pose solve and subsequent foot-contact solve share one budget. */
-  beginKneeFrame(dt: number, radiansPerSecond = Infinity, minimumJointHeight = .04): void {
+  beginKneeFrame(dt: number, radiansPerSecond = Infinity, minimumJointHeight = .04, groundRadiansPerSecond = radiansPerSecond): void {
     this.kneeGroundHeight = minimumJointHeight;
-    for(const side of ['L','R'] as const)this.kneeTurnBudget.set(this.rig.bones[`thigh${side}`],dt*radiansPerSecond);
+    for(const side of ['L','R'] as const){
+      this.kneeTurnBudget.set(this.rig.bones[`thigh${side}`],dt*radiansPerSecond);
+      // The ground correction turns the bend no faster than the ordinary knee rate. Unlimited, it whipped the bend
+      // round in one frame when a folded knee neared the mat (sit-outs and switches, bigger bottom man: 16-19 m/s).
+      // Leg rides and seated leg defense keep it unlimited (the caller passes Infinity): their knees live on the mat.
+      this.kneeGroundBudget.set(this.rig.bones[`thigh${side}`],dt*groundRadiansPerSecond);
+    }
   }
 
   private leg: ChainRest;
@@ -249,6 +263,16 @@ export class Solver {
     const offset = side === 'L' ? this.armOffsetL : this.armOffsetR;
     _v3.add(_mid.copy(offset).applyQuaternion(parentQ));
     _end.set(p[e], p[e + 1], p[e + 2]);
+    if(this.minReach>0){
+      // A hand right on top of its own shoulder (a grip on his head or neck when the heads meet) gives the
+      // arm line no direction, and the elbow swung around it. Keep the hand out in front of the chest.
+      const minR=this.minReach*this.rig.scale,reachVector=target.clone().sub(_v3),length=reachVector.length();
+      if(length<minR){
+        const forward=new Vector3(0,0,1).applyQuaternion(_q1);
+        if(length<1e-4)reachVector.copy(forward);else reachVector.divideScalar(length).lerp(forward,1-length/minR).normalize();
+        target.copy(_v3).addScaledVector(reachVector,minR);
+      }
+    }
     const soft=this.softFreeReach[side];
     if(soft>0){
       const reachVector=target.clone().sub(_v3),length=reachVector.length(),span=this.arm.l1+this.arm.l2;
@@ -352,7 +376,12 @@ export class Solver {
           up.divideScalar(vertical);
           const maxAngle=Math.acos(clamp(required/vertical,-1,1));
           const angle=Math.atan2(dir.dot(up.clone().cross(pp)),up.dot(pp));
-          pp.copy(up.applyAxisAngle(dir,clamp(angle,-maxAngle,maxAngle)));
+          const want=clamp(angle,-maxAngle,maxAngle);
+          const ground=this.kneeGroundBudget.get(upper)??Infinity;
+          // Turn toward the clear plane no faster than the ground budget (an unlimited budget is the old snap).
+          const step=clamp(want-angle,-ground,ground);
+          pp.copy(up.applyAxisAngle(dir,angle+step));
+          if(Number.isFinite(ground))this.kneeGroundBudget.set(upper,Math.max(0,ground-Math.abs(step)));
         }
       }
       if(previous)previous.copy(pp);else this.kneePlanes.set(upper,pp.clone());
@@ -369,7 +398,7 @@ export class Solver {
           pp.copy(transported.applyAxisAngle(dir,applied));
         }
       }
-      if(Number.isFinite(budget) && hgt>1e-6){
+      if(Number.isFinite(budget) && this.elbowClearMat && hgt>1e-6){
         // Preserve shoulder and wrist anchors and bone lengths; select the
         // closest feasible bend plane whose elbow clears the mat.
         const up=new Vector3(0,1,0).addScaledVector(dir,-dir.y);

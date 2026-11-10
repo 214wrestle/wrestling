@@ -21,6 +21,8 @@ import {
   RepeatWrapping,
   Scene,
   SpotLight,
+  AdditiveBlending,
+  ShaderMaterial,
   SRGBColorSpace,
   SphereGeometry,
   Vector3,
@@ -369,11 +371,35 @@ function buildRig(): Group {
 
   // Lamp housings with a soft cone of visible light underneath.
   const housing = new MeshStandardMaterial({ color: '#1b2029', roughness: 0.5, metalness: 0.5 });
-  const glow = new MeshBasicMaterial({
-    color: '#fff3d6',
+  // Light shafts: bright through the middle, gone at the silhouette and before the
+  // floor. A flat see-through cone draws hard-edged wedges across the mat and crowd.
+  const glow = new ShaderMaterial({
     transparent: true,
-    opacity: 0.022,
     depthWrite: false,
+    side: DoubleSide,
+    blending: AdditiveBlending,
+    uniforms: { uColor: { value: new Color('#fff3d6') } },
+    vertexShader: `
+      varying vec3 vN;
+      varying vec3 vV;
+      varying float vH;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vN = normalMatrix * normal;
+        vV = -mv.xyz;
+        vH = uv.y;
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `
+      uniform vec3 uColor;
+      varying vec3 vN;
+      varying vec3 vV;
+      varying float vH;
+      void main() {
+        float facing = abs(dot(normalize(vN), normalize(vV)));
+        float a = pow(facing, 2.5) * smoothstep(0.05, 0.55, vH) * 0.011;
+        gl_FragColor = vec4(uColor * a, a);
+      }`,
   });
   for (const x of [-4.6, 4.6]) {
     for (const z of [-4.6, 4.6]) {

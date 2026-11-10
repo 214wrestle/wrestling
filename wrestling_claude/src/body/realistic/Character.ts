@@ -1,3 +1,4 @@
+import { addGripMorph } from './gripMorph';
 import { DEFAULT_MOTION } from '../../sim/athleteProfiles';
 import type { WrestlingStyle } from '../../sim/athleteProfiles';
 import {
@@ -37,12 +38,16 @@ export interface RealCharacterOptions {
   motion?: WrestlingStyle;
   eye: string;
   gear: { shell: string; strap: string };
+  /** Officials wear no headgear. */
+  noGear?: boolean;
   /** Hair length for the shell, metres (0 = painted only). */
   hairLen: number;
   /** Comb direction for the shell. */
   hairFlow: [number, number, number];
   /** Rest-space pupil height of the canonical face. */
   pupilY: number;
+  /** Photo fit: each eyeball moved to the portrait's iris (canonical metres; [right(+x), left(-x)]). */
+  eyeShift?: [[number, number, number], [number, number, number]];
   /** Head size multiplier about HEAD_PIVOT. */
   headScale: number;
 }
@@ -157,6 +162,7 @@ function gearMaterial(shell: string, strap: string): MeshPhysicalMaterial {
 }
 
 export class RealCharacter {
+  private gripMeshes: Partial<Record<'L'|'R', SkinnedMesh>> = {};
   readonly root = new Group();
   readonly motion: WrestlingStyle;
   readonly bones = {} as Record<BoneName, Bone>;
@@ -213,8 +219,11 @@ export class RealCharacter {
     }
     for (const m of [geo.body, geo.head, ...(geo.face ? [geo.face] : []), ...geo.hands]) {
       const g = toGeometry(m);
+      const handIndex = geo.hands.indexOf(m);
+      if (handIndex === 0 || handIndex === 1) addGripMorph(g,handIndex === 0 ? 1 : -1,s);
       this.geometries.push(g);
       const mesh = new SkinnedMesh(g, m === geo.body ? bodyMat : m === geo.head ? headMat : this.material);
+      if (handIndex === 0 || handIndex === 1) this.gripMeshes[handIndex === 0 ? 'L' : 'R'] = mesh;
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       mesh.frustumCulled = false;
@@ -226,7 +235,7 @@ export class RealCharacter {
     for (const b of this.boneList) b.quaternion.identity();
     this.root.updateMatrixWorld(true);
 
-    if (geo.headgear) {
+    if (geo.headgear && !opts.noGear) {
       const gm = gearMaterial(opts.gear.shell, opts.gear.strap);
       this.materials.push(gm);
       const g = toGeometry(geo.headgear);
@@ -244,6 +253,7 @@ export class RealCharacter {
         length: opts.hairLen * s,
         flow: opts.hairFlow,
         scale: s,
+        straight: opts.look.hairStraight,
       });
       this.materials.push(hair.material as Material);
       this.geometries.push(hair.geometry);
@@ -271,9 +281,10 @@ export class RealCharacter {
       // The brow and lids shade the eyes: without this they glow under top light.
       eye.receiveShadow = true;
       const P = HEAD_PIVOT;
-      const ex = P[0] + (0.032 * side - P[0]) * hs;
-      const ey = P[1] + (opts.pupilY - P[1]) * hs;
-      const ez = P[2] + (EYE_Z - P[2]) * hs;
+      const sh = opts.eyeShift?.[side > 0 ? 0 : 1] ?? [0, 0, 0];
+      const ex = P[0] + (0.032 * side + sh[0] - P[0]) * hs;
+      const ey = P[1] + (opts.pupilY + sh[1] - P[1]) * hs;
+      const ez = P[2] + (EYE_Z + sh[2] - P[2]) * hs;
       eye.position.set((ex - HEAD_ORIGIN[0]) * s, (ey - HEAD_ORIGIN[1]) * s, (ez - HEAD_ORIGIN[2]) * s);
       // Eyes converge slightly and sit a touch down-gazing for a natural look.
       eye.rotation.set(2 * DEG, -side * 2.5 * DEG, 0);
@@ -287,6 +298,11 @@ export class RealCharacter {
    * opponent in the stance), each from its own centre so they converge; the
    * turn is limited to what real eyes do (about 25 degrees).
    */
+  setGrip(hand:'L'|'R',amount:number):void {
+    const mesh=this.gripMeshes[hand];
+    if(mesh?.morphTargetInfluences)mesh.morphTargetInfluences[0]=Math.max(0,Math.min(1,amount));
+  }
+
   setGaze(target: Vector3): void {
     this.root.updateMatrixWorld(true);
     for (const eye of this.eyes) {

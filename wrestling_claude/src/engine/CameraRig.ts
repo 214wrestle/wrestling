@@ -67,6 +67,8 @@ export class CameraRig {
   private spread = 0;
   /** Extra orbit for showcase and attract. */
   private spin = 0;
+  /** Current orbit speed (rad/s), eased so the camera never jerks into a turn. */
+  private orbitVel = 0;
 
   setMode(mode: CameraMode): void {
     this.mode = mode;
@@ -114,8 +116,12 @@ export class CameraRig {
       const want = azimuth + Math.sin(this.spin) * 0.55;
       this.azimuth += wrap(want - this.azimuth) * Math.min(1, dt * 0.8);
     } else {
+      // Orbit like an operator walking round the mat: ease into the turn and never whip faster than
+      // about 65 degrees a second (a half-circle change of view used to start at 4.7 rad/s).
       const d = wrap(azimuth - this.azimuth);
-      this.azimuth += d * Math.min(1, dt * this.current.orbit);
+      const wantVel = Math.max(-1.15, Math.min(1.15, d * this.current.orbit));
+      this.orbitVel += (wantVel - this.orbitVel) * Math.min(1, dt * 3.5);
+      this.azimuth += this.orbitVel * dt;
       this.azimuth += Math.sin(this.time * 0.13) * dt * 0.02;
     }
 
@@ -150,6 +156,7 @@ export class CameraRig {
   /** Snap straight to the current shot, for hard cuts. */
   cut(focus: Vector3, azimuth: number): void {
     this.azimuth = azimuth;
+    this.orbitVel = 0;
     Object.assign(this.current, SHOTS[this.mode]);
     this.target.set(focus.x, this.current.lookHeight, focus.z);
     this.position.set(

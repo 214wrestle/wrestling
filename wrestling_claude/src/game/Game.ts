@@ -22,20 +22,23 @@ import type { Gym } from '../arena/gym';
 import { createMat } from '../arena/mat';
 import { Scoreboard } from '../arena/scoreboard';
 import { MatchSim } from '../sim/MatchSim';
+import { resolveHeadClearance, headOverlap } from '../anim/headClearance';
 import { WrestlerAI } from '../sim/ai';
 import type { Difficulty } from '../sim/ai';
 import { byId, OFFICIAL, DEFAULT_MATCHUP } from '../sim/roster';
 import { NO_COMMAND, otherSide } from '../sim/types';
 import type { Command, MatchPhase, School, Side, StartPosition, Wrestler } from '../sim/types';
-import { requestBody } from '../body/factory';
 import type { MeshQuality } from '../body/generate';
-import { Character } from '../body/Character';
 import type { CharacterRig } from '../body/Character';
 import { Animator } from '../anim/Animator';
 import type { AnimView } from '../anim/Animator';
 import '../anim/library';
 import { wrestlerViews } from './views';
-import { readPrompts } from './prompts';
+import { edgeHintFor, handsHintFor, readPrompts } from './prompts';
+import { isDone, newTournament, pairOf, playerMatch, record as recordTournament, simMatch, simUntilPlayer, toResult as tournamentResult, type Tournament } from '../sim/tournament';
+import { choiceFor, currentBout, newDual, pickList, pickOddEven, pickWrestler, recordBout, simulateBout, toBoutResult, type Dual } from '../sim/dual';
+import { ContextControls } from './contextControls';
+import { DEFAULT_PLAN, type MatchPlan } from '../sim/strategy';
 import type { GameApi, UiStore } from './store';
 
 export type PracticeStart = 'standing' | 'top' | 'bottom' | 'single' | 'double' | 'lowSingle' | 'highCrotch';
@@ -127,6 +130,13 @@ interface Body {
  */
 export class Game implements GameApi {
   private topTurn: import('../sim/armBars').TopTurnChoice | undefined;
+  private context = new ContextControls();
+  private footworkAi: WrestlerAI | undefined;
+  private autoAi?: WrestlerAI;
+  /** Which mirror side the camera holds for the current mat sequence (null on the feet). */
+  private matCamSide: 1 | -1 | null = null;
+  /** The player's last plan carries into the next match. */
+  private playerPlan: MatchPlan = DEFAULT_PLAN;
   setTopTurn(choice: import('../sim/armBars').TopTurnChoice | undefined):void {this.topTurn=choice;}
   private renderer: Renderer;
   private cameraRig = new CameraRig();
@@ -161,7 +171,10 @@ export class Game implements GameApi {
   // during this tick so its acknowledgement matches the button the player used.
   private namedAttackFeedback: string | undefined;
   private refSignal: { side: Side; t: number } | null = null;
+  /** The referee's hand out toward a wrestler: work (his stall clock is building) or a stalling call. */
+  private refCue: { side: Side; t: number } | null = null;
   private lastPhase: MatchPhase = 'attract';
+  private restartCut = false;
   private camFocus = new Vector3();
   private lens = 0;
   private reactUntil = 0;
@@ -201,6 +214,7 @@ export class Game implements GameApi {
       if (this.sim?.phase === 'intros') this.skipIntros();
     });
     this.input.onDevice = (device) => this.store.set({ device });
+    window.addEventListener('blur', this.clearPendingTechnique);
 
     this.store.set({ touchControls: coarse });
     void this.buildOfficial();
@@ -223,38 +237,8 @@ export class Game implements GameApi {
   /* ------------------------------------------------------------- bodies --- */
 
   private async buildCharacter(w: Wrestler, band: string | null): Promise<CharacterRig> {
-    if (w.firstName === 'Michael' && w.lastName === 'Moreno') {
-      const { buildRealCharacter } = await import('../body/realistic/factory');
-      return buildRealCharacter(w, band ?? '#111', this.quality);
-    }
-    const scale = w.height / 1.76;
-    const referee = w.id === OFFICIAL.id;
-    const buffers = await requestBody(
-      { scale, mass: w.build, hair: w.hairStyle, shape: w.appearance, clothing: referee ? 'referee' : 'singlet' },
-      this.quality,
-      !referee,
-    );
-    return new Character(buffers, {
-      shape: w.appearance, motion: w.motion,
-      look: {
-        skin: w.skinTone,
-        hair: w.hairColor,
-        hairStyle: w.hairStyle,
-        primary: w.school.primary,
-        secondary: w.school.secondary,
-        accent: w.school.accent,
-        pattern: w.school.pattern,
-        wordmark: w.school.mark,
-        blockC: w.school.id === 'cornell',
-        band: band ?? '#111',
-        shoe: '#15161b',
-        shoeAccent: w.school.primary,
-        clothing: referee ? 'referee' : 'singlet',
-        eye: w.eyeColor,
-        scale,
-      },
-      gear: referee ? null : { shell: w.headgearColor ?? w.school.gear, strap: w.headgearColor ?? w.school.gear },
-    });
+    const { buildRealCharacter, buildRealOfficial } = await import('../body/realistic/factory');
+    return w.id === OFFICIAL.id ? buildRealOfficial(w, this.quality) : buildRealCharacter(w, band ?? '#111', this.quality);
   }
 
   private async buildOfficial(): Promise<void> {
@@ -307,7 +291,7 @@ export class Game implements GameApi {
     });
   }
 
-  start(options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean }): void {
+  start(options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean; choice?: Side | null }): void {
     this.input.clearTouch();
     this.input.clearKeyboardPresses();
     void this.audio.resume();
@@ -324,7 +308,7 @@ export class Game implements GameApi {
     });
   }
 
-  private beginMatch(options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean }, practice = false): void {
+  private beginMatch(options: { humanSide: Side; difficulty: Difficulty; matchup: [string, string]; quick: boolean; choice?: Side | null }, practice = false): void {
     this.input.clearKeyboardPresses();
     const bodies = this.bodies!;
     const wrestlers: [Wrestler, Wrestler] = [bodies[0].wrestler, bodies[1].wrestler];
@@ -338,6 +322,7 @@ export class Game implements GameApi {
         this.refSignal = { side: e.side, t: 1.6 };
         this.store.set({ lastScore: e, scoreLog: [...sim.scoreLog] });
       },
+      onRefCue: (side) => { this.refCue = { side, t: 1.5 }; },
       onAnnounce: (a) => {
         this.store.set({ announcement: a });
         window.setTimeout(() => {
@@ -377,18 +362,42 @@ export class Game implements GameApi {
         this.gym.excite(1);
         this.renderer.setBloom(0.5);
         this.store.set({ result, lastScore: null, announcement: null, react: null });
+        // Tournament: his match goes in the bracket (his side in the bracket may be either slot).
+        const tour = this.store.getSnapshot().tournament;
+        const tm = tour && playerMatch(tour);
+        if (tour && tm && human === 0 && wrestlers[0].id === tour.player) {
+          const pair = pairOf(tour, tm);
+          if (pair.includes(wrestlers[1].id)) {
+            const r = tournamentResult(result, false);
+            this.store.set({ tournament: recordTournament(tour, tm.id, pair[0] === tour.player ? r : { ...r, winner: r.winner === 0 ? 1 : 0, score: [r.score[1], r.score[0]] }) });
+          }
+        }
+        // Dual meet: a finished bout goes on the team score.
+        const dual = this.store.getSnapshot().dual;
+        const bout = dual && currentBout(dual);
+        if (dual && bout && bout.ours === wrestlers[0].id && bout.theirs === wrestlers[1].id && human === 0) {
+          this.store.set({ dual: recordBout(dual, toBoutResult(result, false)) });
+        }
       },
       onTell: (to, what) => {
         if (to !== human) {
           this.ai?.onTell(what);
           return;
         }
-        if (what === 'shot') {
+        // Most sprawls come off the level change: a fake or half shot gets the same cue as a
+        // real shot, because at that instant you cannot tell them apart.
+        // He bit on my tap: the moment to go.
+        if (what === 'opening') {
+          this.store.set({ react: { button: 'shoot', label: 'Go!', id: this.feedbackId++ } });
+          this.reactUntil = this.clockT + 0.6;
+          return;
+        }
+        if (what === 'shot' || what === 'fake') {
           this.store.set({ react: { button: 'sprawl', label: 'Sprawl!', id: this.feedbackId++ } });
-          this.reactUntil = this.clockT + 0.55;
+          this.reactUntil = this.clockT + (what === 'shot' ? 0.55 : 0.4);
         }
       },
-      onFeedback: (side, button, result) => {
+      onFeedback: (side, button, result, label) => {
         bodies[side].anim.effort(button, false, result);
         bodies[otherSide(side)].anim.effort(button, true, result);
         // Winning a hand fight yanks the other man's head and shoulders.
@@ -397,13 +406,20 @@ export class Game implements GameApi {
         if (side !== human) return;
         this.audio.press(result);
         if (result === 'won') this.input.rumble(0.35, 70);
-        this.store.set({ flash: { button, label: button === 'shoot' && this.namedAttackFeedback ? this.namedAttackFeedback : this.store.getSnapshot().prompts[button].label, result, id: this.feedbackId++ } });
+        this.store.set({ flash: { button, label: label ?? (button === 'shoot' && this.namedAttackFeedback ? this.namedAttackFeedback : this.store.getSnapshot().prompts[button].label), result, id: this.feedbackId++ } });
       },
     });
     sim.humanSide = human;
     sim.practice = options.difficulty==='practice';
     sim.bout.practicePartner = sim.practice ? otherSide(human) : null;
     sim.lengthScale = options.quick ? 0.5 : 1;
+    // A dual bout takes its second-period choice from the dual's coin toss.
+    sim.presetChoice = options.choice ?? null;
+    // Time between periods to see the toss and change the plan.
+    sim.breakSeconds = 4.5;
+    // The player's wrestler sprawls by reflex and crossfaces on his own; pressing does better.
+    sim.bout.assistedSide = human;
+    sim.setPlan(human, this.playerPlan);
     this.sim = sim;
     this.ai = new WrestlerAI(otherSide(human), options.difficulty);
 
@@ -461,6 +477,7 @@ export class Game implements GameApi {
     if(!sim)return null;
     if(start==='top'||start==='bottom') {
       sim.bout.setReferee(start==='top'?s.humanSide:otherSide(s.humanSide),{x:0,z:0},Math.PI/2);
+      sim.holdForWhistle(1.2);
     } else if(start!=='standing') {
       sim.bout.position={kind:'legs',A:s.humanSide,shot:start,mirror:false,t:0,
         frame:{x:0,z:0,yaw:s.humanSide===0?Math.PI/2:-Math.PI/2},progress:.6,intensity:0};
@@ -477,6 +494,132 @@ export class Game implements GameApi {
     this.start({ humanSide: s.humanSide, difficulty: s.difficulty, matchup: [s.wrestlers[0].id, s.wrestlers[1].id], quick: s.quick });
   }
 
+  /* ---------------------------------------------------------- tournament --- */
+
+  startTournament(options: { pick: string; difficulty: Difficulty; quick: boolean }): void {
+    const w = byId(options.pick);
+    const tournament = newTournament(w.weightClass, w, options.difficulty, options.quick);
+    this.store.set({ screen: 'tournament', tournament, dual: null, difficulty: options.difficulty, quick: options.quick });
+    this.runTournamentSims();
+  }
+
+  /** Sim the other bouts a few at a time until his next match is ready (or to the end once he is out). */
+  private runTournamentSims(toEnd = false): void {
+    this.store.set({ tournamentBusy: true });
+    const step = () => {
+      let t = this.store.getSnapshot().tournament;
+      if (!t) { this.store.set({ tournamentBusy: false }); return; }
+      if (toEnd) {
+        for (let i = 0; i < 3 && !isDone(t); i++) { const m = playerMatch(t); t = m ? simMatch(t, m) : simUntilPlayer(t, 1); }
+      } else t = simUntilPlayer(t, 3);
+      this.store.set({ tournament: t });
+      const nextUp = t.matches.find((m) => !m.result && pairOf(t, m).every((x) => x !== undefined));
+      const more = toEnd ? !isDone(t) : !!nextUp && !pairOf(t, nextUp).includes(t.player);
+      if (more) window.setTimeout(step, 0);
+      else { this.store.set({ tournamentBusy: false }); this.previewTournament(t); }
+    };
+    window.setTimeout(step, 30);
+  }
+
+  private previewTournament(t: Tournament): void {
+    const m = playerMatch(t);
+    if (!m) return;
+    const [a, b] = pairOf(t, m);
+    this.preview([t.player, (a === t.player ? b : a)!]);
+  }
+
+  wrestleTournament(): void {
+    const t = this.store.getSnapshot().tournament;
+    const m = t && playerMatch(t);
+    if (!t || !m || this.store.getSnapshot().tournamentBusy) return;
+    const [a, b] = pairOf(t, m);
+    this.start({ humanSide: 0, difficulty: t.difficulty, matchup: [t.player, (a === t.player ? b : a)!], quick: t.quick });
+  }
+
+  simTournamentBout(): void {
+    const t = this.store.getSnapshot().tournament;
+    const m = t && playerMatch(t);
+    if (!t || !m || this.store.getSnapshot().tournamentBusy) return;
+    this.store.set({ tournament: simMatch(t, m) });
+    this.runTournamentSims();
+  }
+
+  simTournamentRest(): void {
+    if (this.store.getSnapshot().tournamentBusy) return;
+    this.runTournamentSims(true);
+  }
+
+  toTournament(): void {
+    if (!this.store.getSnapshot().tournament) { this.toTitle(); return; }
+    this.toTitle();
+    this.store.set({ screen: 'tournament' });
+    this.runTournamentSims();
+  }
+
+  leaveTournament(): void {
+    this.store.set({ tournament: null, tournamentBusy: false });
+    this.toTitle();
+  }
+
+  /* ----------------------------------------------------------- dual meet --- */
+
+  startDual(options: { teams: [string, string]; difficulty: Difficulty; quick: boolean; draw?: boolean }): void {
+    const dual = newDual(options.teams, options.difficulty, options.quick, Math.random, options.draw);
+    this.store.set({ screen: 'dual', dual, tournament: null, difficulty: options.difficulty, quick: options.quick });
+    this.previewDual(dual);
+  }
+
+  /** Show the next bout's pair in the arena: his pick, or until he picks, his top-rated man there. */
+  private previewDual(dual: Dual): void {
+    const bout = currentBout(dual);
+    if (!bout) return;
+    this.preview([bout.ours ?? pickList(dual.teams[0], bout.weight)[0].id, bout.theirs]);
+  }
+
+  pickOddEven(odd: boolean): void {
+    const dual = this.store.getSnapshot().dual;
+    if (!dual || dual.toss.winner !== 0 || dual.toss.odd !== undefined) return;
+    this.store.set({ dual: pickOddEven(dual, odd) });
+  }
+
+  pickDual(id: string): void {
+    const dual = this.store.getSnapshot().dual;
+    if (!dual || !currentBout(dual)) return;
+    const next = pickWrestler(dual, id);
+    this.store.set({ dual: next });
+    this.previewDual(next);
+  }
+
+  wrestleDual(): void {
+    const dual = this.store.getSnapshot().dual;
+    const bout = dual && currentBout(dual);
+    if (!dual || !bout?.ours || choiceFor(dual, bout) === null) return;
+    this.start({ humanSide: 0, difficulty: dual.difficulty, matchup: [bout.ours, bout.theirs], quick: dual.quick, choice: choiceFor(dual, bout) });
+  }
+
+  simDual(): void {
+    const dual = this.store.getSnapshot().dual;
+    const bout = dual && currentBout(dual);
+    if (!dual || !bout?.ours || choiceFor(dual, bout) === null) return;
+    const next = recordBout(dual, toBoutResult(simulateBout([bout.ours, bout.theirs], dual.quick, undefined, choiceFor(dual, bout)), true));
+    this.store.set({ dual: next });
+    this.previewDual(next);
+  }
+
+  /** From a bout (finished or left) back to the dual's bout sheet. */
+  toDual(): void {
+    const dual = this.store.getSnapshot().dual;
+    if (!dual) { this.toTitle(); return; }
+    this.toTitle();
+    this.store.set({ screen: 'dual' });
+    this.previewDual(dual);
+  }
+
+  leaveDual(): void {
+    this.store.set({ dual: null });
+    this.toTitle();
+  }
+
   toTitle(): void {
     this.input.clearTouch();
     this.input.clearKeyboardPresses();
@@ -488,12 +631,34 @@ export class Game implements GameApi {
     if (this.bodies) for (const b of this.bodies) b.anim.instant = true;
   }
 
-  choosePosition(pos: StartPosition): void {
+  choosePosition(pos: StartPosition | 'defer'): void {
     this.sim?.choosePosition(pos);
-    this.store.set({ awaitingChoice: false });
+    // Deferring hands the choice over; the next snapshot says who chooses now.
+    this.store.set({ awaitingChoice: this.sim?.phase === 'positionChoice', canDefer: !!this.sim?.canDefer });
   }
 
+  setPlan(plan: MatchPlan): void {
+    this.playerPlan = plan;
+    if (this.sim) this.sim.setPlan(this.sim.humanSide, plan);
+    this.store.set({ plan });
+  }
+
+  private clearPendingTechnique = (): void => {
+    if (this.sim) {
+      // Released presses already sampled during recovery must not survive a menu/blur.
+      // This only clears pending intent; committed shots and moves keep their state.
+      this.sim.bout.cancelPendingShot(this.sim.humanSide);
+      this.sim.bout.cancelPendingTechnique(this.sim.humanSide);
+    }
+  };
+
   setPaused(paused: boolean): void {
+    if (this.sim) {
+      // Released presses already sampled during recovery must not survive a menu/blur.
+      // This only clears pending intent; committed shots and moves keep their state.
+      this.sim.bout.cancelPendingShot(this.sim.humanSide);
+      this.sim.bout.cancelPendingTechnique(this.sim.humanSide);
+    }
     this.input.clearTouch();
     this.input.clearKeyboardPresses();
     this.store.set({ paused });
@@ -510,7 +675,9 @@ export class Game implements GameApi {
   }
 
   cancelTouch(key?: import("../engine/TouchGestures").TouchKey): void {
+    const cancelTechnique = (!key || key === 'technique') && this.input.ownsTouchTechnique;
     if (this.input.cancelTouch(key) && this.sim) this.sim.bout.cancelPendingShot(this.sim.humanSide);
+    if (cancelTechnique && this.sim) this.sim.bout.cancelPendingTechnique(this.sim.humanSide);
   }
 
   setTouch(state: PadState): void {
@@ -527,16 +694,28 @@ export class Game implements GameApi {
   /* ------------------------------------------------------------- phases --- */
 
   private onPhase(phase: MatchPhase): void {
+    const walkedBack = this.lastPhase === 'whistle' && phase === 'setPosition' && this.sim?.bout.top === null;
     this.lastPhase = phase;
+    // They walked back to the center themselves; they just step onto the marks.
+    if (walkedBack) {
+      this.cameraRig.setMode('broadcast');
+      return;
+    }
     switch (phase) {
       case 'intros':
         this.cameraRig.setMode('intro');
         break;
       case 'handshake':
       case 'coinToss':
-      case 'periodBreak':
       case 'whistle':
         this.cameraRig.setMode('wide');
+        break;
+      case 'periodBreak':
+        // The period ends wherever they are, often one man on his back. Cut to the wide shot
+        // with both already up, as a broadcast does, instead of snapping them off the mat.
+        this.cameraRig.setMode('wide');
+        this.restartCut = true;
+        if (this.bodies) for (const b of this.bodies) b.anim.instant = true;
         break;
       case 'positionChoice':
         this.cameraRig.setMode('wide');
@@ -544,6 +723,10 @@ export class Game implements GameApi {
         break;
       case 'setPosition':
         this.cameraRig.setMode(this.sim?.bout.top !== null ? 'mat' : 'broadcast');
+        // The sim has just moved them onto the marks. Cut there like a broadcast
+        // rather than letting the spring fling both bodies across the mat.
+        this.restartCut = true;
+        if (this.bodies) for (const b of this.bodies) b.anim.instant = true;
         break;
       case 'wrestling':
         this.cameraRig.setMode(this.sim?.bout.top !== null ? 'mat' : 'broadcast');
@@ -630,27 +813,45 @@ export class Game implements GameApi {
     const sim = this.sim!;
     const pad = this.input.state();
     const move = this.stickToWorld(pad.x, pad.y);
+    // The position and stick pick the move; a dedicated key, where one is pressed, still wins.
+    const ctx = sim.phase === 'wrestling' ? this.context.map(dt, pad, move, sim.bout, sim.humanSide) : {};
     const human: Command = {
       moveX: move.x,
       moveZ: move.z,
-      shoot: pad.shoot,
+      shoot: ctx.shoot ?? pad.shoot,
       topTurn:this.topTurn,
       sustainedEffort: pad.sustainedEffort,
-      legAction: pad.legAction,
-      legRide: pad.legRide,
-      closePockets: pad.closePockets,
-      catchLeg: pad.catchLeg,
-      technique: pad.technique,
-      lowSingle: pad.lowSingle,
-      scramble: pad.scramble,
-      fight: pad.fight,
+      legAction: pad.legAction ?? ctx.legAction,
+      legRide: pad.legRide || ctx.legRide,
+      closePockets: pad.closePockets || ctx.closePockets,
+      catchLeg: pad.catchLeg || ctx.catchLeg,
+      technique: pad.technique ?? ctx.technique,
+      lowSingle: pad.lowSingle || ctx.lowSingle,
+      scramble: pad.scramble || ctx.scramble,
+      sitOut: pad.sitOut,
+      fight: ctx.fight ?? pad.fight,
       sprawl: pad.sprawl,
-      level: pad.level,
+      level: ctx.level ?? pad.level,
     };
     const wrestling = sim.phase === 'wrestling';
-    const aiCmd = import.meta.env.DEV && new URLSearchParams(location.search).has('passive') ? NO_COMMAND : this.ai!.update(dt, sim.bout, wrestling, {timeLeft:sim.clock,finalPeriod:sim.period>=3,deficit:sim.score[sim.humanSide]-sim.score[otherSide(sim.humanSide)]});
+    let aiCmd = import.meta.env.DEV && new URLSearchParams(location.search).has('passive') ? NO_COMMAND : this.ai!.update(dt, sim.bout, wrestling, {timeLeft:sim.clock,finalPeriod:sim.period>=3,deficit:sim.score[sim.humanSide]-sim.score[otherSide(sim.humanSide)]});
+    // Dev review: ?footwork drives both wrestlers with the AI's movement only (no attacks),
+    // so the stance footwork can be watched without scoring interrupting it.
+    if (import.meta.env.DEV && new URLSearchParams(location.search).has('footwork')) {
+      this.footworkAi ??= new WrestlerAI(sim.humanSide, 'starter', 77);
+      const mine = this.footworkAi.update(dt, sim.bout, wrestling);
+      // Hand fighting stays (taps, swats, bites); no snaps or attacks, so they stay on their feet.
+      const [me, him] = [sim.bout.athletes[sim.humanSide], sim.bout.athletes[otherSide(sim.humanSide)]];
+      Object.assign(human, { ...NO_COMMAND, moveX: mine.moveX, moveZ: mine.moveZ, level: mine.level, fight: mine.fight && me.hand < 0.62 });
+      aiCmd = { ...NO_COMMAND, moveX: aiCmd.moveX, moveZ: aiCmd.moveZ, level: aiCmd.level, fight: aiCmd.fight && him.hand < 0.62 };
+    }
+    // Dev review: ?autoplay lets an AI wrestle the player's side too, to watch whole matches.
+    if (import.meta.env.DEV && new URLSearchParams(location.search).has('autoplay')) {
+      this.autoAi ??= new WrestlerAI(sim.humanSide, 'starter', 91);
+      Object.assign(human, this.autoAi.update(dt, sim.bout, wrestling, {timeLeft:sim.clock,finalPeriod:sim.period>=3,deficit:sim.score[otherSide(sim.humanSide)]-sim.score[sim.humanSide]}));
+    }
     const commands: [Command, Command] = sim.humanSide === 0 ? [human, aiCmd] : [aiCmd, human];
-    const techniqueLabels = {duckUnder:'Duck under',superDuck:'Super duck',slideBy:'Slide by',firemansCarry:'Fireman’s carry',footSweep:'Foot sweep'};
+    const techniqueLabels = {duckUnder:'Duck under',superDuck:'Super duck',slideBy:'Slide by',firemansCarry:'Fireman’s carry',footSweep:'Foot sweep',anklePick:'Ankle pick',kneePick:'Knee pick',throwBy:'Throw-by',lateralDrop:'Lateral drop',headlock:'Headlock'};
     this.namedAttackFeedback = human.technique ? techniqueLabels[human.technique] : human.lowSingle ? 'Low single' : undefined;
     sim.tick(dt, sim.phase === 'positionChoice' || sim.phase === 'results' ? [NO_COMMAND, NO_COMMAND] : commands);
     this.namedAttackFeedback = undefined;
@@ -678,8 +879,14 @@ export class Game implements GameApi {
     const adt = Math.max(dt, 1e-4);
     a.anim.update(adt, views[0], b.anim);
     b.anim.update(adt, views[1], a.anim);
+    // Heads never pass through the other wrestler; done before grips so hands follow the head.
+    const devQuery = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
+    if (!devQuery?.has("noclear")) resolveHeadClearance(a.anim, b.anim, adt, [views[0].mode === 'paired', views[1].mode === 'paired']);
+    if (devQuery?.has('headstats')) recordHeadOverlap(a.anim, b.anim, views);
     // Head control must settle before the bottom hand peels that moving arm, including its fading grip during the exit.
-    const secondControlsHead=views[1].mode==="paired" && ["fhl","recover","goBehind"].includes(views[1].clip) && views[1].role==="A";
+    const secondControlsHead=views[1].mode==="paired" && (views[1].clip==="tieAttackCounter"
+      ? views[1].role==="B"
+      : ["fhl","recover","goBehind","chinWhip","shuck","cementMixer"].includes(views[1].clip) && views[1].role==="A");
     if(secondControlsHead){
       b.anim.applyContacts(adt,a.anim);
       a.anim.applyContacts(adt,b.anim);
@@ -698,14 +905,21 @@ export class Game implements GameApi {
     if (pos.kind === 'mat' || (pos.kind === 'move' && this.isMatClip(pos.id))) {
       const f = pos.frame;
       focus = new Vector3(f.x, 0, f.z);
-      // From the bottom man's front-left, so both faces read.
-      const side = pos.A === human ? 1 : -1;
-      azimuth = f.yaw + (Math.PI / 2) * side - 0.45 * side;
+      // From the bottom man's front quarter, so both faces read. Either mirror side works, so a mat
+      // sequence takes whichever is nearer the current view and keeps it until they are back on their
+      // feet: no half-circle swing after a takedown.
+      const matAzimuth = (s: number) => f.yaw + (Math.PI / 2) * s - 0.45 * s;
+      if (this.matCamSide === null) {
+        const turn = (s: number) => Math.abs(Math.atan2(Math.sin(matAzimuth(s) - this.cameraRig.viewAzimuth), Math.cos(matAzimuth(s) - this.cameraRig.viewAzimuth)));
+        this.matCamSide = turn(1) <= turn(-1) ? 1 : -1;
+      }
+      azimuth = matAzimuth(this.matCamSide);
       const standing = (pos.kind === 'mat' && pos.sub === 'standing') || (pos.kind === 'move' && (pos.id === 'standUp' || pos.id === 'escapeTurn'));
       if (sim.phase === 'wrestling') this.cameraRig.setMode(standing ? 'tight' : pos.kind === 'mat' ? 'mat' : this.cameraRig.mode);
     } else if (sim.phase === 'wrestling' && (pos.kind === 'neutral' || pos.kind === 'fhl' || pos.kind === 'legs')) {
       this.cameraRig.setMode(pos.kind === 'neutral' ? 'broadcast' : 'tight');
     }
+    if (!(pos.kind === 'mat' || (pos.kind === 'move' && this.isMatClip(pos.id)))) this.matCamSide = null;
 
     if (sim.phase === 'intros') {
       // Walk out together, then about three seconds on each man.
@@ -731,6 +945,11 @@ export class Game implements GameApi {
 
     const r = Math.hypot(focus.x, focus.z);
     if (r > 4.6) focus.multiplyScalar(4.6 / r);
+    if (this.restartCut) {
+      this.restartCut = false;
+      this.camFocus.copy(focus);
+      this.cameraRig.cut(focus, azimuth);
+    }
     this.camFocus.lerp(focus, Math.min(1, wall * 8));
     this.cameraRig.update(wall, this.renderer.camera, this.camFocus, azimuth, sim.distance(), actionFraming(pos,sim.phase==='wrestling',r));
 
@@ -746,7 +965,7 @@ export class Game implements GameApi {
   }
 
   private isMatClip(id: string): boolean {
-    return /^(armBar|wristBar|barHalf|doubleBar)/.test(id) || ['breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'fightOff', 'fall', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
+    return /^(armBar|wristBar|barHalf|doubleBar)/.test(id) || ['sitOutPull', 'sitOutTurn', 'sitOutEscape', 'breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'fightOff', 'fall', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
   }
 
   /** The official works the far side of the action and signals the score. */
@@ -769,7 +988,21 @@ export class Game implements GameApi {
     let mirror = false;
     let opp: Animator | null = this.bodies ? this.bodies[0].anim : null;
     let grip: { hand: 'L' | 'R'; on: 'handL'; at: [number, number, number] } | undefined;
-    if (this.refSignal) {
+    // At a mat restart he stands in front of the pair, facing them, until the whistle.
+    const matRestart = sim.phase === 'setPosition' && pos.kind === 'mat';
+    if (matRestart) {
+      // Biased to the camera's far side so he stays in the shot.
+      x = center.x + Math.sin(pos.frame.yaw) * 1.7 - Math.sin(camAz) * 1.1;
+      z = center.z + Math.cos(pos.frame.yaw) * 1.7 - Math.cos(camAz) * 1.1;
+    }
+    if (this.refCue && !this.refSignal) {
+      this.refCue.t -= wall;
+      clip = 'refWork';
+      u = (1.5 - this.refCue.t) / 0.7;
+      // His hand goes out toward the wrestler: the red band (left hand) for red, the green (right) for green.
+      mirror = this.refCue.side === 1;
+      if (this.refCue.t <= 0) this.refCue = null;
+    } else if (this.refSignal) {
       this.refSignal.t -= wall;
       clip = 'refPoints';
       // Red band on the left wrist for the red wrestler, green on the right.
@@ -785,6 +1018,8 @@ export class Game implements GameApi {
       const B = sim.bout.athletes[otherSide(pos.A)];
       x = B.pos.x - Math.sin(camAz) * 0.9;
       z = B.pos.z - Math.cos(camAz) * 0.9;
+    } else if (matRestart) {
+      clip = 'refStand';
     } else if (pos.kind === 'mat' || (pos.kind === 'move' && this.isMatClip(pos.id))) {
       clip = 'refMat';
     } else if (sim.phase === 'celebration' || sim.phase === 'results') {
@@ -909,9 +1144,20 @@ export class Game implements GameApi {
       topRestartCut: sim.topRestartCut,
       meters: read.meters,
       legActions: read.legActions,
+      edgeHint: handsHintFor(sim, me) ?? edgeHintFor(sim, me),
       nearFall: { active: sim.earnedNearFallPoints > 0 || pos.kind === 'mat' && (pos.sub === 'exposed' || pos.sub === 'spladle'), timer: pos.kind === 'mat' ? pos.expo : 0, earned: sim.earnedNearFallPoints },
       stats: [{ ...a[0].stats }, { ...a[1].stats }],
       awaitingChoice: sim.phase === 'positionChoice',
+      coinTossWinner: sim.period > 1 || sim.phase === 'coinToss' || sim.phase === 'positionChoice' ? sim.coinTossWinner : null,
+      canDefer: sim.canDefer,
+      plan: sim.plan(sim.humanSide),
+      opponentPlan: sim.plan(otherSide(sim.humanSide)),
+      refereeNote: `Referee ${sim.referee.label}`,
+      stalls: ([0, 1] as const).map((s) => ({
+        warned: sim.bout.athletes[s].stallWarned,
+        // A stalling point is scored for the other man.
+        points: sim.scoreLog.filter((e) => e.kind === 'stalling' && e.side !== s).length,
+      })) as [{ warned: boolean; points: number }, { warned: boolean; points: number }],
       react,
       fps,
     });
@@ -933,6 +1179,7 @@ export class Game implements GameApi {
   dispose(): void {
     cancelAnimationFrame(this.raf);
     window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('blur', this.clearPendingTechnique);
     this.resizeObserver?.disconnect();
     this.teardownMatch();
     this.removeBodies();
@@ -941,4 +1188,17 @@ export class Game implements GameApi {
     this.renderer.dispose();
     void this.canvas;
   }
+}
+
+/** Dev review (?headstats): deepest head overlap into the other body, per situation, in window.__headStats. */
+function recordHeadOverlap(a: Animator, b: Animator, views: AnimView[]): void {
+  const stats = ((window as unknown as { __headStats?: Record<string, { max: number; frames: number; over2: number; over5: number }> }).__headStats ??= {});
+  const pen = Math.max(headOverlap(a, b).length(), headOverlap(b, a).length());
+  const v = views[0];
+  const key = v.mode === 'paired' ? `paired:${v.clip}` : v.mode === 'stance' ? `stance:${v.act}` : v.mode;
+  const s = (stats[key] ??= { max: 0, frames: 0, over2: 0, over5: 0 });
+  s.frames++;
+  s.max = Math.max(s.max, pen);
+  if (pen > 0.02) s.over2++;
+  if (pen > 0.05) s.over5++;
 }

@@ -2,7 +2,7 @@ import { registerHold, registerMove } from '../clips';
 import { BALL, POST, holdAt, stanceAt } from './kit';
 // Ankle shelf, head beside the knee: no high-crotch rise or elevated thigh grip.
 registerHold({id:'legsLowSingle', A:[
- {base:holdAt('legsSingle','A',0),hips:[0.2,0.29,0.08],rot:[-12,35,0],spine:[15,0,0],head:[-20,-12,0],kneeL:[0.22,0.055,0.24],footL:[0.22,BALL,-0.05,0,65],footR:[-0.18,BALL,-0.38,-15,55],handL:[0.15,0.09,0.35],handR:[0.12,0.15,0.43]},
+ {base:holdAt('legsSingle','A',0),hips:[0.22,0.29,0.08],rot:[-26,35,0],spine:[15,0,0],head:[-20,-12,0],kneeL:[0.22,0.055,0.24],footL:[0.22,BALL,-0.05,0,65],footR:[-0.18,BALL,-0.38,-15,55],handL:[0.15,0.09,0.35],handR:[0.12,0.15,0.43]},
  {hips:[0.25,0.34,0.16],handL:[0.16,0.1,0.35],handR:[0.12,0.19,0.43]}],
  B:[{base:holdAt('legsSingle','B',0),hips:[-0.03,0.65,0.82],rot:[180,40,0],spine:[6,0,0],head:[-24,0,0],handL:[0.1,0.64,0.2],handR:[0.22,0.8,0.36],footR:[0.15,0.08,0.36,180,25],footL:[-0.25,BALL,0.72,180,15]}, {hips:[-0.08,0.63,0.88],rot:[170,43,-5],footR:[0.15,0.15,0.38,180,40]}],contacts:[{who:'B',hand:'R',on:'head',at:[0.08,0.10,-0.03]},{who:'B',hand:'L',on:'chest',at:[-0.1,0.12,-0.07]},{who:'A',hand:'L',on:'shinR',at:[0.035,-0.36,0.02]},{who:'A',hand:'R',on:'shinR',at:[-0.035,-0.31,-0.015]}],struggle:{A:1,B:1},tempo:1.8});
 registerMove({id:'shotLowSingle',startDist:1,warpBy:0.7,A:[
@@ -33,6 +33,6 @@ registerMove({id:'finishLowSingle',A:[
  {who:'A',hand:'L',on:'shinR',at:[0.035,-0.36,0.02],from:0,to:0.56,fade:0.09},
  {who:'A',hand:'R',on:'shinR',at:[-0.035,-0.31,-0.015],from:0,to:0.48,fade:0.09},
  {who:'A',hand:'R',on:'chest',at:[0.1,-0.08,0.08],from:0.66,to:0.8,fade:0.08},
- {who:'A',hand:'R',on:'spine',at:[0,0.02,0.11],from:0.9,to:1},
+ {who:'A',hand:'R',on:'spine',at:[-.04,.03,.12],from:0.9,to:1},
  {who:'A',hand:'L',on:'forearmL',at:[0,-0.04,-0.035],from:0.92,to:1}
 ]});

@@ -6,9 +6,10 @@ registerHold({
  id:'spladleSetup',
  A:[{base:holdAt('legsSingle','A',0.35)},
     {base:holdAt('legsSingle','A',0.2),head:[20,-15,0],spine:[26,-10,0]}],
- B:[{base:holdAt('legsSingle','B',0.2),hips:[-0.06,0.62,0.34],rot:[170,30,6],spine:[24,10,-8]},
-    {hips:[-0.10,0.56,0.25],rot:[150,42,6],spine:[28,14,-8],
-     footL:[-0.24,0.04,0.10,160,12],kneeL:[-0.32,0.4,-0.12]}],
+ B:[{base:holdAt('legsSingle','B',0.2),hips:[0.03,0.62,0.34],rot:[170,30,6],spine:[24,10,-8]},
+    // Follows the angled attacker out past the captured leg to reach his far thigh.
+    {hips:[0.03,0.56,0.25],rot:[150,42,6],spine:[28,14,-8],
+     footL:[-0.14,0.04,0.10,160,12],kneeL:[-0.22,0.4,-0.12]}],
  contacts:[{who:'A',hand:'L',on:'shinR',at:[0,-0.04,-0.05]},
    {who:'A',hand:'R',on:'thighR',at:[0.03,-0.32,0.07]},
    {who:'B',hand:'L',on:'forearmR',at:[0,-0.08,0]},

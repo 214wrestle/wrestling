@@ -29,6 +29,8 @@ interface FootState {
   lift: number;
   heel: number;
   fheel: number;
+  /** A running stride: a sine ease, whose peak speed is lower than the walking ease's for the same distance. */
+  run?: boolean;
 }
 
 const wrap = (a: number) => {
@@ -56,6 +58,8 @@ const newFoot = (): FootState => ({
   fheel: 0,
 });
 
+const BOTH_FREE: readonly [number, number] = [1, 1];
+
 export class Footwork {
   private feet: [FootState, FootState] = [newFoot(), newFoot()];
   private primed = false;
@@ -66,6 +70,13 @@ export class Footwork {
   onPlant: ((foot: 0 | 1, x: number, z: number, speed: number) => void) | null = null;
   /** Seconds since the last plant, for a bounce in the hips. */
   sinceLand = 1;
+  /** Foot that planted last, so the other can close the shuffle behind it. */
+  private lastPlanted = -1;
+  /** Per-foot weight: 0 leaves that foot to the pose (held leg, knee down). */
+  private free: readonly [number, number] = BOTH_FREE;
+  /** The last landing was itself a close step; only an opening step earns a close. */
+  private lastWasClose = false;
+  private stepIsClose: [boolean, boolean] = [false, false];
 
   reset(p: Posture): void {
     for (let i = 0; i < 2; i++) {
@@ -96,8 +107,16 @@ export class Footwork {
    * @param vx,vz    Body velocity on the mat, m/s.
    * @param tempo    1 = normal; higher steps faster (scrambles, sprints).
    */
-  update(dt: number, desired: Posture, vx: number, vz: number, tempo = 1, walking = false, bodyScale = 1): void {
+  update(dt: number, desired: Posture, vx: number, vz: number, tempo = 1, walking = false, bodyScale = 1, free: readonly [number, number] = BOTH_FREE): void {
     this.bodyScale = bodyScale;
+    // A foot that is not free (held up in his hands, or a knee down on the mat) keeps its posed place and never steps.
+    for (let i = 0; i < 2; i++) {
+      const f = this.feet[i];
+      if (free[i] >= 0.5 || f.stepping) continue;
+      const at = i === 0 ? P.FOOT_L : P.FOOT_R;
+      f.x = desired[at]; f.y = desired[at + 1]; f.z = desired[at + 2]; f.yaw = desired[at + FOOT.YAW];
+    }
+    this.free = free;
     this.walking = walking;
     if (!this.primed) {
       this.reset(desired);
@@ -140,17 +159,21 @@ export class Footwork {
         f.z = f.tz;
         f.yaw = f.tyaw;
         this.sinceLand = 0;
+        this.lastPlanted = i;
+        this.lastWasClose = this.stepIsClose[i];
         this.onPlant?.(i as 0 | 1, f.x, f.z, speed);
       }
     }
 
     const anyStepping = this.feet[0].stepping || this.feet[1].stepping;
+    // Running (owner: run back to the center): quicker, longer, higher steps with no double support.
+    const running = walking && relativeSpeed > 1.6;
     let worst = -1;
     let worstErr = 0;
     let bestPriority = -Infinity;
     for (let i = 0; i < 2; i++) {
       const f = this.feet[i];
-      if (f.stepping) continue;
+      if (f.stepping || free[i] < 0.5) continue;
       const at = i === 0 ? P.FOOT_L : P.FOOT_R;
       const dx = desired[at] - f.x;
       const dz = desired[at + 2] - f.z;
@@ -159,7 +182,12 @@ export class Footwork {
       // travel direction first. The larger trailing-foot error then catches up.
       const other = this.feet[1-i];
       const leadsTravel = speed > .05 && (f.x-other.x)*vx + (f.z-other.z)*vz > 0;
-      const priority = err + (!walking && leadsTravel ? .02 : 0);
+      // Shuffle: in stance the foot on the side of travel opens first, and right after it
+      // lands the other foot closes behind it (step-close), instead of each foot catching
+      // up on its own schedule.
+      const shuffling = !walking && relativeSpeed > .15 && relativeSpeed < .9;
+      const closing = shuffling && this.lastPlanted === 1 - i && !this.lastWasClose && this.sinceLand < .15;
+      const priority = err + (!walking && leadsTravel ? (shuffling ? .05 : .02) : 0) + (closing ? .08 : 0);
       if (priority > bestPriority) {
         bestPriority = priority;
         worstErr = err;
@@ -167,33 +195,46 @@ export class Footwork {
       }
     }
 
-    const threshold = (walking ? .12 : relativeSpeed > .25 ? .075 : .1) * bodyScale;
+    // On the move in stance, let the feet drift a little further and take fuller steps:
+    // a few committed steps read as circling, a stream of short ones as chopping.
+    // Only at circling speeds; a full-speed burst keeps the quick original steps so the feet
+    // never lag or over-reach.
+    const circling = !walking && relativeSpeed > .15 && relativeSpeed < .9;
+    const closeStep = !walking && worst >= 0 && this.lastPlanted === 1 - worst && !this.lastWasClose && this.sinceLand < .15 && relativeSpeed > .15 && relativeSpeed < .9;
+    // The opening step of a shuffle waits for a fuller drift so each step-close covers ground.
+    const threshold = (walking ? .12 : closeStep ? .04 : circling ? .17 : relativeSpeed > .25 ? .075 : .1) * bodyScale;
     if (worst >= 0 && worstErr > threshold) {
       // Transfer support only after touchdown; never float on two swinging feet.
       // Upright walking includes double support: load the newly planted
       // foot before lifting the other. Shorten this at faster travel speeds.
-      const transferTime = walking ? Math.max(0, .12 - relativeSpeed * .1) : 0;
+      const transferTime = walking && !running ? Math.max(0, .12 - relativeSpeed * .1) : 0;
       const canStart = !anyStepping && this.sinceLand >= transferTime;
       if (canStart) {
         const f = this.feet[worst];
         const at = worst === 0 ? P.FOOT_L : P.FOOT_R;
         f.stepping = true;
+        this.stepIsClose[worst] = closeStep;
         f.t = 0;
-        f.dur = (walking ? Math.max(.26, .42 - relativeSpeed * .075)
+        f.run = running;
+        f.dur = (running ? Math.max(.2, .3 - (relativeSpeed - 1.6) * .05)
+          : walking ? Math.max(.26, .42 - relativeSpeed * .075)
+          : closeStep ? Math.max(.14, Math.min(.2, .14 + worstErr * .3))
+          : circling ? Math.min(Math.max(.2, Math.min(.3, .2 + worstErr * .2)), .3 / (1 + relativeSpeed * .35))
           : Math.min(Math.max(.16, Math.min(.28, .17 + worstErr * .2)), .28 / (1 + relativeSpeed * .6))) * Math.min(1, bodyScale) / tempo;
         f.fx = f.x;
         f.fz = f.z;
         f.fyaw = f.yaw;
         f.fheel = f.heel;
-        f.tx = desired[at] + vx * f.dur * (walking ? .65 : .45);
-        f.tz = desired[at + 2] + vz * f.dur * (walking ? .65 : .45);
+        f.tx = desired[at] + vx * f.dur * (running ? .85 : walking ? .65 : .45);
+        f.tz = desired[at + 2] + vz * f.dur * (running ? .85 : walking ? .65 : .45);
         f.tyaw = desired[at + FOOT.YAW];
         // A small settling/pivot step should skim the mat, not lift the knee
         // as high as a full stride. Measure travel independently of yaw error.
         const travel = Math.hypot(f.tx - f.fx, f.tz - f.fz) / bodyScale;
         const stride = Math.min(1, travel / .35);
         const walkingLift = .022 + .043 * stride * stride * (3 - 2 * stride);
-        f.lift = (walking ? walkingLift : Math.min(.045, .018 + travel * .06)) * bodyScale;
+        // In stance the feet slide: a low skim reads as circling, a high pick-up as chopping.
+        f.lift = (running ? .07 + .03 * stride : walking ? walkingLift : Math.min(.032, .021 + travel * .04)) * bodyScale;
       }
     }
   }
@@ -220,22 +261,23 @@ export class Footwork {
       }
       if (f.stepping) {
         const u = Math.min(1, f.t / f.dur);
-        const e = u * u * u * (10 + u * (-15 + 6 * u));
+        const e = f.run ? (1 - Math.cos(u * Math.PI)) / 2 : u * u * u * (10 + u * (-15 + 6 * u));
         x = f.fx + (f.tx - f.fx) * e;
         z = f.fz + (f.tz - f.fz) * e;
         yaw = f.fyaw + wrap(f.tyaw - f.fyaw) * e;
         y = f.y + Math.sin(u * Math.PI) ** 2 * f.lift;
-        heelExtra = this.walking ? (1-e) * f.fheel + Math.sin(2 * u * Math.PI) * .22 : Math.sin(u * Math.PI) * .25;
+        heelExtra = this.walking ? (1-e) * f.fheel + Math.sin(2 * u * Math.PI) * .22 : Math.sin(u * Math.PI) * .14;
         // A dorsiflexed foot rotates its heel down around the ball target.
         // Limit that rotation to the available clearance instead of clipping.
         if (this.walking && heelExtra < 0) heelExtra = Math.max(heelExtra, -Math.asin(Math.min(1, (y-f.y)/(.23*this.bodyScale))));
       }
-      p[at] += (x - p[at]) * weight;
-      p[at + 1] += (y - p[at + 1]) * weight;
-      p[at + 2] += (z - p[at + 2]) * weight;
-      p[at + FOOT.YAW] += wrap(yaw - p[at + FOOT.YAW]) * weight;
+      const w = weight * this.free[i];
+      p[at] += (x - p[at]) * w;
+      p[at + 1] += (y - p[at + 1]) * w;
+      p[at + 2] += (z - p[at + 2]) * w;
+      p[at + FOOT.YAW] += wrap(yaw - p[at + FOOT.YAW]) * w;
       f.heel = heelExtra;
-      p[at + FOOT.HEEL] += heelExtra * weight;
+      p[at + FOOT.HEEL] += heelExtra * w;
       if (f.stepping) p[P.TOES + i] = 1 - Math.sin(Math.min(1, f.t / f.dur) * Math.PI) * 0.6;
     }
   }

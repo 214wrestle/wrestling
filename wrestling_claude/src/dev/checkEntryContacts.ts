@@ -70,3 +70,54 @@ console.log(`High-crotch transition maximum ${Math.max(...[...gaps].filter(([key
 for(const [key,gap] of gaps) {
  if(gap>.02) throw Error(`Held leg attack loses contact: ${key} ${gap}m`);
 }
+
+// Repeated offensive/defensive effort must retain the same wrist anchors while
+// hips and head react. Exercise both corners, sizes, mirrors and frame rates.
+let effortWorst=0, effortContext='';
+for(const hold of ['legsDouble','legsSingle','legsHighCrotch','legsLowSingle','closedPocketsFlat','legRide','legRideFlat','catchRidingLeg'])
+for(const mirror of [false,true]) for(const scales of [[1,1],[.9,1.15],[1.15,.9]])
+for(const hz of [30,60,120]) for(const button of ['shoot','sprawl','fight']) {
+ const a=make(scales[0]),b=make(scales[1]);
+ const progress=hold==='catchRidingLeg'?.7:.35;
+ for(let i=0;i<hz*2;i++) {
+  const base={mode:'paired' as const,clip:hold,hold:true,frame:{x:0,z:0,yaw:.6},mirror,u:0,progress,intensity:.7,stamina:1,exertion:0};
+  if(i>hz/2){a.anim.effort(button,button!=='shoot');b.anim.effort(button,button==='shoot');}
+  a.anim.update(1/hz,{...base,role:'A'},b.anim);b.anim.update(1/hz,{...base,role:'B'},a.anim);
+  a.anim.applyContacts(1/hz,b.anim);b.anim.applyContacts(1/hz,a.anim);
+  if(i<hz/2)continue;
+  for(const [role,own,opp] of [['A',a,b],['B',b,a]] as const) {
+   for(const c of sampleHold(hold,role,progress,i/hz,.7,mirror,createLocal())) {
+    const bone=opp.bones[c.on];bone.updateWorldMatrix(true,false);
+    const target=new Vector3(...c.at).multiplyScalar(opp.scale).applyMatrix4(bone.matrixWorld);
+    const gap=own.anim.bonePos(`hand${c.hand}`,new Vector3()).distanceTo(target);
+    if(gap>effortWorst){effortWorst=gap;effortContext=`${hold} ${button} ${role} ${c.hand} mirror=${mirror} scales=${scales} hz=${hz}`;}
+   }
+  }
+ }
+}
+console.log(`Worst active leg-effort wrist/anchor gap ${effortWorst.toFixed(4)}m (${effortContext})`);
+if(effortWorst>.02)throw Error('Leg effort detached a wrist from its opponent anchor');
+
+// Closing a pocket must visibly tuck the threatened arm while retaining the
+// opposite support and the rider's forearm grip, including mirrored bodies.
+for(const hold of ['legRide','legRideFlat'])for(const mirror of [false,true])for(const scales of [[1,1],[.9,1.15],[1.15,.9]]) {
+ const poses=[];
+ for(const pockets of [0,1]) {
+  const a=make(scales[0]),b=make(scales[1]);
+  const base={mode:'paired' as const,clip:hold,hold:true,frame:{x:0,z:0,yaw:0},mirror,u:0,progress:.5,intensity:0,stamina:1,exertion:0,pockets};
+  for(let i=0;i<60;i++) {
+   a.anim.update(1/60,{...base,role:'A'},b.anim);b.anim.update(1/60,{...base,role:'B'},a.anim);
+   a.anim.applyContacts(1/60,b.anim);b.anim.applyContacts(1/60,a.anim);
+  }
+  const controlled=mirror?'R':'L',support=mirror?'L':'R';
+  poses.push({hand:b.anim.bonePos(`hand${controlled}`,new Vector3()),post:b.anim.bonePos(`hand${support}`,new Vector3())});
+  for(const c of sampleHold(hold,'A',.5,1,0,mirror,createLocal())){
+   const bone=b.bones[c.on];bone.updateWorldMatrix(true,false);
+   const target=new Vector3(...c.at).multiplyScalar(b.scale).applyMatrix4(bone.matrixWorld);
+   if(a.anim.bonePos(`hand${c.hand}`,new Vector3()).distanceTo(target)>.02)throw Error('Pocket defense detached rider grip');
+  }
+ }
+ if(poses[0].hand.distanceTo(poses[1].hand)<.06)throw Error('Pocket defense did not move controlled arm');
+ if(poses[0].post.distanceTo(poses[1].post)>.015)throw Error('Pocket defense moved opposite support palm');
+}
+console.log('Pocket defense moves the threatened arm, retains support palm and rider grip');

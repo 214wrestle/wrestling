@@ -13,9 +13,9 @@ import { BALL, GRIP } from './kit';
 // Just in: lead knee down, chest on his thighs, head on the outside, arms
 // wrapped behind both knees. He is still upright, hands on the back.
 const doubleA0: PoseSpec = {
-  hips: [0.04, 0.51, 0.06],
-  rot: [-8, 22, 0],
-  spine: [12, -12, 0],
+  hips: [0.11, 0.51, 0.06],
+  rot: [-6, 22, -10],
+  spine: [12, 4, 0],
   head: [-20, -35, 0],
   look: 0,
   footL: [0.14, BALL, -0.36, 0, 70],
@@ -36,9 +36,9 @@ const doubleA0: PoseSpec = {
 // Driving through: up off the knee, feet under the hips, shoulder pressure
 // stays low enough to retain both knee grips instead of standing out of them.
 const doubleA1: PoseSpec = {
-  hips: [0.0, 0.59, 0.26],
-  rot: [0, 30, 0],
-  spine: [20, 0, 0],
+  hips: [0.11, 0.59, 0.26],
+  rot: [-6, 30, -10],
+  spine: [20, 4, 0],
   head: [-20, -25, 0],
   footL: [0.16, BALL, 0.38, 0, 18],
   footR: [-0.2, BALL, -0.2, -10, 35],
@@ -82,8 +82,8 @@ registerHold({
   A: [doubleA0, doubleA1],
   B: [doubleB0, doubleB1],
   contacts: [
-    { who: 'A', hand: 'L', on: 'thighR', at: [-0.02, -0.34, -0.07] },
-    { who: 'A', hand: 'R', on: 'thighL', at: [0.02, -0.34, -0.07] },
+    { who: 'A', hand: 'L', on: 'thighR', at: [-0.02, -0.25, -0.07] },
+    { who: 'A', hand: 'R', on: 'thighL', at: [0.02, -0.25, -0.07] },
     { who: 'B', hand: 'L', on: 'chest', at: [-0.1, 0.18, -0.12] },
     { who: 'B', hand: 'R', on: 'chest', at: [0.1, 0.18, -0.12] },
   ],
@@ -93,15 +93,16 @@ registerHold({
 
 /* ------------------------------------------------------------ single leg */
 
-// In on his right leg: head on the inside, hands clasped round the knee.
+// In on his right leg, rarely square: hips outside the leg and turned in, the crown
+// of the head in the ribs until he elevates, hands clasped round the knee.
 const singleA0: PoseSpec = {
-  hips: [0.08, 0.56, 0.02],
-  rot: [-12, 18, 0],
-  spine: [16, -10, 0],
-  head: [-25, -25, 0],
+  hips: [0.25, 0.56, 0.04],
+  rot: [-38, 20, 0],
+  spine: [18, -6, 0],
+  head: [40, 55, 0],
   look: 0,
-  footL: [0.22, BALL, -0.38, 0, 70],
-  footR: [-0.16, BALL, -0.12, -25, 12],
+  footL: [0.42, BALL, -0.2, -25, 70],
+  footR: [0.02, BALL, -0.2, -40, 12],
   kneeL: [0.25, -0.3, 0.7],
   kneeR: [-0.3, 0.8, 0.8],
   handL: [0.2, 0.45, 0.5],
@@ -115,14 +116,14 @@ const singleA0: PoseSpec = {
   toes: [1, 1],
 };
 
-// Leg up at his hip, standing tall with it.
+// Step outside to bring the leg up: more of an angle, head still in on the ribs.
 const singleA1: PoseSpec = {
-  hips: [0.06, 0.84, 0.12],
-  rot: [-22, 14, 0],
-  spine: [10, -8, 0],
-  head: [-10, -20, 0],
-  footL: [0.24, BALL, 0.0, 0, 12],
-  footR: [-0.14, BALL, -0.26, -20, 20],
+  hips: [0.31, 0.76, 0.12],
+  rot: [-50, 24, 0],
+  spine: [16, -6, 0],
+  head: [-14, -6, 0],
+  footL: [0.52, BALL, 0.04, -40, 12],
+  footR: [0.14, BALL, -0.24, -55, 20],
   kneeL: [0.4, 0.8, 0.6],
   kneeR: [-0.3, 0.8, 0.3],
 };
@@ -165,7 +166,8 @@ registerHold({
     { who: 'A', hand: 'L', on: 'shinR', at: [0.0, -0.04, -0.05] },
     { who: 'A', hand: 'R', on: 'thighR', at: [0.03, -0.32, 0.07] },
     { who: 'B', hand: 'L', on: 'head', at: [0.0, 0.1, -0.04] },
-    { who: 'B', hand: 'R', on: 'chest', at: [0.1, 0.16, -0.12] },
+    // Whizzer: overhook his near arm, the other hand on the head.
+    { who: 'B', hand: 'R', on: 'armL', at: [0.0, -0.07, -0.045] },
   ],
   struggle: { A: 0.8, B: 1 },
   tempo: 1.8,

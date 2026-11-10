@@ -30,6 +30,7 @@ const KEY_MAP: Record<string, string> = {
   KeyT: 'doubleLeg',
   KeyF: 'driveLeg',
   KeyI: 'scramble',
+  KeyX: 'sitOut',
   KeyO: 'duckUnder',
   KeyB: 'superDuck',
   KeyV: 'slideBy',
@@ -63,6 +64,7 @@ export interface PadState {
   technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry' | 'footSweep';
   lowSingle?: boolean;
   scramble?: boolean;
+  sitOut?: boolean;
 }
 
 export const NO_PAD: PadState = { x: 0, y: 0, shoot: false, fight: false, sprawl: false, level: false };
@@ -88,6 +90,9 @@ export class Input {
   // Remember who supplied a queued shot even after a normal quick release.
   // A keyboard/controller shot takes ownership so touch cancellation cannot erase it.
   private touchShotOwner: 'shoot' | 'lowSingle' | undefined;
+  private touchTechniqueOwner = false;
+  private previousTechnique: PadState['technique'];
+  get ownsTouchTechnique(): boolean { return this.touchTechniqueOwner; }
   private previousShotCommand = false;
   private previousLowSingle = false;
   cancelTouch(key?: TouchKey): boolean {
@@ -97,6 +102,10 @@ export class Input {
       // Game also clears Bout's corresponding command history for a fresh re-press.
       this.previousShotCommand = false;
       this.previousLowSingle = false;
+    }
+    if (this.touchTechniqueOwner && (!key || key === 'technique')) {
+      this.touchTechniqueOwner = false;
+      this.previousTechnique = undefined;
     }
     if (key) this.touchBuffer.cancel(key); else this.clearTouch();
     return cancelShot;
@@ -156,7 +165,7 @@ export class Input {
     this.keyboardBuffer.set({
       ...NO_PAD,
       shoot: has('shoot'), fight: has('fight'), sprawl: has('sprawl'), level: has('level'),
-      lowSingle: has('lowSingle'), scramble: has('scramble'),
+      lowSingle: has('lowSingle'), scramble: has('scramble'), sitOut: has('sitOut'),
       legRide: has('legRide'), closePockets: has('closePockets'), catchLeg: has('catchLeg'),
       technique: (['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).find(has),
       legAction,
@@ -230,6 +239,9 @@ export class Input {
     if (pad) {
       x += dead(pad.axes[0] ?? 0);
       y -= dead(pad.axes[1] ?? 0);
+      // The d-pad steers like the stick (up, down, left, right); the position picks the move.
+      x += (pad.buttons[15]?.pressed ? 1 : 0) - (pad.buttons[14]?.pressed ? 1 : 0);
+      y += (pad.buttons[12]?.pressed ? 1 : 0) - (pad.buttons[13]?.pressed ? 1 : 0);
       shoot = shoot || !!pad.buttons[0]?.pressed;
       fight = fight || !!pad.buttons[2]?.pressed;
       sprawl = sprawl || !!pad.buttons[1]?.pressed || !!pad.buttons[5]?.pressed;
@@ -258,8 +270,14 @@ export class Input {
       x /= len;
       y /= len;
     }
-    const technique = keyboard.technique ?? touch.technique ?? (pad?.buttons[12]?.pressed ? 'duckUnder' : pad?.buttons[13]?.pressed ? 'superDuck' : pad?.buttons[14]?.pressed ? 'slideBy' : pad?.buttons[15]?.pressed ? 'firemansCarry' : undefined);
-    return { x, y, shoot, fight, sprawl, level, technique, legRide: keyboard.legRide || touch.legRide, closePockets: keyboard.closePockets || touch.closePockets, catchLeg: keyboard.catchLeg || touch.catchLeg, legAction: keyboard.legAction ?? touch.legAction, sustainedEffort: shoot || fight || sprawl, lowSingle, scramble: keyboard.scramble || !!touch.scramble || !!pad?.buttons[3]?.pressed };
+    // Simple controls: no technique buttons on the controller; stick + position choose them.
+    const padTechnique: PadState['technique'] = undefined;
+    const technique = keyboard.technique ?? touch.technique ?? padTechnique;
+    // Track the effective choice, preserving a released tap until it is consumed.
+    if (keyboard.technique || !touch.technique && padTechnique) this.touchTechniqueOwner = false;
+    else if (technique && technique !== this.previousTechnique) this.touchTechniqueOwner = !!touch.technique;
+    this.previousTechnique = technique;
+    return { x, y, shoot, fight, sprawl, level, technique, legRide: keyboard.legRide || touch.legRide, closePockets: keyboard.closePockets || touch.closePockets, catchLeg: keyboard.catchLeg || touch.catchLeg, legAction: keyboard.legAction ?? touch.legAction, sustainedEffort: shoot || fight || sprawl, lowSingle, scramble: keyboard.scramble || !!touch.scramble || !!pad?.buttons[3]?.pressed, sitOut: keyboard.sitOut || !!touch.sitOut || !!pad?.buttons[11]?.pressed };
   }
 
   /** A short controller buzz for impacts and scores. */
@@ -272,7 +290,8 @@ export class Input {
         weakMagnitude: Math.min(1, strength * 0.6),
       })
       .catch(() => undefined);
-    if (this.device === 'touch' && navigator.vibrate && strength > 0.3) navigator.vibrate(Math.round(ms * 0.6));
+    // Browsers reject vibration before the first tap and log an error for it.
+    if (this.device === 'touch' && navigator.vibrate && navigator.userActivation?.hasBeenActive !== false && strength > 0.3) navigator.vibrate(Math.round(ms * 0.6));
   }
 
   dispose(): void {

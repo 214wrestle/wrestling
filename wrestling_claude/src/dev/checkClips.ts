@@ -27,7 +27,7 @@ for (const shot of ['double', 'single', 'highCrotch', 'lowSingle'] as const) {
   if (!hasMove(SHOT_CLIPS[shot]) || !hasHold(LEG_HOLDS[shot])) throw new Error(`Incomplete attack: ${shot}`);
 }
 console.log('Every simulation move and hold has finite paired animation poses, including mirrored high crotches');
-for (const id of ['legRide','closedPockets','catchRidingLeg','cradleHold']) {
+for (const id of ['legRide','legRideFlat','closedPockets','closedPocketsFlat','catchRidingLeg','cradleHold']) {
   if (!hasHold(id)) throw new Error(`Missing contextual hold: ${id}`);
   for (const role of ['A','B'] as const) for (const mirror of [false,true]) for (const progress of [0,0.5,1]) {
     const pose=createLocal(); sampleHold(id,role,progress,0.4,1,mirror,pose);
@@ -94,3 +94,21 @@ for(const [move,hold] of [['shotDouble','legsDouble'],['shotSingle','legsSingle'
  }
 }
 console.log('Single/double/high-crotch entries establish the same defensive frame as their leg holds');
+
+for(const mirror of [false,true])for(const progress of [0,.3,.6,1]) {
+ const flat=createLocal(),closed=createLocal();
+ sampleHold('closedPocketsFlat','B',0,0,0,mirror,flat);
+ if(flat[P.HIPS+1]>.2)throw Error('Flat pocket pose is not prone');
+ sampleHold('closedPocketsFlat','B',progress,0,0,mirror,closed);
+ for(const offset of [P.HIPS,P.FOOT_L,P.FOOT_R])for(let axis=0;axis<3;axis++){
+  if(Math.abs(flat[offset+axis]-closed[offset+axis])>1e-6)throw Error('Closing flat pockets changed lower-body base');
+ }
+}
+console.log('Flat pocket defense preserves belly and leg height throughout closure');
+
+for(const mirror of [false,true])for(const progress of [0,.5,1]) {
+ const pose=createLocal();sampleHold('legRideFlat','B',progress,0,0,mirror,pose);
+ if(pose[P.HIPS+1]<(progress<=.5?.25:.2)||pose[P.HIPS+1]>.36)throw Error('Leg entry needs a low supported base with space beneath the hips');
+ const freeFoot=mirror?P.FOOT_L:P.FOOT_R;
+ if(pose[freeFoot+1]>.08)throw Error('Leg ride floated the unhooked support foot');
+}

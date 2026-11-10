@@ -251,6 +251,9 @@ export function sampleMove(id: string, role: Role, u: number, mirror: boolean, o
   return contactsAt(m.clip.contacts, role, u, mirror, false);
 }
 
+/** Hold intensity at which the struggle is exactly zero: both men set and still. */
+export const STILL_INTENSITY = -1 / 3;
+
 /** Sample a hold: blend the poles by progress and add the struggle. */
 export function sampleHold(
   id: string,

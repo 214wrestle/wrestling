@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
+import { schoolLabel } from '../sim/schoolAbbr';
 import { describeWinType, formatClock, formatRidingTime, periodLabel } from '../sim/rules';
 import type { GameApi, UiState } from '../game/store';
 import type { Side } from '../sim/types';
 import { Key } from './glyphs';
+import { teamName, teamScore } from '../sim/dual';
+import { isDone, stillIn } from '../sim/tournament';
 
 const STATS: Array<[string, 'takedowns' | 'escapes' | 'reversals' | 'nearFalls' | 'stuffs' | 'shotsAttempted']> = [
   ['Takedowns', 'takedowns'],
@@ -14,15 +17,19 @@ const STATS: Array<[string, 'takedowns' | 'escapes' | 'reversals' | 'nearFalls' 
 ];
 
 export function ResultCard({ state, api }: { state: UiState; api: GameApi }) {
+  // In a dual meet the bout goes on the team score and the next weight follows.
+  const dual = state.dual;
+  // In a tournament the match goes in the bracket and the next round follows.
+  const tour = state.tournament;
   const w = state.wrestlers;
   const result = state.result;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.code === 'Enter') api.rematch();
+      if (e.code === 'Enter') { if (tour) api.toTournament(); else if (dual) api.toDual(); else api.rematch(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [api]);
+  }, [api, dual, tour]);
   if (!w || !result) return null;
   const winner = w[result.winner];
   const margin = Math.abs(result.score[0] - result.score[1]);
@@ -35,9 +42,9 @@ export function ResultCard({ state, api }: { state: UiState; api: GameApi }) {
   return (
     <div className="result" style={{ ['--school' as string]: winner.school.primary, ['--accent' as string]: winner.school.accent }}>
       <div className="result__card">
-        <div className="result__kicker">{youWon ? 'You win' : 'You lose'} · {result.teamPoints} team points</div>
+        <div className="result__kicker">{youWon ? 'You win' : 'You lose'}{tour ? ' · Legends Championships' : ` · ${result.teamPoints} team points`}{dual && ` · Dual ${teamName(dual.teams[0])} ${teamScore(dual)[0]}–${teamScore(dual)[1]} ${teamName(dual.teams[1])}`}</div>
         <div className="result__winner">
-          <span className="result__school">{winner.school.name}</span>
+          <span className="result__school">{schoolLabel(winner, !!dual).name}</span>
           <h2>
             <span>{winner.firstName}</span> {winner.lastName}
           </h2>
@@ -47,7 +54,7 @@ export function ResultCard({ state, api }: { state: UiState; api: GameApi }) {
         <div className="result__score">
           {([0, 1] as Side[]).map((side) => (
             <div key={side} className={`result__side ${side === result.winner ? 'result__side--won' : ''}`} style={{ ['--school' as string]: w[side].school.primary }}>
-              <span className="result__team">{w[side].school.name}</span>
+              <span className="result__team">{schoolLabel(w[side], !!dual).name}</span>
               <span className="result__name">{w[side].lastName}</span>
               <span className="result__pts">{result.score[side]}</span>
             </div>
@@ -99,7 +106,23 @@ export function ResultCard({ state, api }: { state: UiState; api: GameApi }) {
           </ol>
         </div>
 
-        <div className="result__row">
+        {tour ? <div className="result__row">
+          <button type="button" className="cta cta--small" onClick={() => api.toTournament()} autoFocus>
+            <span>{isDone(tour) ? 'Final placings' : stillIn(tour) ? 'Back to the bracket' : 'The bracket'}</span>
+            <Key>Enter</Key>
+          </button>
+          <button type="button" className="menu__btn menu__btn--ghost" onClick={() => api.leaveTournament()}>
+            Leave tournament
+          </button>
+        </div> : dual ? <div className="result__row">
+          <button type="button" className="cta cta--small" onClick={() => api.toDual()} autoFocus>
+            <span>{dual.bouts.every(b => b.result) ? 'Final score' : 'Next bout'}</span>
+            <Key>Enter</Key>
+          </button>
+          <button type="button" className="menu__btn menu__btn--ghost" onClick={() => api.leaveDual()}>
+            Leave dual
+          </button>
+        </div> : <div className="result__row">
           <button type="button" className="cta cta--small" onClick={() => api.rematch()} autoFocus>
             <span>Rematch</span>
             <Key>Enter</Key>
@@ -107,7 +130,7 @@ export function ResultCard({ state, api }: { state: UiState; api: GameApi }) {
           <button type="button" className="menu__btn menu__btn--ghost" onClick={() => api.toTitle()}>
             Change wrestlers
           </button>
-        </div>
+        </div>}
       </div>
     </div>
   );

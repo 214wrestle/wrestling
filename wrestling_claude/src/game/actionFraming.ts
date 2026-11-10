@@ -15,7 +15,7 @@ export function actionFraming(pos:Position,wrestling:boolean,radius:number):Acti
    else if(pos.id==='fightOff'){
     const release=pos.turnStyle==='cradle'?CRADLE_GRIP_RELEASE:isArmBar(pos.turnStyle)?ARM_BAR_GRIP_RELEASE:.5;
     pin=1-smooth((u-release)/(1-release));
-   }else if(['cradle','halfNelson','tilt','spladleCounter'].includes(pos.id)||/^(armBar|wristBar|barHalf|doubleBar)Turn$/.test(pos.id))pin=smooth((u-.3)/.5);
+   }else if(['cradle','halfNelson','tilt','spladleCounter','sitOutTurn','sitOutPull','sitOutEscape'].includes(pos.id)||/^(armBar|wristBar|barHalf|doubleBar)Turn$/.test(pos.id))pin=smooth((u-.3)/.5);
   }
  }
  return {pin,mirror:'mirror' in pos?pos.mirror:false,edge:wrestling?smooth((radius-3.6)/1.1):0};

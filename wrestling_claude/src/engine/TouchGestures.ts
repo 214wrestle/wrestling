@@ -17,6 +17,16 @@ export class TouchGestures {
     }
     return removed;
   }
+  /** Drop fingers whose contextual choice disappeared, retaining valid owners. */
+  cancelUnavailable(key: TouchKey, available: readonly Value[]): boolean {
+    let removed = false;
+    for (const [pointer, gesture] of this.pointers) {
+      if (gesture.key === key && !available.includes(gesture.value)) {
+        this.pointers.delete(pointer); removed = true;
+      }
+    }
+    return removed;
+  }
   has(key: TouchKey): boolean { return [...this.pointers.values()].some(p => p.key === key); }
   get size(): number { return this.pointers.size; }
   state(): Partial<PadState> {

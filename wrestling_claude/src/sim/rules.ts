@@ -8,14 +8,32 @@
 /** Regulation periods, in seconds. NCAA: 3:00 / 2:00 / 2:00. */
 export const PERIOD_LENGTHS = [180, 120, 120] as const;
 
-/** Sudden victory overtime — first scorer wins. */
-export const SUDDEN_VICTORY_LENGTH = 60;
-
-/** Each wrestler gets one 30s tiebreaker ride. */
+/**
+ * Overtime (NCAA Rules 3.14.3 and 3.15-3.17, 2021-23 rulebook, the edition that brought in the two-minute first
+ * sudden victory): SV-1 2:00 from neutral, first points win; then two 30-second tiebreaker periods with choice of
+ * position, decided by points or a net riding-time edge of a second or more; then SV-2 1:00 and another tiebreaker
+ * pair, repeating until someone wins. Riding time from regulation does not carry into overtime.
+ * Periods from 4 on: each overtime round is a sudden-victory period and the two halves of its tiebreaker.
+ */
+export const SUDDEN_VICTORY_LENGTH = 120;
+/** Second and later sudden-victory periods. */
+export const LATER_SUDDEN_VICTORY_LENGTH = 60;
+/** Each half of a tiebreaker. */
 export const TIEBREAKER_LENGTH = 30;
+/** Net riding time in a tiebreaker pair that wins it when the points are level. */
+export const TIEBREAKER_RIDING_EDGE = 1;
 
-/** Ultimate ride-out: rider must hold for the full 30s. */
-export const ULTIMATE_RIDEOUT_LENGTH = 30;
+/** Which overtime round a period belongs to (1 for SV-1 and TB-1), or 0 in regulation. */
+export function overtimeRound(period: number): number {
+  return period < 4 ? 0 : Math.floor((period - 4) / 3) + 1;
+}
+/** 0 for a sudden-victory period, 1 and 2 for the halves of a tiebreaker; -1 in regulation. */
+export function overtimePart(period: number): -1 | 0 | 1 | 2 {
+  return period < 4 ? -1 : ((period - 4) % 3) as 0 | 1 | 2;
+}
+export function isSuddenVictory(period: number): boolean {
+  return overtimePart(period) === 0;
+}
 
 export const POINTS = {
   takedown: 3,
@@ -46,6 +64,18 @@ export const NEAR_FALL_4_SECONDS = 5;
 
 /** Seconds both shoulders must be held to the mat for a fall. */
 export const FALL_HOLD_SECONDS = 2;
+
+/**
+ * Referees read stalling differently (owner, November 9: inconsistent among refs, the human element). Each match
+ * draws one. `patience`: seconds on the feet without a real attempt before stall time builds; `rate` scales how
+ * fast it builds (on the feet and on top).
+ */
+export interface RefereeStall { id: 'lenient' | 'average' | 'strict'; label: string; patience: number; rate: number }
+export const REFEREES: { ref: RefereeStall; weight: number }[] = [
+  { ref: { id: 'lenient', label: 'lets them wrestle', patience: 55, rate: 0.75 }, weight: 0.3 },
+  { ref: { id: 'average', label: 'calls stalling by the book', patience: 40, rate: 1 }, weight: 0.45 },
+  { ref: { id: 'strict', label: 'is quick on stalling', patience: 30, rate: 1.3 }, weight: 0.25 },
+];
 
 /** Stalling warning precedes the first stalling point. */
 export const STALL_WARNING_SECONDS = 5.5;
@@ -121,17 +151,13 @@ export function classifyDecision(margin: number): WinType {
 /** Period label shown on the scoreboard. */
 export function periodLabel(period: number): string {
   if (period <= 3) return `P${period}`;
-  if (period === 4) return 'SV';
-  if (period === 5) return 'TB1';
-  if (period === 6) return 'TB2';
-  return 'RO';
+  return `${isSuddenVictory(period) ? 'SV' : 'TB'}${overtimeRound(period)}`;
 }
 
 export function periodLength(period: number): number {
   if (period <= 3) return PERIOD_LENGTHS[period - 1] ?? 120;
-  if (period === 4) return SUDDEN_VICTORY_LENGTH;
-  if (period === 5 || period === 6) return TIEBREAKER_LENGTH;
-  return ULTIMATE_RIDEOUT_LENGTH;
+  if (!isSuddenVictory(period)) return TIEBREAKER_LENGTH;
+  return overtimeRound(period) === 1 ? SUDDEN_VICTORY_LENGTH : LATER_SUDDEN_VICTORY_LENGTH;
 }
 
 /** True for overtime periods, where scoring can end the match outright. */

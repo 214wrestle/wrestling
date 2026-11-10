@@ -1,3 +1,4 @@
+import {wrestlerViews} from '../game/views';
 import {readPrompts} from '../game/prompts';
 import {Bout} from '../sim/bout';
 import {MatchSim} from '../sim/MatchSim';
@@ -87,7 +88,9 @@ for (const [button,id] of [['shoot','standingTrip'],['fight','crotchLift'],['spr
   if(p.kind==='move'){
    ok(p.id===id,'standing buttons select their distinct return');wins++;
    for(let i=0;i<120;i++)standing.tick(1/60,[NO_COMMAND,NO_COMMAND]);
-   ok(standing.position.kind==='mat'&&standing.position.A===0,'return preserves the original top wrestler');
+   // A clean return lands him flat through a breakdown (mat return depth): the same man is still on top.
+   const after=standing.position;
+   ok((after.kind==='mat'||after.kind==='move'&&after.id==='breakdown')&&after.A===0,'return preserves the original top wrestler');
   }
   ok(points===0,'standing returns never award another takedown');
  }
@@ -100,10 +103,61 @@ promptSim.phase = 'wrestling';
 for (const shot of ['single','highCrotch','double','lowSingle'] as const) {
  promptSim.bout.position={kind:'legs',A:0,shot,mirror:false,t:0,frame:{x:0,z:0,yaw:0},progress:.6,lifted:shot==='single'?.4:0,intensity:0};
  const attack=readPrompts(promptSim,0),defense=readPrompts(promptSim,1);
- ok(attack.legActions?.join(',')===(shot==='single'||shot==='highCrotch'?'lift,trip,double,drive':'drive'),'finish buttons match secured grip');
+ // Simple controls: finishes ride on the main buttons (hold Hand fight to lift, Shoot + stick/Lower).
+ ok((attack.legActions?.length??0)===0,'no separate finish buttons');
+ const liftable=shot==='single'||shot==='highCrotch';
+ ok((attack.prompts.fight.label==='Lift leg')===liftable,'Hand fight lifts only a single or high crotch');
+ ok((attack.prompts.shoot.alt??'').includes('Trip')===liftable,'trip is offered only where the leg can be lifted');
+ ok(shot==='lowSingle'?!attack.prompts.shoot.alt:(attack.prompts.shoot.alt??'').includes('double'),'Lower + Shoot double option matches the grip');
  ok(defense.legActions?.length===0,'defender cannot request attacker leg finishes');
  const name={single:'Single leg',highCrotch:'High crotch',double:'Double leg',lowSingle:'Low single'}[shot];
  ok([attack,defense].every(p=>p.meters.some(m=>m.label===name&&m.value===.6)),'both sides see captured leg type and finish progress');
  if(shot==='single')ok(attack.meters.some(m=>m.label==='Leg lift'),'lift and finish are distinct meters');
 }
 console.log('Leg finish controls respect grip type and preserve both progress meters');
+
+for(const sub of ['ride','flat'] as const) {
+ sim.phase='wrestling';sim.bout.setReferee(0,{x:0,z:0},0);
+ if(sim.bout.position.kind!=='mat')throw Error('Expected mat fixture');
+ Object.assign(sim.bout.position,{sub,legRide:.5,pockets:.8,legCaught:.4});
+ for(const side of [0,1] as const){
+  const meters=readPrompts(sim,side).meters;
+  for(const [label,value,offense] of [['Opening the pocket',.5,true],['Pockets closed',.8,false],['Clearing the leg',.4/.75,false]] as const){
+   const m=meters.find(m=>m.label===label);
+   ok(m?.value===value && m.tone===((side===0)===offense?'you':'them'),`${sub} ${side}: ${label} exposes actual contest progress`);
+  }
+ }
+}
+console.log('Leg-entry, pocket defense and clearing feedback remain visible when flattened');
+
+for(const sub of ['ride','flat'] as const){
+ sim.phase='wrestling';sim.bout.setReferee(0,{x:0,z:0},0);
+ // Flat with the pockets closed: pressed all the way down (a flat man working up shows the push instead, owner Nov 10).
+ Object.assign(sim.bout.position,{sub,pockets:.8,legRide:0,legCaught:0,...(sub==='flat'?{base:0,heave:0}:{})});
+ for(const view of wrestlerViews(sim))ok(view.mode==='paired' && view.clip===(sub==='flat'?'closedPocketsFlat':'closedPockets') && view.progress===.8,'pocket defense follows actual mat posture');
+}
+console.log('Flat pocket defense routes to prone animation without changing kneeling defense');
+
+for(const sub of ['ride','flat'] as const){
+ sim.phase='wrestling';sim.bout.setReferee(0,{x:0,z:0},0);
+ Object.assign(sim.bout.position,{sub,pockets:.8,legRide:.5,legCaught:0});
+ for(const view of wrestlerViews(sim))ok(view.mode==='paired' && view.clip===(sub==='flat'?'legRideFlat':'legRide') && view.progress===.5 && view.pockets===.8,'leg-entry view preserves actual mat posture and simultaneous defense');
+}
+
+for(const sub of ['ride','flat'] as const){
+ sim.phase='wrestling';sim.bout.setReferee(0,{x:0,z:0},0);
+ Object.assign(sim.bout.position,{sub,pockets:.4,legRide:1,legCaught:.6});
+ for(const view of wrestlerViews(sim))ok(view.mode==='paired' && view.clip===(sub==='flat'?'catchRidingLegFlat':'catchRidingLeg') && Math.abs(view.progress-.8)<1e-9,'leg catch preserves prone versus kneeling position and progress');
+}
+console.log('Prone leg catch routes without lifting bottom into kneeling');
+
+sim.phase='wrestling';sim.bout.setReferee(0,{x:0,z:0},0);
+Object.assign(sim.bout.position,{sub:'flat',legRide:1,legCaught:0,pockets:0});
+const storedSkill=sim.bout.wrestlers[0].attributes.legRiding;
+sim.bout.wrestlers[0].attributes.legRiding=.3;
+const weakRide=wrestlerViews(sim)[0];
+sim.bout.wrestlers[0].attributes.legRiding=.95;
+const strongRide=wrestlerViews(sim)[0];
+sim.bout.wrestlers[0].attributes.legRiding=storedSkill;
+ok(weakRide.mode==='paired'&&strongRide.mode==='paired'&&weakRide.clip==='legRidePressure'&&strongRide.clip==='legRidePressure'&&strongRide.progress>weakRide.progress,'visible established pressure follows leg-riding technique');
+console.log('Established low-base leg ride shows skill-dependent pressure');

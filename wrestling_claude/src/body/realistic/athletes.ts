@@ -30,6 +30,12 @@ export interface Athlete {
   brow: [number, number, number, number];
   eye: string;
   stubble: number;
+  /** Hair texture: 0 tightly coiled .. 1 straight. */
+  hairStraight?: number;
+  /** Bulk of the hair over the scalp, metres (see BodyParams.hairVolume). */
+  hairVolume?: number;
+  /** Side and back hairline lowered over the ears (0..1). */
+  hairLow?: number;
   primary: string;
   secondary: string;
   piping: string;
@@ -39,6 +45,8 @@ export interface Athlete {
   gearStrap: string;
   face: FaceParams;
   frame: FrameParams;
+  /** Era singlet cut and decoration; omitted is today's singlet. */
+  kit?: import('./material').KitLook;
 }
 
 export const ATHLETES: [Athlete, Athlete] = [

@@ -75,7 +75,9 @@ button:focus-visible {
   background: radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
 }
 
-.app--title .vignette {
+.app--title .vignette,
+.app--dual .vignette,
+.app--tournament .vignette {
   background:
     linear-gradient(90deg, rgba(5, 7, 12, 0.96) 0%, rgba(5, 7, 12, 0.82) 28%, rgba(5, 7, 12, 0.15) 48%, transparent 62%),
     radial-gradient(ellipse 120% 90% at 65% 45%, transparent 50%, rgba(0, 0, 0, 0.6) 100%);
@@ -321,6 +323,10 @@ button:focus-visible {
 .seg__btn:hover {
   color: var(--ink);
 }
+/* The selected button keeps its dark label under the pointer (it went white on white). */
+.seg__btn--on:hover {
+  color: #0b0e14;
+}
 
 .seg__btn--on {
   background: var(--ink);
@@ -530,6 +536,14 @@ button:focus-visible {
   text-align: right;
 }
 
+/* Signature finish under the style line: plain, a little bolder, so it reads as a fact rather than a quote. */
+.tape__signature {
+  margin-top: 0.3rem;
+  font-style: normal;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
 /* --------------------------------------------------------------- loading --- */
 
 .loading {
@@ -627,7 +641,9 @@ button:focus-visible {
 .bug__team--l {
   grid-column: 1;
   border-radius: 10px 0 0 10px;
-  clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%);
+  /* Slanted outer edge; the shape continues 1.4rem below so the tags that hang under it (TOP, stalling)
+     are not cut off (TOP never showed on wide screens). */
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% + 1.4rem), 0 calc(100% + 1.4rem), 0 100%);
   padding-left: 1.4rem;
 }
 
@@ -635,7 +651,7 @@ button:focus-visible {
   grid-column: 3;
   flex-direction: row-reverse;
   border-radius: 0 10px 10px 0;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, calc(100% - 14px) calc(100% + 1.4rem), 0 calc(100% + 1.4rem));
   padding-right: 1.4rem;
   padding-left: 0.6rem;
 }
@@ -731,6 +747,21 @@ button:focus-visible {
   left: 0.6rem;
 }
 
+/* Stalling count, hanging under the name on the outer side (TOP hangs on the inner side): Warned, Stall 1... */
+.bug__stall {
+  position: absolute;
+  bottom: -1.15rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 0 0 6px 6px;
+  background: var(--bad);
+  font: 700 0.56rem/1.2 var(--body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: white;
+}
+.bug__team--l .bug__stall { left: 0.6rem; }
+.bug__team--r .bug__stall { right: 1rem; }
+
 .bug__clock {
   grid-column: 2;
   grid-row: 1;
@@ -771,7 +802,8 @@ button:focus-visible {
   grid-row: 2;
   grid-column: 1 / -1;
   justify-self: center;
-  margin-top: 0.35rem;
+  /* Below the TOP tag that hangs under the scoreboard (it covered the tag's text). */
+  margin-top: 1.4rem;
   padding: 0.25rem 0.8rem;
   border-radius: 6px;
   background: var(--bad);
@@ -949,6 +981,15 @@ button:focus-visible {
   text-align: center;
 }
 
+/* What the same button does with the stick or Lower here. */
+.pad__alt {
+  color: var(--muted-ink);
+  font: 500 0.6rem/1.15 var(--body);
+  text-align: center;
+  opacity: 0.85;
+  max-width: 9rem;
+}
+
 .pad__btn--off {
   opacity: 0.38;
 }
@@ -1025,7 +1066,9 @@ button:focus-visible {
 /* Score banner */
 .score {
   position: absolute;
-  top: calc(max(1.6vh, env(safe-area-inset-top)) + 4.9rem);
+  /* Below the scoreboard's second row (TOP label, near-fall count): a takedown straight to his back used to
+     cover the count while it ran. */
+  top: calc(max(1.6vh, env(safe-area-inset-top)) + 7rem);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -1450,7 +1493,8 @@ button:focus-visible {
 /* ------------------------------------------------------------------ help --- */
 
 .modal--help {
-  z-index: 5;
+  /* Above the game plan card (z 30), which showed through it during the walk-out. */
+  z-index: 40;
 }
 
 .help {
@@ -1502,7 +1546,7 @@ button:focus-visible {
 
 .help__group li {
   display: grid;
-  grid-template-columns: 3.4rem 1fr;
+  grid-template-columns: 4.1rem 1fr;
   gap: 0.6rem;
   align-items: start;
   font-size: 0.84rem;
@@ -1512,6 +1556,13 @@ button:focus-visible {
 
 .help__group li strong {
   color: var(--ink);
+}
+
+/* Two-key caps (Shift + J) stay on one line, a size smaller to fit the column. */
+.help__group li .glyph--key {
+  white-space: nowrap;
+  justify-self: start;
+  font-size: 0.66rem;
 }
 
 .help__rules {
@@ -1833,7 +1884,9 @@ button:focus-visible {
   .tape {
     display: none;
   }
-  .app--title .vignette {
+  .app--title .vignette,
+  .app--dual .vignette,
+  .app--tournament .vignette {
     background: rgba(5, 7, 12, 0.82);
   }
 }
@@ -1888,9 +1941,40 @@ button:focus-visible {
   .title__keys {
     display: none;
   }
-  .card,
-  .pad {
+  .card {
     display: none;
+  }
+  /* Compact keyboard pad: the same three buttons as one slim row across the bottom. */
+  .pad {
+    left: max(8px, env(safe-area-inset-left));
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    justify-content: center;
+    gap: 0.35rem;
+  }
+  .pad__btn {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    max-width: 150px;
+    min-height: 0;
+    gap: 0.18rem;
+    padding: 0.38rem 0.3rem 0.36rem;
+    border-radius: 10px;
+  }
+  .pad__btn .glyph {
+    font-size: 0.78rem;
+  }
+  .pad__label {
+    font-size: clamp(0.68rem, 2.3vw, 0.84rem);
+    overflow-wrap: anywhere;
+  }
+  .pad__hint {
+    font-size: 0.56rem;
+  }
+  .pad__alt {
+    font-size: 0.52rem;
+    max-width: none;
   }
   .bug {
     width: min(600px, calc(100vw - 16px));
@@ -1955,8 +2039,8 @@ button:focus-visible {
 .tile__name-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .tile__rating { display: inline-block; border: 1px solid var(--accent); border-radius: 4px; padding: 0.2em 0.45em; font: 700 0.8rem/1 var(--body); color: var(--ink); white-space: nowrap; }
 
-.top-restart {position:absolute;top:28%;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;pointer-events:auto;background:#171b24;padding:14px;border-radius:12px;color:white;}
-.top-restart button {padding:12px;background:#283b52;color:white;border:1px solid #8298ad;border-radius:8px;}
+.top-restart {position:absolute;top:28%;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;pointer-events:auto;background:#171b24;padding:14px;border-radius:12px;color:white;max-width:calc(100vw - 32px);box-sizing:border-box;}
+.top-restart button {padding:12px;background:#283b52;color:white;border:1px solid #8298ad;border-radius:8px;white-space:nowrap;}
 
 .top-restart button[aria-pressed="true"] {border-color:#f2c36b;background:#66502e;}
 
@@ -1975,6 +2059,8 @@ button:focus-visible {
 .touch__btn--ok,.touch__btn--won { box-shadow:0 0 0 3px #80efab; opacity:1; }
 .touch__btn--blocked,.touch__btn--lost { box-shadow:0 0 0 3px #ffc06b; opacity:1; }
 .touch__hint { display:block; margin-top:.3rem; font:600 .65rem/1 sans-serif; text-transform:none; }
+.touch__label--long { display:block; font-size:.66rem; white-space:nowrap; letter-spacing:-.01em; } /* High crotch, Lateral drop: one line, room for the hint */
+.touch__alt { display:block; margin-top:.2rem; font:500 .55rem/1.15 sans-serif; text-transform:none; opacity:.85; }
 .touch__contest { padding:.4rem; background:#101927ed; color:white; border-radius:8px; margin-top:.3rem; font:600 .65rem/1.4 sans-serif; }
 .touch__contest label { display:grid; grid-template-columns:4.6rem 1fr 2rem; align-items:center; gap:.2rem; }
 .touch__contest progress { width:100%; height:.45rem; accent-color:#f0c86a; }
@@ -2062,4 +2148,275 @@ button:focus-visible {
   .touch__notice { min-height: 1.7rem; padding: .3rem; }
   .touch__contest { padding: .3rem; margin-top: .2rem; }
   .touch__hint { margin-top: .2rem; }
+}
+
+/* Game plan: walk-out and between periods. Sits above the choice dialog so it can be changed while choosing. */
+.plan{position:absolute;left:12px;top:84px;z-index:30;width:min(360px,calc(100vw - 24px));display:grid;gap:5px;padding:9px 10px;border-radius:10px;background:#101c2df0;color:#fff;font-size:12px;box-shadow:0 6px 18px #0008}
+.plan__note--ref{color:#f0c86a;font-weight:600}
+.plan__head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.plan__head span{color:#b9c6d6;font-size:11px}
+.plan__row{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.plan__row--focus{grid-template-columns:repeat(3,1fr)}
+.plan button{min-height:36px;padding:5px 6px;border-radius:6px;border:1px solid #5d7590;background:#223145;color:#fff;font:600 11px/1.1 sans-serif}
+.plan button[aria-pressed="true"]{background:#f0c86a;border-color:#f0c86a;color:#141b29}
+.plan__note{color:#b9c6d6;font-size:10.5px;line-height:1.25}
+@media(max-width:600px){.plan{top:72px;left:8px;width:calc(100vw - 16px)}.plan button{min-height:40px}}
+
+/* Coin toss between periods 1 and 2. */
+.toss{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:25;display:grid;justify-items:center;gap:8px;color:#fff;text-align:center;text-shadow:0 2px 6px #000a;pointer-events:none}
+.toss strong{font:800 1.4rem/1 var(--display, sans-serif);letter-spacing:.04em}.toss em{font-size:.8rem;max-width:22rem}
+.toss__disc{position:relative;width:96px;height:96px;transform-style:preserve-3d;animation:toss-flip 1.6s cubic-bezier(.2,.7,.3,1) forwards}
+.toss__face{position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;backface-visibility:hidden;font:800 .95rem/1 sans-serif;border:4px solid #fff;box-shadow:0 6px 16px #0009}
+.toss__face--red{background:var(--red)}.toss__face--green{background:var(--green);transform:rotateY(180deg)}
+.toss__disc--red{--land:1800deg}.toss__disc--green{--land:1980deg}
+@keyframes toss-flip{0%{transform:translateY(40px) rotateY(0)}45%{transform:translateY(-70px) rotateY(calc(var(--land) * .55))}100%{transform:translateY(0) rotateY(var(--land))}}
+@media (prefers-reduced-motion: reduce){.toss__disc{animation:none;transform:rotateY(var(--land))}}
+.plan--inline{position:static;width:auto;margin:0 0 10px;box-shadow:none;background:#162436}
+.modal__card--choice{max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}
+.modal__card--choice .choices__btn{padding-top:10px;padding-bottom:10px}
+.modal__card--choice .choices__btn svg{max-height:34px}
+
+/* The edge of the mat: which way to move there (owner, November 10). Sits just above the action pad. */
+.edge-hint{position:absolute;right:max(1.6vw,env(safe-area-inset-right));bottom:calc(max(2.2vh,env(safe-area-inset-bottom)) + 104px);max-width:352px;padding:5px 10px;border-radius:8px;background:rgba(240,200,106,.92);color:#141b29;font:700 .72rem/1.25 var(--body);text-align:right;box-shadow:var(--shadow)}
+.touch__edge{margin-top:4px;padding:4px 8px;border-radius:6px;background:rgba(240,200,106,.92);color:#141b29;font:700 .7rem/1.25 var(--body)}
+@media (max-width: 760px), (max-height: 520px){.edge-hint{left:8px;right:8px;max-width:none;bottom:calc(max(8px,env(safe-area-inset-bottom)) + 86px);text-align:center;font-size:.66rem}}
+
+/* ------------------------------------------------------------ dual meet --- */
+/* Owner, November 10: a dual across all 12 weights. The board, the bout sheet and the pick list. */
+.dual__board {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: var(--glass-strong);
+  border: 1px solid var(--line);
+}
+.dual__team {
+  position: relative;
+  display: grid;
+  gap: 0.2rem;
+  padding-left: 0.8rem;
+}
+.dual__team--r {
+  text-align: right;
+  padding-left: 0;
+  padding-right: 0.8rem;
+}
+.dual__team .tape__corner {
+  position: absolute;
+  top: 0.15rem;
+  bottom: 0.15rem;
+  width: 4px;
+  border-radius: 2px;
+}
+.dual__team--l .tape__corner { left: 0; }
+.dual__team--r .tape__corner { right: 0; }
+.dual__name {
+  font: 700 0.78rem/1.1 var(--body);
+  letter-spacing: 0.12em;
+  color: var(--muted-ink);
+}
+.dual__score {
+  font: 700 2.6rem/1 var(--digits);
+  color: var(--ink);
+}
+.dual__meta {
+  grid-column: 1 / -1;
+  font: 700 0.68rem/1 var(--body);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: center;
+}
+.dual__actions {
+  display: flex;
+  gap: 0.7rem;
+  align-items: stretch;
+  margin-top: 0.4rem;
+}
+.dual__actions .cta { flex: 1; }
+.dual__actions .menu__btn { justify-content: center; }
+.dual__actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.dual__winner {
+  font: 700 1.8rem/1.1 var(--display);
+  color: var(--gold);
+  margin: 0;
+}
+.dual-sheet {
+  width: 100%;
+  border-collapse: collapse;
+  font: 500 0.82rem/1.25 var(--body);
+  font-variant-numeric: tabular-nums;
+}
+.dual-sheet th {
+  text-align: left;
+  font: 700 0.62rem/1 var(--body);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+  padding: 0 0.4rem 0.45rem;
+  border-bottom: 1px solid var(--line-strong);
+}
+.dual-sheet td {
+  padding: 0.38rem 0.4rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+.dual-sheet td em {
+  font-style: normal;
+  color: var(--gold);
+  margin-left: 0.25rem;
+}
+.dual-sheet__more { color: var(--muted-ink); }
+.dual-sheet__star { color: var(--gold); }
+.dual-sheet__choice { color: var(--muted-ink); font-weight: 700; letter-spacing: 0.06em; }
+.dual__toss .dual__actions { flex-direction: column; }
+.dual__tossnote { color: var(--gold); }
+.dual-sheet td.lead { font-weight: 700; }
+.dual-sheet__now td {
+  background: rgba(255, 201, 74, 0.1);
+}
+.dual-sheet__won td:first-child { box-shadow: inset 3px 0 0 var(--red); }
+.dual-sheet__lost td:first-child { box-shadow: inset 3px 0 0 var(--green); }
+.dual .tape {
+  align-self: center;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+.bug__dual {
+  font: 700 0.6rem/1 var(--body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+/* Narrow windows hide the side panel; in a dual the bout sheet stacks under the pick list instead. */
+@media (max-width: 980px) {
+  .dual {
+    overflow-y: auto;
+    grid-auto-rows: min-content;
+  }
+  .dual .title__panel { overflow: visible; }
+  .dual .tape {
+    display: block;
+    justify-self: stretch;
+    width: auto;
+    max-height: none;
+    margin: 0 1.2rem 1.6rem;
+  }
+}
+
+/* ---------------------------------------------------------- tournament --- */
+/* Owner, November 10: a 32-place bracket at one weight, championship and consolation. */
+.tournament__name {
+  font: 700 1.5rem/1.05 var(--display);
+  color: var(--ink);
+}
+.tournament .dual__board { grid-template-columns: 1fr; }
+.tournament__tape {
+  width: min(1040px, 98%);
+}
+.tbracket__title {
+  margin: 0.9rem 0 0.35rem;
+  font: 700 0.7rem/1 var(--body);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.tbracket {
+  display: grid;
+  gap: 0.9rem;
+  /* Every column as tall as the first round (owner: line the rounds up like a printed bracket). */
+  align-items: stretch;
+}
+.tbracket__col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.tbracket__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* Space-around puts match k of a round with n matches at (k + 0.5) / n of the height: exactly between its feeders. */
+  justify-content: space-around;
+  gap: 0.28rem;
+}
+/* Connector stubs between rounds. */
+.tbracket__col:not(:last-child) .tbox::after {
+  content: '';
+  position: absolute;
+  right: -0.9rem;
+  top: 50%;
+  width: 0.9rem;
+  border-top: 1px solid var(--line-strong);
+}
+.tbracket__col:not(:first-child) .tbox::before {
+  content: '';
+  position: absolute;
+  left: -0.45rem;
+  top: 50%;
+  width: 0.45rem;
+  border-top: 1px solid var(--line-strong);
+}
+.tbracket__head {
+  font: 700 0.58rem/1 var(--body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+  padding-bottom: 0.2rem;
+}
+.tbox {
+  position: relative;
+  display: grid;
+  padding: 0.22rem 0.34rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  font: 500 0.66rem/1.3 var(--body);
+  min-width: 0;
+}
+.tbox--mine { border-color: var(--gold); }
+.tbox--bye { opacity: 0.5; }
+.tbox__who {
+  display: flex;
+  gap: 0.3rem;
+  color: var(--muted-ink);
+  white-space: nowrap;
+  min-width: 0;
+}
+.tbox__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.tbox__abbr {
+  flex: none;
+  margin-left: auto;
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+.tbox__who--won { color: var(--ink); font-weight: 700; }
+.tbox__who--you { color: var(--gold); }
+.tbox__res {
+  font-size: 0.58rem;
+  color: var(--dim);
+}
+.tournament__places {
+  margin: 0.2rem 0 0;
+  padding-left: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.2rem 1rem;
+  font: 500 0.78rem/1.3 var(--body);
+}
+.tournament__places strong { color: var(--gold); margin-right: 0.3rem; }
+/* The 32-man field on the title screen is taller than the window: keep it in view and let it scroll. */
+.title .tape[aria-label="Tournament field"] {
+  align-self: center;
+  max-height: 88vh;
+  overflow-y: auto;
 }

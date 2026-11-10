@@ -81,6 +81,12 @@ export const MOVES: Record<string, MoveDef> = {
   footSweep: {id:'footSweep',dur:1.5,camera:'tight',award:{to:'A',kind:'takedown',at:0.9,detail:'Foot sweep — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   slideBy: {id:'slideBy',dur:1.25,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Slide by — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   firemansCarry: {id:'firemansCarry',dur:1.8,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Fireman’s carry — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  anklePick: {id:'anklePick',dur:1.35,camera:'tight',award:{to:'A',kind:'takedown',at:0.78,detail:'Ankle pick'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  kneePick: {id:'kneePick',dur:1.3,camera:'tight',award:{to:'A',kind:'takedown',at:0.76,detail:'Knee pick'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  throwBy: {id:'throwBy',dur:1.2,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Throw-by — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  // Upper-body throws from the clinch land him on his back: the takedown, then the near-fall count runs.
+  lateralDrop: {id:'lateralDrop',dur:1.55,camera:'tight',slowmo:true,impact:{at:0.62,strength:0.8},award:{to:'A',kind:'takedown',at:0.66,detail:'Lateral drop — thrown to his back'},next:{kind:'mat',A:'A',frame:{x:0.3,z:0.25,yaw:PI/2},sub:'exposed'}},
+  headlockThrow: {id:'headlockThrow',dur:1.5,camera:'tight',slowmo:true,impact:{at:0.62,strength:0.8},award:{to:'A',kind:'takedown',at:0.68,detail:'Headlock — thrown to his back'},next:{kind:'mat',A:'A',frame:{x:0.08,z:-0.62,yaw:3*PI/2},sub:'exposed'}},
   tieAttackCounter: {id:'tieAttackCounter',dur:1.1,camera:'low',next:{kind:'fhl',A:'B',frame:{x:0,z:0.1,yaw:PI}}},
   spladleCounter: {id:'spladleCounter',dur:1.6,camera:'mat',
     award:{to:'B',kind:'takedown',at:0.85,detail:'Spladle counter — control established'},
@@ -145,6 +151,13 @@ export const MOVES: Record<string, MoveDef> = {
     camera: 'tight',
     next: { kind: 'fhl', A: 'B', frame: { x: 0, z: 0.05, yaw: PI } },
   },
+  stuffedSingle: {
+    id: 'stuffedSingle',
+    dur: 0.62,
+    impact: { at: 0.45, strength: 0.4 },
+    camera: 'tight',
+    next: { kind: 'fhl', A: 'B', frame: { x: 0, z: 0.05, yaw: PI } },
+  },
   sprawlOut: {
     id: 'sprawlOut',
     dur: 0.7,
@@ -167,6 +180,35 @@ export const MOVES: Record<string, MoveDef> = {
     camera: 'mat',
     next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0.32, yaw: PI }, sub: 'ride', base: 0.5 },
   },
+  // Front headlock finishes beside the spin behind (owner's list, November 9).
+  // Chin whip: chin cupped and whipped away as he comes up; he spins down in front of the rider.
+  chinWhip: {
+    id: 'chinWhip',
+    dur: 0.95,
+    award: { to: 'A', kind: 'takedown', at: 0.72, detail: 'Chin whip' },
+    impact: { at: 0.66, strength: 0.45 },
+    camera: 'mat',
+    next: { kind: 'mat', A: 'A', frame: { x: 0.05, z: 0.4, yaw: PI / 2 }, sub: 'ride', base: 0.5 },
+  },
+  // Shuck: he drives into the headlock and is pulled past; the rider takes the back.
+  shuck: {
+    id: 'shuck',
+    dur: 0.9,
+    award: { to: 'A', kind: 'takedown', at: 0.72, detail: 'Shuck' },
+    impact: { at: 0.62, strength: 0.45 },
+    camera: 'mat',
+    next: { kind: 'mat', A: 'A', frame: { x: -0.05, z: -0.2, yaw: PI }, sub: 'ride', base: 0.45 },
+  },
+  // Cement mixer: head and arm locked, rolled over the trapped shoulder to his back.
+  cementMixer: {
+    id: 'cementMixer',
+    dur: 1.6,
+    award: { to: 'A', kind: 'takedown', at: 0.62, detail: 'Cement mixer' },
+    impact: { at: 0.6, strength: 0.6 },
+    camera: 'mat',
+    slowmo: true,
+    next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0.5, yaw: PI }, sub: 'exposed' },
+  },
   recover: {
     id: 'recover',
     dur: 0.8,
@@ -175,6 +217,58 @@ export const MOVES: Record<string, MoveDef> = {
       kind: 'neutral',
       a: { x: 0, z: -0.55, yaw: 0 },
       b: { x: 0, z: 0.55, yaw: PI },
+    },
+  },
+  // Whizzer kick-out: the defender drives the shoulder down, kicks the leg free, both reset.
+  // Counters on the legs (owner's list, November 9), the defender's Shoot, picked by the position.
+  // Crackdown: over the back to the far ankle, his head driven to the mat, around for the takedown.
+  crackdown: {
+    id: 'crackdown',
+    dur: 1.35,
+    award: { to: 'B', kind: 'takedown', at: 0.76, detail: 'Crackdown' },
+    impact: { at: 0.4, strength: 0.5 },
+    camera: 'tight',
+    next: { kind: 'mat', A: 'B', frame: { x: 0, z: 0.05, yaw: 0 }, sub: 'ride', base: 0.4 },
+  },
+  // Sit-through: he sits his hips to the mat, turns through and pulls the leg out; both back up, shooter off balance.
+  sitThrough: {
+    id: 'sitThrough',
+    dur: 1.1,
+    impact: { at: 0.35, strength: 0.35 },
+    camera: 'tight',
+    next: { kind: 'neutral', a: { x: 0, z: -0.55, yaw: 0 }, b: { x: 0, z: 0.6, yaw: PI } },
+  },
+  // Scramble roll: all but taken down, he rolls through over the shooter's back and comes up on top.
+  scrambleRoll: {
+    id: 'scrambleRoll',
+    dur: 1.5,
+    award: { to: 'B', kind: 'takedown', at: 0.8, detail: 'Scramble roll' },
+    impact: { at: 0.5, strength: 0.45 },
+    camera: 'mat',
+    slowmo: true,
+    next: { kind: 'mat', A: 'B', frame: { x: 0.05, z: -0.1, yaw: 0 }, sub: 'ride', base: 0.45 },
+  },
+  whizzerKick: {
+    id: 'whizzerKick',
+    dur: 1.0,
+    impact: { at: 0.45, strength: 0.35 },
+    camera: 'tight',
+    next: {
+      kind: 'neutral',
+      a: { x: 0, z: -0.5, yaw: 0 },
+      b: { x: 0, z: 0.65, yaw: PI },
+    },
+  },
+  // A bad shot down-blocked short: hands on his head, he stops on his knees and both come back up.
+  shotBlocked: {
+    id: 'shotBlocked',
+    dur: 0.8,
+    impact: { at: 0.4, strength: 0.35 },
+    camera: 'tight',
+    next: {
+      kind: 'neutral',
+      a: { x: 0, z: -0.52, yaw: 0 },
+      b: { x: 0, z: 0.62, yaw: PI },
     },
   },
   clash: {
@@ -206,14 +300,35 @@ export const MOVES: Record<string, MoveDef> = {
   cradle: {id:'cradle',dur:1.45,camera:'mat',impact:{at:0.78,strength:0.55},next:{kind:'mat',A:'A',frame:{x:0,z:0,yaw:0},sub:'exposed'}},
   halfNelson: {
     id: 'halfNelson',
-    dur: 1.25,
+    // A grind, not a flip: he gives ground over about two seconds (coaching: perpendicular, drive at an angle).
+    dur: 2.0,
     impact: { at: 0.78, strength: 0.6 },
+    camera: 'mat',
+    next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, sub: 'exposed' },
+  },
+  sitOutPull: {
+    id: 'sitOutPull',
+    dur: 1.7,
+    camera: 'mat',
+    next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, sub: 'ride', base: 0.55 },
+  },
+  sitOutEscape: {
+    id: 'sitOutEscape',
+    dur: 1.05,
+    award: { to: 'B', kind: 'escape', at: 0.72, detail: 'Sits out and turns in' },
+    camera: 'mat',
+    next: { kind: 'neutral', a: { x: 0.05, z: -0.42, yaw: 0 }, b: { x: 0, z: 0.62, yaw: PI } },
+  },
+  sitOutTurn: {
+    id: 'sitOutTurn',
+    dur: 1.5,
+    impact: { at: 0.76, strength: 0.55 },
     camera: 'mat',
     next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, sub: 'exposed' },
   },
   tilt: {
     id: 'tilt',
-    dur: 1.05,
+    dur: 1.6,
     impact: { at: 0.72, strength: 0.55 },
     camera: 'mat',
     next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, sub: 'exposed' },
@@ -265,6 +380,40 @@ export const MOVES: Record<string, MoveDef> = {
     id: 'crotchLift', dur: 1.5, camera: 'hero',
     impact: { at: 0.72, strength: 0.75 },
     next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0.05, yaw: 0 }, sub: 'ride', base: 0.35 },
+  },
+  // Granby roll from the bottom: rolled out from under him, both back on their feet.
+  granbyRoll: {
+    id: 'granbyRoll',
+    dur: 1.4,
+    award: { to: 'B', kind: 'escape', at: 0.76, detail: 'Granby roll' },
+    impact: { at: 0.45, strength: 0.35 },
+    camera: 'mat',
+    next: { kind: 'neutral', a: { x: 0.05, z: -0.42, yaw: 0 }, b: { x: 0, z: 0.62, yaw: PI } },
+  },
+  // Standing switch: he sits his hips out, reaches under and comes up behind; the rider goes down on all fours.
+  standingSwitch: {
+    id: 'standingSwitch',
+    dur: 1.2,
+    award: { to: 'B', kind: 'reversal', at: 0.72, detail: 'Standing switch' },
+    impact: { at: 0.6, strength: 0.5 },
+    camera: 'mat',
+    next: { kind: 'mat', A: 'B', frame: { x: 0, z: -0.25, yaw: 0 }, sub: 'ride', base: 0.3 },
+  },
+  // Turk off the leg ride: the trapped leg lifted, he is turned to his back over it.
+  turk: {
+    id: 'turk',
+    dur: 1.7,
+    impact: { at: 0.72, strength: 0.55 },
+    camera: 'mat',
+    next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, sub: 'exposed' },
+  },
+  // Crossface cradle: crossface drives the head to the far knee, the far leg scooped, hands locked, roll.
+  crossfaceCradle: {
+    id: 'crossfaceCradle',
+    dur: 1.55,
+    impact: { at: 0.78, strength: 0.55 },
+    camera: 'mat',
+    next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, sub: 'exposed' },
   },
   switch: {
     id: 'switch',

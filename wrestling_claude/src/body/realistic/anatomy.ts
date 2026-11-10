@@ -62,16 +62,31 @@ export interface FaceParams {
   lips: number;
   /** Cauliflower ear amount, 0..1. */
   cauli: number;
+  /** How far the ears stand out from the head, 0 (flat) .. 1 (prominent). */
+  earFlare?: number;
+  /** Ear size multiplier (1 = average). */
+  earSize?: number;
   /** Mouth-corner lift, matches the paint. */
   smile: number;
   /** Eye aperture height multiplier (1 = 9.8 mm). */
   eyeOpen?: number;
+  /** Aperture width independent of globe size: narrower lids avoid doll-like eyes. */
+  eyeWidth?: number;
   /** Upper-lid fold descent in metres; separate from symmetric aperture height. */
   upperLidHood?: number;
+  /** Tapered upper fold following the aperture instead of a raised pad. */
+  naturalLidFold?: boolean;
+  continuousLidSurface?: boolean;
   /** Keep soft cheek tissue rounded instead of trimming it to skeletal jaw planes. */
   roundedCheeks?: boolean;
+  /** Continuous nasal base tissue rather than isolated tip and wing lobes. */
+  naturalNasalBase?: boolean;
   /** Joined relaxed lips with reduced protrusion. */
   closedMouth?: boolean;
+  /** Base head only: individual bone structure, each -1..1. */
+  baseShape?: number[];
+  /** Athlete-specific frontal vault offset in metres. */
+  foreheadProjection?: number;
 }
 
 /** Body frame, multipliers on the neutral build. */
@@ -88,6 +103,8 @@ export interface FrameParams {
   hips: number;
   /** Head size multiplier about HEAD_PIVOT (head-to-height ratio). */
   head: number;
+  /** Reduce muscle blending for an athlete-specific defined build. */
+  definition?: number;
 }
 
 export interface BodyParams {
@@ -98,8 +115,18 @@ export interface BodyParams {
   hair: HairCut;
   /** Height of the front hairline plane (canonical metres; lower = fuller hairline). */
   hairFront: number;
+  /** Asymmetric collegiate swept top, estimated from reference portraits. */
+  sculptedSweep?: boolean;
+  /** Bulk of the hair over the scalp, metres (a crop about 0.006; a curly top or a full cut 0.015–0.03). */
+  hairVolume?: number;
+  /** How far the side and back hairline comes down, 0 (above the ears) .. 1 (over the ears, a mullet's nape). */
+  hairLow?: number;
   face: FaceParams;
   frame: FrameParams;
+  /** Use the CC0 base head for the face instead of the generated one. */
+  baseHead?: boolean;
+  /** Photo fit for the base head's face (landmark offsets and photo projection). */
+  faceFit?: import('./faceFit').FaceFitData;
 }
 
 export const NEUTRAL_FACE: FaceParams = {
@@ -245,7 +272,7 @@ function torso(f: FrameParams): Spec[] {
   const H = f.hips;
   return [
     // Pelvis.
-    ell('hips', [0, 0.955, -0.012], [0.138 * H, 0.105, 0.1 * D], 0.03, T, { w: { hips: 1 } }),
+    ell('hips', [0, 0.955, -0.012], [0.13 * H, 0.112, 0.1 * D], 0.04, T, { w: { hips: 1 } }),
     // Glutes: full but tied into the hamstrings, not a shelf.
     ...pair(
       ell('hips', [0.068, 0.912, -0.066], [0.072 * H, 0.088, 0.046 * H * H], 0.045, T, {
@@ -259,21 +286,30 @@ function torso(f: FrameParams): Spec[] {
     // Lower belly, flat.
     ell('hips', [0, 1.02, 0.002], [0.132 * W, 0.08, 0.083 * D], 0.04, T, { w: { hips: 0.55, spine: 0.45 } }),
     // Waist: wide through the obliques, shallow front to back.
-    ell('spine', [0, 1.09, -0.014], [0.142 * W, 0.1, 0.088 * D], 0.04, T, { w: { spine: 0.85, hips: 0.15 } }),
+    ell('spine', [0, 1.09, -0.014], [0.126 * W, 0.105, 0.088 * D], 0.04, T, { w: { spine: 0.85, hips: 0.15 } }),
+    // Obliques: a straight wall tapering from the ribs to the hip. Neither a pinch
+    // nor a bulge above the hip, which reads as love handles.
     ...pair(
-      ell('spine', [0.1 * W, 1.09, 0.0], [0.034, 0.085, 0.066 * D], 0.035, T, {
-        w: { hips: 0.5, spine: 0.5 },
-        muscle: true,
+      cone('spine', [0.108 * W, 1.24, -0.014], [0.102 * W, 1.03, -0.008], 0.036, 0.033, 0.035, T, {
+        w0: { spine: 0.65, chest: 0.35 },
+        w1: { hips: 0.55, spine: 0.45 },
       }),
     ),
     // Rectus abdominis.
-    ell('spine', [0, 1.15, 0.03 * D], [0.09 * W, 0.12, 0.06], 0.03, T, {
+    ell('spine', [0, 1.15, 0.03 * D], [0.084 * W, 0.12, 0.053], 0.03, T, {
       w0: { spine: 0.85, hips: 0.15 },
       w1: { spine: 0.45, chest: 0.55 },
       muscle: true,
     }),
+    // Six separate ab segments on top, so grooves run between them.
+    ...[1.205, 1.152, 1.098].flatMap((y) =>
+      pair(ell('spine', [0.026, y, 0.03 * D + 0.041], [0.024, 0.025, 0.016], 0.012, T, {
+        w: { spine: 1 },
+        muscle: true,
+      })),
+    ),
     // Ribcage.
-    ell('chest', [0, 1.262, -0.016], [0.14 * W, 0.15, 0.099 * D], 0.045, T, {
+    ell('chest', [0, 1.262, -0.016], [0.148 * W, 0.15, 0.1 * D], 0.05, T, {
       w0: { spine: 0.65, chest: 0.35 },
       w1: { chest: 1 },
     }),
@@ -356,9 +392,18 @@ function torso(f: FrameParams): Spec[] {
         muscle: true,
       }),
     ),
-    // Clavicles.
+    // Upper chest: the clavicular head of the pec and the manubrium. They fill the
+    // gap between collarbone and pec, so bone runs into muscle without a hollow.
     ...pair(
-      cone('shoulderL', [0.03, 1.451, 0.036], [0.168 * W, 1.446, 0.004], 0.018, 0.021, 0.02, T, {
+      ell('chest', [0.07 * W, 1.405, 0.05 * D], [0.092 * W, 0.052, 0.034], 0.05, T, {
+        rot: [-22, 18, -10],
+        w: { chest: 0.88, shoulderL: 0.12 },
+      }),
+    ),
+    ell('chest', [0, 1.412, 0.05 * D], [0.046 * W, 0.046, 0.027], 0.05, T, { w: { chest: 1 } }),
+    // Clavicles: a faint ridge under the skin, not a bar on top of it.
+    ...pair(
+      cone('shoulderL', [0.03, 1.449, 0.03], [0.168 * W, 1.446, 0.002], 0.009, 0.011, 0.045, T, {
         w0: { chest: 0.65, shoulderL: 0.35 },
         w1: { shoulderL: 0.85, chest: 0.15 },
       }),
@@ -431,7 +476,7 @@ function neckTop(frame: FrameParams): Spec[] {
   ];
 }
 
-function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
+function head(face: FaceParams, hair: HairCut, hairFront: number, sculptedSweep = false, hairVolume?: number, hairLow = 0): Spec[] {
   const H = PART.Head;
   const hw = { w: { head: 1 } };
   const F = face;
@@ -443,6 +488,7 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
   const cheekFill = 1 + (0.5 - Math.max(0, Math.min(1, F.hollow))) * 0.45;
   // Eyeball centre (radius 0.0119): the lids and sockets are built round it.
   const E: V3 = [0.032, 1.649, EYE_Z];
+  const eyeWidth = F.eyeWidth ?? 1;
   // Skeletal landmarks of the lower face. The jaw is built like a sculptor's
   // block-in: one solid for the face, cut by the planes of the mandible, so the
   // jaw line runs as one clean edge from the ear to the chin.
@@ -475,7 +521,7 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
     // Braincase: a wide parietal vault, a near-vertical forehead and the occiput.
     ell('head', [0, 1.675, -0.008], [0.0755, 0.088, 0.088], 0.02, H, hw),
     ell('head', [0, 1.704, -0.018], [0.071, 0.058, 0.079], 0.02, H, hw),
-    ell('head', [0, 1.697, 0.042], [0.06, 0.054, 0.056], 0.03, H, hw),
+    ell('head', [0, 1.697, 0.042 + (F.foreheadProjection ?? 0)], [0.06, 0.054, 0.056], F.foreheadProjection ? 0.018 : 0.03, H, hw),
     ell('head', [0, 1.646, -0.053], [0.062, 0.052, 0.046], 0.025, H, hw),
     // Temples.
     ...pair(ell('head', [0.051, 1.668, 0.026], [0.015, 0.028, 0.03], 0.03, H, hw)),
@@ -495,12 +541,16 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
     // Malar fat pad: the soft front of the cheek between the eye, the nose wing
     // and the cheekbone, so the cheek is one full plane, never a groove.
     ...pair(ell('head', [0.034, 1.616 + F.smile * 0.0006, 0.066 + F.smile * 0.0004], [0.018 * cheekFill, 0.02, 0.02 * cheekFill], 0.022, H, { rot: [0, -25, 0], ...hw })),
-    // Buccal fill over the masseter: a young athlete's cheek is full between the
-    // cheekbone and the jaw, trimmed by the same jaw planes so it never sags.
-    ...pair(ell('head', [0.047 + J * 0.5, 1.601, 0.048], [0.018 * cheekFill, 0.028, 0.031 * cheekFill], 0.024, H, { ...hw, planes: F.roundedCheeks ? undefined : [massL, bodyL] })),
-    // Lower cheek beside the mouth (over the buccinator), filled out to the jaw
-    // plane so the side of the lower face is flat-to-convex, never a crease.
-    ...pair(ell('head', [0.036 + J * 0.4, 1.587 - L * 0.4, 0.058], [0.017 * cheekFill, 0.024, 0.021 * cheekFill], 0.02, H, { rot: [0, -20, 0], ...hw, planes: F.roundedCheeks ? undefined : [bodyL] })),
+    // A rounded face uses one taper from the malar tissue toward the jaw.
+    // Separate overlapping cheek lobes produce a swollen lower cheek silhouette.
+    ...(F.roundedCheeks ? pair(ell('head',
+      [0.043 + J * 0.4, 1.597 - L * 0.25, 0.048],
+      [0.019 * cheekFill, 0.041, 0.027 * cheekFill], 0.028, H,
+      { rot: [0, -10, -12], ...hw },
+    )) : [
+      ...pair(ell('head', [0.047 + J * 0.5, 1.601, 0.048], [0.018 * cheekFill, 0.028, 0.031 * cheekFill], 0.024, H, { ...hw, planes: [massL, bodyL] })),
+      ...pair(ell('head', [0.036 + J * 0.4, 1.587 - L * 0.4, 0.058], [0.017 * cheekFill, 0.024, 0.021 * cheekFill], 0.02, H, { rot: [0, -20, 0], ...hw, planes: [bodyL] })),
+    ]),
     // Cheekbones (zygoma body) and the arch back to the ear: the widest point of the face.
     ...pair(ell('head', [0.044 + F.cheek, 1.629, 0.058], [0.015, 0.0165, 0.02], 0.022, H, { rot: [0, -40, 0], ...hw })),
     ...pair(cone('head', [0.057 + F.cheek, 1.633, 0.042], [0.061, 1.636, 0.006], 0.0062, 0.005, 0.014, H, hw)),
@@ -528,15 +578,30 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
     ),
     ell('head', [0, 1.668, 0.0945 + F.brow * 0.6], [0.0125, 0.0085, 0.0095], 0.01, H, hw),
     // Nose: bridge, tip, alae. An adult nose: a real bridge and a defined tip.
-    cone('head', [0, 1.6535, 0.0978], [0, 1.6195 - F.nose, 0.1185 + F.nose * 0.3], 0.0074 + F.noseW * 0.3, 0.0094 + F.noseW * 0.4, 0.012, H, hw),
+    cone('head', [0, 1.6535, 0.0978], [0, 1.6195 - F.nose, (F.naturalNasalBase ? 0.1095 : 0.1185) + F.nose * 0.3], 0.0074 + F.noseW * 0.3, 0.0094 + F.noseW * 0.4, 0.012, H, hw),
     // Nasal bones: the bridge stands clear of the eyes, as an adult's does.
     cone('head', [0, 1.66, 0.096], [0, 1.638, 0.1065], 0.0068 + F.noseW * 0.2, 0.0066 + F.noseW * 0.2, 0.008, H, hw),
-    ell('head', [0, 1.6135 - F.nose, 0.1135 + F.nose * 0.3], [0.0118 + F.noseW * 0.4, 0.009, 0.011], 0.007, H, hw),
-    ...pair(ell('head', [0.0118 + F.noseW, 1.608 - F.nose * 0.8, 0.0995], [0.0068, 0.0068, 0.0088], 0.009, H, hw)),
+    ...(F.naturalNasalBase ? [
+      // Broad maxillary attachment joins both alae underneath the nasal tip.
+      ell('head', [0, 1.612 - F.nose * 0.8, 0.097], [0.019 + F.noseW, 0.010, 0.014], 0.014, H, hw),
+      ell('head', [0, 1.6135 - F.nose, 0.111 + F.nose * 0.3], [0.013 + F.noseW * 0.4, 0.008, 0.009], 0.011, H, hw),
+    ] : [
+      ell('head', [0, 1.6135 - F.nose, 0.1135 + F.nose * 0.3], [0.0118 + F.noseW * 0.4, 0.009, 0.011], 0.007, H, hw),
+      ...pair(ell('head', [0.0118 + F.noseW, 1.608 - F.nose * 0.8, 0.0995], [0.0068, 0.0068, 0.0088], 0.009, H, hw)),
+    ]),
     // Upper lip skin: the philtrum slope from the nose base to the vermilion.
     ell('head', [0, 1.596 - L * 0.25, 0.086], [0.017, 0.0105, 0.0135], 0.012, H, hw),
     // Philtrum columns.
     ...pair(cone('head', [0.0042, 1.6035 - L * 0.25, 0.1003], [0.0052, 1.591 - L * 0.28, 0.1032], 0.002, 0.002, 0.004, H, hw)),
+    // Relaxed mouth: connected vermilion bands instead of four protruding lobes.
+    ...(F.closedMouth ? [
+      ...pair(cone('head',[0,1.5855-L*.3,.095],[.009,1.587-L*.3,.0945],.0022*F.lips,.0025*F.lips,.002,PART.Lip,hw)),
+      ...pair(cone('head',[.009,1.587-L*.3,.0945],[.022,1.583-L*.3,.087],.0025*F.lips,.0009*F.lips,.002,PART.Lip,hw)),
+      ...pair(cone('head',[0,1.579-L*.4,.095],[.011,1.58-L*.4,.0935],.0032*F.lips,.0026*F.lips,.002,PART.Lip,hw)),
+      ...pair(cone('head',[.011,1.58-L*.4,.0935],[.022,1.583-L*.3,.087],.0026*F.lips,.0009*F.lips,.002,PART.Lip,hw)),
+      // Fine seam on the visible surface, tapering naturally at the commissures.
+      ...pair(cone('head',[0,1.5824-L*.35,.098],[.02,1.5828-L*.35,.09],.00035,.0002,.0003,H,{...hw,sub:true,claim:0})),
+    ] : [
     // Upper vermilion in two halves meeting in a Cupid's bow: thin and firm.
     ...pair(
       ell('head', [0.0082, (F.closedMouth ? 1.5852 : 1.5868) - L * 0.3, F.closedMouth ? 0.094 : 0.0962], [0.0152, 0.0036 * F.lips, F.closedMouth ? 0.0065 : 0.0082], 0.0045, PART.Lip, {
@@ -551,6 +616,7 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
         ...hw,
       }),
     ),
+    ]),
     // Nasolabial cheek, so a soft fold runs from the nose wing to the mouth corner.
     ...pair(ell('head', [0.026, 1.601, 0.07], [0.011, 0.018, 0.013], 0.018, H, { rot: [0, 20, -22], ...hw })),
     // Mouth corners: a small pit where the lips tuck into the cheek.
@@ -559,38 +625,75 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
     ...(F.closedMouth ? [] : pair(
       ell('head', [0.0092, 1.5822 - L * 0.35, 0.1045], [0.0125, 0.0011, 0.0024], 0.0025, H, { rot: [0, 24, F.smile * 1.4], sub: true, claim: 0 }),
     )),
+    // Small inferior openings in the nasal base, rather than two painted dots.
+    ...(F.naturalNasalBase ? pair(ell('head',
+      [0.0098 + F.noseW * 0.2, 1.6082 - F.nose * 0.8, 0.1093 + F.nose * 0.3],
+      [0.0037, 0.0027, 0.005], 0.0012, H, {rot:[-22,0,0],sub:true,claim:0},
+    )) : []),
     // Eye sockets, carved; the lids are unioned after (late) into the hollow.
-    ...pair(ell('head', [0.032, 1.6505, EYE_Z + 0.0102], [0.0158, 0.0108, 0.0115], 0.009, H, { sub: true, claim: 0 })),
+    ...pair(ell('head', [0.032, 1.6505, EYE_Z + 0.0102], [0.0158 * eyeWidth, 0.0108, 0.0115], 0.009, H, { sub: true, claim: 0 })),
     // Lids: one shell that hugs the eyeball, with an almond aperture carved
     // through it: about 30 x 10.5 mm, the upper margin 1 mm over the iris, the
     // lower margin at the iris edge, the outer corner a little higher.
-    ...pair(
-      ell('head', [E[0] + 0.0006, E[1] + 0.0003, E[2]], [0.0168, 0.014, 0.0139], 0.01, PART.Lid, {
+    ...(F.continuousLidSurface ? [] : pair(
+      ell('head', [E[0] + 0.0006, E[1] + 0.0003, E[2]], [0.0168 * eyeWidth, F.naturalLidFold ? 0.011 : 0.014, F.naturalLidFold ? 0.0128 : 0.0139], 0.01, PART.Lid, {
         ...hw,
         late: true,
-        cut: { c: [E[0] + 0.0007, E[1] - 0.0004, E[2] + 0.013], r: [0.0152, 0.0049 * (F.eyeOpen ?? 1), 0.0165], rot: [0, 0, 5], k: 0.0018 },
+        cut: { c: [E[0] + 0.0007, E[1] - 0.0004, E[2] + 0.013], r: [0.0152 * eyeWidth, 0.0049 * (F.eyeOpen ?? 1), 0.0165], rot: [0, 0, 5], k: 0.0018 },
       }),
-    ),
+    )),
     // Brow fat pad over the upper lid: the soft hood that makes the lid fold.
-    ...pair(ell('head', [E[0] + 0.002, E[1] + 0.0132, E[2] + 0.0088], [0.014, 0.0045, 0.0062], 0.006, H, { rot: [-20, 0, 8], ...hw })),
+    // The sculpted lid already supplies this fold. Stacking the legacy pad
+    // over it creates a second horizontal shelf and a swollen orbital rim.
+    ...(F.naturalLidFold ? [] : pair(ell('head', [E[0] + 0.002, E[1] + 0.0132, E[2] + 0.0088], [0.014, 0.0045, 0.0062], 0.006, H, { rot: [-20, 0, 8], ...hw }))),
   ];
 
   // A hooded upper lid is a separate fold over the globe, not a smaller
   // symmetric eye hole. Add it after socket carving so the orbital subtraction
   // cannot remove the fold. The lower lid and eyeball centre stay fixed.
   const hood = Math.max(0, Math.min(0.004, F.upperLidHood ?? 0));
-  if (hood > 0) {
+  if (hood > 0 && F.naturalLidFold && !F.continuousLidSurface) {
+    // A curved fold tapers into both canthi; it does not form another full
+    // horizontal pillow above the eyelid shell.
+    const points: V3[] = [];
+    for (let i = 0; i <= 8; i++) {
+      const u = (-0.013 + i * 0.026 / 8) * eyeWidth;
+      const arch = Math.sqrt(Math.max(0, 1 - (u / (0.0152 * eyeWidth)) ** 2));
+      points.push([E[0] + 0.0007 + u, E[1] + 0.002 + 0.0049 * (F.eyeOpen ?? 1) * arch + u * 0.087,
+        E[2] + 0.0095 + 0.002 * arch]);
+    }
+    for (let i = 0; i < 8; i++) {
+      const radius = (j: number) => 0.0005 + 0.0007 * Math.sin(j * Math.PI / 8);
+      specs.push(...pair(cone('head', points[i], points[i + 1], radius(i), radius(i + 1), 0.003, PART.Lid, {...hw, late: true})));
+    }
+  } else if (hood > 0 && !F.continuousLidSurface) {
     specs.push(...pair(ell('head', [E[0] + 0.001, E[1] + 0.009 - hood, E[2] + 0.0105],
       [0.0135, 0.004, 0.0055], 0.002, PART.Lid,
       { rot: [0, 0, 5], ...hw, late: true })));
   }
 
-  specs.push(...ears(F.cauli));
+  specs.push(...ears(F.cauli, F.earFlare ?? 0, F.earSize ?? 1));
 
   // Hair volume above the hairline (clip plane), short and textured.
   const hairline = { c: [0, hairFront, 0.07] as V3, n: [0, -0.5, 0.866] as V3, k: 0.01 };
-  if (hair !== 'buzz') {
-    const t = hair === 'swept' ? 0.009 : 0.006;
+  if (hairVolume !== undefined && hairVolume > 0.0095) {
+    // A full top (curls, a long crop): the bulk sits up and slightly back, rounder and wider as it grows,
+    // and fuller over the crown than over the ears.
+    const t = hairVolume;
+    specs.push(
+      ell('head', [0, 1.708 + t * 0.55, -0.012 + t * 0.15], [0.0785 + t * 0.4, 0.06 + t * 0.95, 0.082 + t * 0.55], 0.012, PART.Hair, {
+        ...hw, clip: hairline, noise: 0.0012 + t * 0.015, claim: 0.7,
+      }),
+    );
+  } else if (sculptedSweep) {
+    // Short sides and a raised, asymmetric top rather than a uniform scalp cap.
+    specs.push(
+      ell('head', [0, 1.713, -0.018], [0.080, 0.062, 0.080], 0.009, PART.Hair, {...hw, clip: hairline, noise: 0.001, claim: 0.7}),
+      ell('head', [-0.008, 1.744, 0.005], [0.064, 0.030, 0.069], 0.010, PART.Hair, {...hw, rot: [0, 0, -9], clip: hairline, noise: 0.0015, claim: 0.7}),
+      ell('head', [-0.014, 1.741, 0.046], [0.052, 0.021, 0.035], 0.008, PART.Hair, {...hw, rot: [-12, 0, -14], clip: hairline, noise: 0.001, claim: 0.7}),
+    );
+  } else if (hair !== 'buzz') {
+    const t = hairVolume ?? (hair === 'swept' ? 0.009 : 0.006);
     specs.push(
       ell('head', [0, 1.708 + t * 0.4, -0.013 + t * 0.2], [0.0785 + t * 0.25, 0.06 + t, 0.082 + t * 0.6], 0.012, PART.Hair, {
         ...hw,
@@ -600,6 +703,20 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
       }),
     );
   }
+  if (hairLow > 0.3) {
+    // Longer cuts hang over the ears and down the nape: bulk on each side, kept behind the temples
+    // (nothing in front of the ear), that the ears fold under, and a fall at the back.
+    const l = hairLow;
+    const behindTemple = { c: [0, 0, 0.028] as V3, n: [0, 0, 1] as V3, k: 0.008 };
+    for (const sx of [1, -1]) {
+      specs.push(ell('head', [sx * 0.064, 1.655 - l * 0.012, -0.012], [0.026, 0.03 + l * 0.018, 0.05], 0.012, PART.Hair, {
+        ...hw, clip: behindTemple, noise: 0.002, claim: 0.7,
+      }));
+    }
+    specs.push(ell('head', [0, 1.63 - l * 0.02, -0.06], [0.06, 0.035 + l * 0.02, 0.03], 0.012, PART.Hair, {
+      ...hw, noise: 0.002, claim: 0.7,
+    }));
+  }
   return specs;
 }
 
@@ -607,15 +724,19 @@ function head(face: FaceParams, hair: HairCut, hairFront: number): Spec[] {
  * Ears: a tilted disc for the auricle, a rolled helix rim, the lobe, and a carved
  * concha bowl. Cauliflower thickens and lumps the upper helix.
  */
-function ears(cauli: number): Spec[] {
+function ears(cauli: number, flare = 0, size = 1): Spec[] {
   const E = PART.Ear;
   const hw = { w: { head: 1 } };
   const specs: Spec[] = [];
-  // Ear centre and its outward-facing tilt (ears flare back and out).
+  // Ear centre and its outward-facing tilt (ears flare back and out). A prominent ear stands
+  // further off the skull at the rim; the root stays where it attaches.
   const cx = 0.079;
   const cy = 1.638;
   const cz = -0.007;
-  specs.push(ell('head', [cx, cy, cz], [0.008 + cauli * 0.002, 0.03, 0.018], 0.008, E, { rot: [-14, 22, 0], ...hw }));
+  const out = flare * 0.0065;
+  // Ear points are laid out about the centre, then scaled by `size` and pushed out by `out`.
+  const at = (x: number, y: number, z: number, push = 1): V3 => [cx + (x - cx) * size + out * push, cy + (y - cy) * size, cz + (z - cz) * size];
+  specs.push(ell('head', [cx + out * 0.5, cy, cz], [(0.008 + cauli * 0.002 + out * 0.6) * size, 0.03 * size, 0.018 * size], 0.008, E, { rot: [-14, 22 + flare * 16, 0], ...hw }));
   // Helix rim: an arc around the top and back.
   const rim: V3[] = [];
   for (let i = 0; i <= 7; i++) {
@@ -623,41 +744,42 @@ function ears(cauli: number): Spec[] {
     // a sweeps from front-top over the top and down the back.
     const y = cy + 0.004 + Math.cos(a) * 0.028;
     const z = cz - 0.002 - Math.sin(a) * 0.017;
-    rim.push([cx + 0.006 + Math.sin(a) * 0.002, y, z]);
+    rim.push(at(cx + 0.006 + Math.sin(a) * 0.002, y, z));
   }
   for (let i = 0; i < rim.length - 1; i++) {
     const lump = cauli * (i >= 1 && i <= 3 ? 0.0028 : 0.001);
-    specs.push(cone('head', rim[i], rim[i + 1], 0.0034 + lump, 0.0034 + lump, 0.003, E, hw));
+    specs.push(cone('head', rim[i], rim[i + 1], (0.0034 + lump) * size, (0.0034 + lump) * size, 0.003, E, hw));
   }
   // Lobe.
-  specs.push(ell('head', [cx + 0.002, cy - 0.026, cz + 0.004], [0.006, 0.009, 0.008], 0.006, E, hw));
+  specs.push(ell('head', at(cx + 0.002, cy - 0.026, cz + 0.004, 0.6), [0.006 * size, 0.009 * size, 0.008 * size], 0.006, E, hw));
   // Tragus.
   specs.push(ell('head', [cx - 0.001, cy - 0.006, cz + 0.016], [0.004, 0.005, 0.004], 0.004, E, hw));
   if (cauli > 0) {
-    specs.push(ell('head', [cx + 0.007, cy + 0.016, cz - 0.004], [0.004 * cauli + 0.001, 0.007, 0.006], 0.004, E, hw));
+    specs.push(ell('head', at(cx + 0.007, cy + 0.016, cz - 0.004), [0.004 * cauli + 0.001, 0.007, 0.006], 0.004, E, hw));
   }
   // Concha bowl, carved after the union.
   specs.push(
-    ell('head', [cx + 0.0105, cy - 0.006 + cauli * 0.004, cz + 0.003], [0.0045, 0.011 - cauli * 0.004, 0.0075], 0.003, E, {
+    ell('head', at(cx + 0.0105, cy - 0.006 + cauli * 0.004, cz + 0.003, 0.8), [0.0045 * size, (0.011 - cauli * 0.004) * size, 0.0075 * size], 0.003, E, {
       sub: true,
       claim: 0,
     }),
   );
   // Scapha groove between rim and antihelix.
   specs.push(
-    ell('head', [cx + 0.0105, cy + 0.014, cz - 0.004], [0.003, 0.009 * (1 - cauli * 0.6), 0.0055], 0.002, E, { sub: true, claim: 0 }),
+    ell('head', at(cx + 0.0105, cy + 0.014, cz - 0.004), [0.003 * size, 0.009 * (1 - cauli * 0.6) * size, 0.0055 * size], 0.002, E, { sub: true, claim: 0 }),
   );
   return [...specs, ...specs.map(mirror)];
 }
 
 function arms(f: FrameParams): Spec[] {
+  const muscleBlend = 1 - 0.4 * Math.max(0, Math.min(1, f.definition ?? 0));
   const A = PART.Arm;
   const D = PART.Hand;
   const G = f.limb;
   return [
     // Deltoid: wraps the joint; lateral surface held within joint + 5 cm.
     ...pair(
-      ell('armL', [0.195, 1.384, -0.024], [0.045 * f.delt, 0.084, 0.057 * f.delt], 0.045, A, {
+      ell('armL', [0.195, 1.384, -0.024], [0.047 * f.delt, 0.088, 0.057 * f.delt], 0.032 * muscleBlend, A, {
         rot: [0, 0, 8],
         w0: { armL: 0.92, shoulderL: 0.08 },
         w1: { shoulderL: 0.5, armL: 0.42, chest: 0.08 },
@@ -676,8 +798,8 @@ function arms(f: FrameParams): Spec[] {
       }),
     ),
     // Biceps, triceps, brachialis, all on the humerus axis.
-    ...pair(ell('armL', [0.19, 1.255, -0.002], [0.044 * G, 0.092, 0.041 * G], 0.022, A, { w: { armL: 1 }, muscle: true })),
-    ...pair(ell('armL', [0.193, 1.285, -0.054], [0.047 * G, 0.115, 0.039 * G], 0.022, A, { w: { armL: 1 }, muscle: true })),
+    ...pair(ell('armL', [0.19, 1.25, 0.002], [0.043 * G, 0.086, 0.042 * G], 0.014 * muscleBlend, A, { w: { armL: 1 }, muscle: true })),
+    ...pair(ell('armL', [0.193, 1.285, -0.058], [0.045 * G, 0.11, 0.04 * G], 0.014 * muscleBlend, A, { w: { armL: 1 }, muscle: true })),
     ...pair(
       ell('armL', [0.19, 1.19, -0.022], [0.04 * G, 0.05, 0.034 * G], 0.025, A, { w: { armL: 0.7, forearmL: 0.3 }, muscle: true }),
     ),
@@ -770,14 +892,17 @@ function hand(): Spec[] {
 }
 
 function legs(f: FrameParams): Spec[] {
+  const muscleBlend = 1 - 0.3 * Math.max(0, Math.min(1, f.definition ?? 0));
   const L = PART.Leg;
   const F = PART.Foot;
-  const G = f.limb;
-  const Hm = f.hips;
+  // Wrestlers' legs are their heaviest muscle, at every weight class: thicker
+  // than arm-scaled limb girth would give them.
+  const G = f.limb * 1.14;
+  const Hm = f.hips * 1.2;
   return [
     // Femur core: a cone, biggest at the gluteal fold.
     ...pair(
-      cone('thighL', [0.09, 0.93, 0.0], [0.09, 0.5, 0.005], 0.08 * Hm, 0.052 * G, 0.03, L, {
+      cone('thighL', [0.086, 0.93, 0.0], [0.09, 0.5, 0.005], 0.078 * Hm, 0.05 * G, 0.03, L, {
         w0: { hips: 0.4, thighL: 0.6 },
         w1: { thighL: 0.55, shinL: 0.45 },
         t0: 0,
@@ -786,7 +911,7 @@ function legs(f: FrameParams): Spec[] {
     ),
     // Quads.
     ...pair(
-      ell('thighL', [0.096, 0.735, 0.027], [0.069 * Hm, 0.17, 0.06 * Hm], 0.03, L, {
+      ell('thighL', [0.086, 0.74, 0.032], [0.07 * Hm, 0.178, 0.07 * Hm], 0.035 * muscleBlend, L, {
         rot: [0, 0, -3],
         w0: { thighL: 0.85, shinL: 0.15 },
         w1: { thighL: 0.9, hips: 0.1 },
@@ -795,8 +920,8 @@ function legs(f: FrameParams): Spec[] {
     ),
     // Vastus lateralis sweep.
     ...pair(
-      ell('thighL', [0.131, 0.69, 0.004], [0.038 * Hm, 0.14, 0.054 * Hm], 0.03, L, {
-        rot: [0, 0, -4],
+      ell('thighL', [0.106, 0.75, 0.004], [0.04 * Hm, 0.17, 0.06 * Hm], 0.035 * muscleBlend, L, {
+        rot: [0, 0, 3],
         w0: { thighL: 0.85, shinL: 0.15 },
         w1: { thighL: 0.9, hips: 0.1 },
         muscle: true,
@@ -816,9 +941,9 @@ function legs(f: FrameParams): Spec[] {
     ...pair(ell('thighL', [0.084, 0.83, -0.058], [0.05 * Hm, 0.055, 0.04 * Hm], 0.04, L, { w: { thighL: 0.75, hips: 0.25 }, muscle: true })),
     // Adductors.
     ...pair(ell('thighL', [0.055, 0.8, -0.008], [0.05 * Hm, 0.11, 0.06], 0.03, L, { w: { thighL: 0.85, hips: 0.15 }, muscle: true })),
-    // Knee and patella.
-    ...pair(ell('shinL', [0.09, 0.49, 0.008], [0.047, 0.048, 0.045], 0.03, L, { w: { thighL: 0.5, shinL: 0.5 } })),
-    ...pair(ell('shinL', [0.09, 0.505, 0.04], [0.02, 0.024, 0.011], 0.022, L, { w: { thighL: 0.35, shinL: 0.65 } })),
+    // Knee and patella: flat and broad, so thigh runs into shin without a ball joint.
+    ...pair(ell('shinL', [0.09, 0.49, 0.006], [0.044, 0.05, 0.04], 0.04, L, { w: { thighL: 0.5, shinL: 0.5 } })),
+    ...pair(ell('shinL', [0.09, 0.505, 0.036], [0.018, 0.022, 0.008], 0.03, L, { w: { thighL: 0.35, shinL: 0.65 } })),
     // Shin core.
     ...pair(
       cone('shinL', [0.09, 0.48, 0.0], [0.09, 0.12, -0.008], 0.047 * G, 0.031, 0.02, L, {
@@ -895,9 +1020,9 @@ export function hairlineNoise(x: number, y: number, z: number): number {
  * soft density falloff a few millimetres wide at the hairline so the edge
  * feathers instead of stopping on a triangle boundary. Mirrors the material.
  */
-export function hairAt(x: number, y: number, z: number, sides: number, hairFront = 1.71): number {
+export function hairAt(x: number, y: number, z: number, sides: number, hairFront = 1.71, low = 0): number {
   const ax = Math.abs(x);
-  if (y < 1.575) return 0;
+  if (y < 1.575 - low * 0.05) return 0;
   // Front hairline with a gentle M: it recedes a little at the temples.
   const hf = hairFront + 0.007 * sstep(0.016, 0.044, ax);
   const front = -0.5 * (y - hf) + 0.866 * (z - 0.07) + hairlineNoise(x, y, z);
@@ -907,6 +1032,8 @@ export function hairAt(x: number, y: number, z: number, sides: number, hairFront
   let y1 = 1.635 + (1.69 - 1.635) * sstep(0.016, 0.03, z);
   y1 += (1.672 - y1) * sstep(0.006, -0.002, z);
   y1 += (1.594 - y1) * sstep(-0.021, -0.065, z);
+  // Longer cuts come down over the ears and the nape, not in front of the ear.
+  y1 -= low * 0.05 * sstep(0.03, 0, z);
   const w = 0.006 + 0.008 * sstep(-0.03, -0.07, z);
   const fSide = sstep(-w * 0.5, w, y - y1 + hairlineNoise(z, y, x) * 0.8);
   const dens = Math.min(fFront, fSide);
@@ -1055,7 +1182,7 @@ export function buildPrims(params: BodyParams): { prims: Prim[]; bind: BindPose 
   const specs = [
     ...torso(params.frame),
     ...neckBase(params.frame),
-    ...head(params.face, params.hair, params.hairFront),
+    ...head(params.face, params.hair, params.hairFront, params.sculptedSweep, params.hairVolume, params.hairLow ?? 0),
     ...neckTop(params.frame),
     ...arms(params.frame),
     ...legs(params.frame),

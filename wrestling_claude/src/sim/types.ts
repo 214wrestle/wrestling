@@ -1,4 +1,4 @@
-import type { AthleteProfile, WrestlingStyle, AppearanceShape } from './athleteProfiles';
+import type { AthleteProfile, WrestlingStyle, AppearanceShape, StanceLook } from './athleteProfiles';
 import type { WinType } from './rules';
 
 export type Side = 0 | 1;
@@ -36,11 +36,24 @@ export interface School {
 }
 
 export interface Wrestler {
+  /** Match difficulty only: how much a turn attempt's chance drops against him. */
+  turnResist?: number;
+  /** Match difficulty only: share (0..1) of the person's reflex sprawl the AI also gets. */
+  shotDefense?: number;
+  /** Match difficulty only: how much more often the AI takes an unprompted shot. */
+  shotPressure?: number;
+  /** Match difficulty only: how hard the AI fights off its back, as a mash multiplier. */
+  survival?: number;
   id: string;
   rating?: number;
+  /** Match only, never shown: the level a bout uses for his rating edge when it differs from the shown rating
+   *  (hiddenSkill.ts). */
+  performanceRating?: number;
   ncaaCareer?: import('./ratings').CareerScore;
   profile?: AthleteProfile;
   motion?: WrestlingStyle;
+  /** Animation only: how his stance looks. Never read by the match logic. */
+  stanceLook?: StanceLook;
   appearance?: AppearanceShape;
   headgearColor?: string;
   legends?: { role: 'starter' | 'choice'; source: string; nickname?: string; bioNote?: string };
@@ -64,6 +77,8 @@ export interface Wrestler {
   lead: 1 | -1;
   /** One line on how he wrestles, for the tale of the tape. */
   style: string;
+  /** His signature finishes (researched; see athleteStyles.ts). The AI leans on them and they land a little more often. */
+  signature?: Signature;
   /** 0..1 attributes. */
   /** All attributes are relative to opponents in this weight class, not absolute body output. */
   attributes: {
@@ -80,6 +95,22 @@ export interface Wrestler {
     /** Reaction and sprawl. */
     defense: number;
   };
+}
+
+/** A wrestler's signature finishes in the positions that offer a choice. Interpretations of cited sources. */
+export interface Signature {
+  /** Short line for the tale of the tape. */
+  label: string;
+  /** Front headlock finish he goes to. */
+  fhl?: 'goBehind' | 'chinWhip' | 'shuck' | 'cementMixer';
+  /** Rides legs on top and turks off them. */
+  legRider?: boolean;
+  /** Counter on the legs. */
+  legCounter?: 'crackdown' | 'sitThrough' | 'scrambleRoll';
+  /** Way out from the bottom. */
+  bottom?: 'granbyRoll' | 'standingSwitch';
+  /** Turn from the flat. */
+  turn?: 'cradle' | 'crossfaceCradle' | 'armBar' | 'wristBar' | 'barHalf' | 'doubleBar';
 }
 
 /* ------------------------------------------------------------- scoring ---- */
@@ -143,9 +174,12 @@ export interface Command {
   catchLeg?: boolean;
   legAction?: 'lift' | 'trip' | 'double' | 'drive';
   sustainedEffort?: boolean;
-  technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry' | 'footSweep';
+  technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry' | 'footSweep' | 'anklePick' | 'kneePick' | 'throwBy' | 'lateralDrop' | 'headlock';
   lowSingle?: boolean;
   scramble?: boolean;
+  sitOut?: boolean;
+  /** AI only: a level-change fake from any distance (a player fakes by shooting out of range). */
+  fake?: boolean;
   /** Intended movement on the mat, world space, length <= 1. */
   moveX: number;
   moveZ: number;

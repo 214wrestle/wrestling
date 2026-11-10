@@ -1,5 +1,6 @@
 import { PROVISIONAL_RATINGS } from './provisionalRatings';
-import { applyGablePressure } from './athleteProfiles';
+import { applyGablePressure, stanceStyleFor } from './athleteProfiles';
+import { applyResearchedStyle } from './athleteStyles';
 import { CAREER_RECORDS, COLLEGE_RECORDS, overallRating, scoreKnownCareer } from './ratings';
 import { DEFAULT_MOTION, HIGH_PACE_NAMES, applyOwnerPace, ATHLETE_MOTION_OVERRIDES, ATHLETE_PROFILES } from './athleteProfiles';
 import type { School, Wrestler } from './types';
@@ -312,4 +313,12 @@ for (const w of ROSTER) {
    ? 'The Magic Man — arm bars and tilts; deep half nelsons from crab rides, quick side switches and pinning pressure'
    : 'Arm-bar and tilt specialist — high-scoring turns and strong pinning pressure';
  }
+}
+
+// Individual stances (animation only), after every motion override above.
+for (const w of ROSTER) {
+ const style = stanceStyleFor(`${w.firstName} ${w.lastName}`, w.motion ?? DEFAULT_MOTION);
+ w.lead = style.lead; w.stanceLook = style.look;
+ // Researched lead foot, stance and attacks, where film or recaps show them.
+ applyResearchedStyle(w);
 }

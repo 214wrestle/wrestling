@@ -17,7 +17,7 @@ registerMove({
     {t:.7,land:true,pose:{hips:[.12,.43,.06],rot:[-20,70,0],handL:[.3,POST,.4],handR:[-.15,POST,.45],palms:[1,1]}},
     {t:1,pose:{base:holdAt('ride','B',.4,{x:0,z:.05,yaw:0})}},
   ],
-  contacts:[{who:'A',hand:'L',on:'spine',at:[.04,0,.13],from:0,to:.60,fade:.08},{who:'A',hand:'R',on:'spine',at:[-.04,0,.13],from:0,to:.7},{who:'A',hand:'R',on:'spine',at:[0,.02,.11],from:.75,to:1},{who:'A',hand:'L',on:'forearmL',at:[0,-.04,-.035],from:.94,to:1,fade:.23}],
+  contacts:[{who:'A',hand:'L',on:'spine',at:[.04,0,.13],from:0,to:.60,fade:.08},{who:'A',hand:'R',on:'spine',at:[-.04,.03,.12],from:0,to:1},{who:'A',hand:'L',on:'forearmL',at:[0,-.04,-.035],from:.94,to:1,fade:.23}],
 });
 
 // Crotch lift: squat, scoop inside the thigh, elevate, then guide down to a ride.
@@ -38,5 +38,5 @@ registerMove({
     {t:.72,land:true,pose:{hips:[0,.46,.05],rot:[0,70,0],handL:[.24,POST,.42],handR:[-.24,POST,.42],palms:[1,1]}},
     {t:1,pose:{base:holdAt('ride','B',.4,{x:0,z:.05,yaw:0})}},
   ],
-  contacts:[{who:'A',hand:'L',on:'spine',at:[.04,0,.13],from:0,to:.60,fade:.08},{who:'A',hand:'R',on:'thighL',at:[0,-.08,.04],from:.18,to:.65},{who:'A',hand:'R',on:'spine',at:[0,.02,.11],from:.72,to:1},{who:'A',hand:'L',on:'forearmL',at:[0,-.04,-.035],from:.94,to:1,fade:.23}],
+  contacts:[{who:'A',hand:'L',on:'spine',at:[.04,0,.13],from:0,to:.60,fade:.08},{who:'A',hand:'R',on:'thighL',at:[0,-.08,.04],from:.18,to:.6},{who:'A',hand:'R',on:'spine',at:[-.04,.03,.12],from:.74,to:1,fade:.2},{who:'A',hand:'L',on:'forearmL',at:[0,-.04,-.035],from:.94,to:1,fade:.23}],
 });

@@ -1,4 +1,5 @@
 import { BufferAttribute, BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 'three';
+import { buildLidSurface } from './lidSurface';
 import { polygonize } from './mesher';
 import type { MeshData } from './mesher';
 import { smax, smin } from '../sdf';
@@ -8,6 +9,7 @@ import type { V3 } from '../math';
 import { buildPrims, hairAt, headUnscale, HEAD_PIVOT, PART } from './anatomy';
 import type { BodyParams } from './anatomy';
 import { headgearPrims, HEAD_ORIGIN } from './headgear';
+import { buildBaseHead, darkenEyeMargins } from './baseHead';
 
 /**
  * Body generation for the realism style: the game's surface-nets mesher at a
@@ -231,16 +233,24 @@ export function generateBody(
   ];
   const faceBox: Box = { min: toW([-0.05, 1.552, 0.066]), max: toW([0.05, 1.684, 0.135]) };
   const fOverlap = 0.0025 * sc;
-  const head = polygonize(prims, {
-    min: [-0.15 * sc, headCut - 0.02 * sc, -0.16 * sc],
-    max: [0.15 * sc, 1.8 * sc, 0.16 * sc],
-    h: hFine,
-    keep: (x, y, z) => y >= headCut && !(quality === 'high' && inside(faceBox, x, y, z, fOverlap)),
-    skip: (lo, hi) => quality === 'high' && boxIn(lo, hi, faceBox, fOverlap + 3 * hFine),
-  });
+  // With the base head, a coarse generated head is only the guide it is fitted to.
+  const useBase = !!params.baseHead;
+  const head = useBase
+    ? buildBaseHead(params, polygonize(prims, {
+        min: [-0.15 * sc, headCut - 0.04 * sc, -0.16 * sc],
+        max: [0.15 * sc, 1.8 * sc, 0.16 * sc],
+        h: hBody * 0.8,
+      }), 1.515)
+    : polygonize(prims, {
+        min: [-0.15 * sc, headCut - 0.02 * sc, -0.16 * sc],
+        max: [0.15 * sc, 1.8 * sc, 0.16 * sc],
+        h: hFine,
+        keep: (x, y, z) => y >= headCut && !(quality === 'high' && inside(faceBox, x, y, z, fOverlap)),
+        skip: (lo, hi) => quality === 'high' && boxIn(lo, hi, faceBox, fOverlap + 3 * hFine),
+      });
   lap('head');
-  const face =
-    quality === 'high'
+  let face =
+    quality === 'high' && !useBase
       ? polygonize(prims, {
           min: [faceBox.min[0] - 0.004 * sc, faceBox.min[1] - 0.004 * sc, faceBox.min[2] - 0.004 * sc],
           max: [faceBox.max[0] + 0.004 * sc, faceBox.max[1] + 0.004 * sc, faceBox.max[2] + 0.004 * sc],
@@ -249,6 +259,7 @@ export function generateBody(
         })
       : null;
   if (face) tuck(face, faceBox, 0.004 * sc, 0.0005 * sc);
+  if(face && params.face.continuousLidSurface) face=addContinuousLids(face,params,toW);
   lap('face');
 
   const hands = handBoxes.map((hb) => polygonize(prims, { min: hb.min, max: hb.max, h: hFine * (quality === 'high' ? 1.15 : 1.45) }));
@@ -281,19 +292,28 @@ export function generateBody(
     // Scaled about the head pivot rather than the joint, like the head itself.
     const off = [0, 1, 2].map((c) => sc * (1 - params.frame.head) * (HEAD_PIVOT[c] - HEAD_ORIGIN[c]));
     for (let i = 0; i < P.length; i++) P[i] = base.positions[i] * gs + off[i % 3];
-    headgear = { ...base, positions: P };
+    // Own copies: a worker transfers these buffers away, and the cached base must
+    // survive for its next build.
+    headgear = {
+      positions: P,
+      normals: base.normals.slice(),
+      indices: base.indices.slice(),
+      skinIndex: base.skinIndex.slice(),
+      skinWeight: base.skinWeight.slice(),
+      part: base.part.slice(),
+    };
     lap('headgear');
   }
 
   const hs = params.frame.head;
   const hairAtScaled = (x: number, y: number, z: number) => {
     const q = headUnscale(x, y, z, hs);
-    return hairAt(q[0], q[1], q[2], hairSides, params.hairFront);
+    return hairAt(q[0], q[1], q[2], hairSides, params.hairFront, params.hairLow ?? 0);
   };
   // Scalp patch for the hair shells, coarse: the shells multiply its triangles.
   const headPrims = prims.filter((p) => p.part === PART.Head || p.part === PART.Hair || p.sub);
   const scalpRaw = polygonize(headPrims, {
-    min: [-0.12 * sc, 1.58 * sc, -0.14 * sc],
+    min: [-0.12 * sc, (1.58 - (params.hairLow ?? 0) * 0.05) * sc, -0.14 * sc],
     max: [0.12 * sc, 1.8 * sc, 0.14 * sc],
     h: 0.0046 * sc,
     keep: (x, y, z) => hairAtScaled(x / sc, y / sc, z / sc) > 0.01,
@@ -318,7 +338,7 @@ export function generateBody(
 
   const out: RealGeometry = {
     body: { ...withAO(body), smoothN: smoothNormals(body, 10) },
-    head: withAO(head, 0.5, 1.565 * sc),
+    head: useBase ? darkenEyeMargins(withAO(head, 0.5, 1.565 * sc), sc) : withAO(head, 0.5, 1.565 * sc),
     face: face ? withAO(face, 0.5, 1.565 * sc) : null,
     hands: [...hands.map((h, i) => withAO(h, 0.7, -1, handBoxes[i])), ...feet.map((f) => withAO(f))],
     headgear,
@@ -423,7 +443,37 @@ export function toGeometry(m: MeshData | RealMesh): BufferGeometry {
   g.setAttribute('aAO', new Float32BufferAttribute(ao, 1));
   const sn = 'smoothN' in m && m.smoothN ? m.smoothN : m.normals;
   g.setAttribute('aSmoothN', new Float32BufferAttribute(sn, 3));
+  // Photo u, v and blend; zero (no photo) everywhere but a fitted face.
+  g.setAttribute('aPhoto', new Float32BufferAttribute(m.photo ?? new Float32Array((m.positions.length / 3) * 4), 4));
   g.setIndex(new BufferAttribute(m.indices, 1));
   g.computeBoundingSphere();
   return g;
+}
+
+/** Prototype continuous lids, with orbital boundary depth sampled from facial skin. */
+function addContinuousLids(face:MeshData, params:BodyParams, toW:(v:V3)=>V3):MeshData {
+ const patches:MeshData[]=[face];
+ for(const side of [-1,1]) {
+  const center:V3=[side*.032,1.649,.0858], margin:V3[]=[],outer:V3[]=[];
+  for(let i=0;i<=48;i++) {
+   const theta=i*Math.PI*2/48, x=.0108*Math.cos(theta), arch=Math.sin(theta);
+   const y=(arch>=0?.0032:.0025)*arch+x*.06;
+   margin.push(toW([center[0]+x,center[1]+y,center[2]+Math.sqrt(.0119**2-x*x-y*y)+.00015]));
+   const target=toW([center[0]+.019*Math.cos(theta),center[1]+.014*arch,center[2]]);
+   let best=Infinity,z=target[2];
+   for(let k=0;k<face.positions.length;k+=3) {
+    const px=face.positions[k],py=face.positions[k+1],pz=face.positions[k+2];
+    if(pz<.083*params.scale)continue;
+    const d=(px-target[0])**2+(py-target[1])**2;
+    if(d<best){best=d;z=pz;}
+   }
+   outer.push([target[0],target[1],z-.0002*params.scale]);
+  }
+  patches.push(buildLidSurface(margin,outer,toW(center),.0119*params.scale*params.frame.head,4,PART.Lid));
+ }
+ const n=patches.reduce((s,p)=>s+p.positions.length/3,0);
+ const out:MeshData={positions:new Float32Array(n*3),normals:new Float32Array(n*3),skinIndex:new Uint16Array(n*4),skinWeight:new Float32Array(n*4),part:new Float32Array(n),indices:new Uint32Array(patches.reduce((s,p)=>s+p.indices.length,0))};
+ let v=0,j=0;
+ for(const p of patches){out.positions.set(p.positions,v*3);out.normals.set(p.normals,v*3);out.skinIndex.set(p.skinIndex,v*4);out.skinWeight.set(p.skinWeight,v*4);out.part.set(p.part,v);out.indices.set(Array.from(p.indices,i=>i+v),j);v+=p.positions.length/3;j+=p.indices.length;}
+ return out;
 }

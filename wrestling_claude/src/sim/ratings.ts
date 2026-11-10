@@ -1016,6 +1016,8 @@ export function overallRating(name: string, career: CareerScore, record?: Colleg
   if (name === 'Charlie McDaniel') return 91;
   // Owner review: NCAA champion Mark Reiland should be 84.
   if (name === 'Mark Reiland') return 84;
+  // Owner review, November 9, 2026: Royce Alger to 92, aligned with Chris Campbell (computed 88).
+  if (name === 'Royce Alger') return 92;
   // Owner revision: Myers uses DI results with a one-point overall adjustment.
   const crossDivisionBonus = name === 'Kirk Myers' ? 1 : 0;
   return Math.min(championshipCeiling(career.counted), Math.max(0, Math.round(placementRating(career.averagePlacementPoints) + career.bonusPoints + (HODGE_AWARDS[name]?.years.length ?? 0) + (record ? recordAdjustment(record) : 0) + crossDivisionBonus)));

@@ -1,10 +1,10 @@
-import { EffortPulse } from '../anim/effortPulse';
+import { EffortPulse, effortEnvelope } from '../anim/effortPulse';
 for(const hz of [30,60,120]) {
   const pulse=new EffortPulse(); let max=0,repeatPeaks=0;
   for(let frame=0;frame<hz*2;frame++) {
     // Repeated feedback every frame is deliberately worse than normal input.
     pulse.trigger('fight',false,'ok'); pulse.advance(1/hz,.42);
-    const value=Math.sin(Math.PI*pulse.age/.42);
+    const value=effortEnvelope(pulse.age,.42);
     max=Math.max(max,value); if(value>.95) repeatPeaks++;
   }
   if(max<.95 || repeatPeaks<3) throw new Error(`Repeated input starved motion at ${hz}Hz`);
@@ -21,7 +21,7 @@ for(const hz of [30,60,120]) {
     pulse.trigger('shoot',false,frame%2 ? 'blocked' : 'lost');
     const duration=pulse.result==='lost' ? .65 : .42;
     pulse.advance(1/hz,duration);
-    max=Math.max(max,Math.sin(Math.PI*pulse.age/(pulse.result==='lost' ? .65 : .42)));
+    max=Math.max(max,effortEnvelope(pulse.age,pulse.result==='lost' ? .65 : .42));
   }
   if(max<.95) throw new Error(`Changing outcomes starved motion at ${hz}Hz`);
 }
@@ -34,3 +34,11 @@ if(String(pending.result)!=='blocked') throw new Error('Queued outcome was disca
 pending.trigger('shoot',false,'ok'); pending.clearQueued(); pending.advance(1,.42);
 if(pending.age<.42) throw new Error('Position change retained queued repeat');
 console.log('Alternating outcomes preserve motion and replay the latest result; clearing cancels repeats');
+
+for(const duration of [.42,.65]) {
+ const dt=.00001;
+ if(effortEnvelope(0,duration)!==0 || effortEnvelope(duration,duration)!==0)throw Error('Effort endpoints must settle');
+ if(Math.abs(effortEnvelope(duration/2,duration)-1)>1e-10)throw Error('Effort lost peak strength');
+ if(effortEnvelope(dt,duration)/dt>.001 || effortEnvelope(duration-dt,duration)/dt>.001)throw Error('Effort starts or ends with a velocity jump');
+}
+console.log('Paired effort eases in and out without losing its peak amplitude');

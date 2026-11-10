@@ -1,10 +1,13 @@
+import { teamScore } from '../sim/dual';
+import { iconSchool, schoolLabel } from '../sim/schoolAbbr';
 import { useEffect, useState } from 'react';
-import { formatClock, formatRidingTime, periodLabel } from '../sim/rules';
+import { formatClock, formatRidingTime, overtimePart, overtimeRound, periodLabel } from '../sim/rules';
 import { MEET } from '../sim/roster';
 import type { ButtonId, GameApi, UiState } from '../game/store';
 import type { Side } from '../sim/types';
 import { actionInstruction } from '../game/prompts';
 import { Glyph, Key, PositionIcon } from './glyphs';
+import { PLAN_FOCUS, PLAN_STYLES, PLAN_TOP, topPlanOf, type TopPlan } from '../sim/strategy';
 
 const CORNER = ['red', 'green'] as const;
 
@@ -25,9 +28,14 @@ function Scorebug({ state }: { state: UiState }) {
         >
           <span className={`bug__corner bug__corner--${CORNER[side]}`} />
           <span className="bug__who">
-            <span className="bug__school">{w[side].school.name}</span>
+            <span className="bug__school">{schoolLabel(w[side], !!state.dual).name}</span>
             <span className="bug__name">{w[side].lastName}</span>
           </span>
+          {(state.stalls[side].warned || state.stalls[side].points > 0) && (
+            <span className="bug__stall" title="Stalling: warned, then a point for each call">
+              {state.stalls[side].points ? `Stall ${state.stalls[side].points}` : 'Warned'}
+            </span>
+          )}
           <span className="bug__score" key={state.score[side]}>
             {state.score[side]}
           </span>
@@ -39,6 +47,9 @@ function Scorebug({ state }: { state: UiState }) {
         <span className={`bug__time ${state.clock <= 10 && state.phase === 'wrestling' ? 'bug__time--hot' : ''}`}>
           {state.difficulty==='practice'?'∞':formatClock(state.clock)}
         </span>
+        {state.dual && (
+          <span className="bug__dual">Dual {teamScore(state.dual)[0]}–{teamScore(state.dual)[1]}</span>
+        )}
         {showRt && (
           <span className="bug__rt" style={{ color: w[rtSide].school.accent }}>
             RT {formatRidingTime(Math.abs(rt)).replace('+', '')} {Math.abs(rt) >= 60 ? '· +1' : ''}
@@ -126,6 +137,7 @@ function ActionPad({ state }: { state: UiState }) {
             <Glyph id={id} device={state.device} />
             <span className="pad__label">{p.label}</span>
             <span className="pad__hint">{actionInstruction(p, id)}</span>
+            {p.alt && <span className="pad__alt">{p.alt}</span>}
           </div>
         );
       })}
@@ -169,7 +181,7 @@ function Nameplate({ state }: { state: UiState }) {
       <span className="plate__bar" />
       <div className="plate__body">
         <span className="plate__school">
-          {x.school.name} {x.school.nickname}
+          {state.dual || !iconSchool(x) ? `${x.school.name} ${x.school.nickname}` : iconSchool(x)}
         </span>
         <span className="plate__name">
           <span>{x.firstName}</span> {x.lastName}
@@ -185,21 +197,78 @@ function Nameplate({ state }: { state: UiState }) {
   );
 }
 
+/** Your corner's game plan: chosen on the walk-out, changed between periods. */
+function PlanCard({ state, api, inline = false }: { state: UiState; api: GameApi; inline?: boolean }) {
+  const opp = state.opponentPlan;
+  const oppStyle = PLAN_STYLES.find(s => s.id === opp.style)!.label;
+  const oppFocus = PLAN_FOCUS.find(f => f.id === opp.focus)!.label;
+  const style = PLAN_STYLES.find(s => s.id === state.plan.style)!;
+  const focus = PLAN_FOCUS.find(f => f.id === state.plan.focus)!;
+  return (
+    <div className={`plan${inline ? ' plan--inline' : ''}`} aria-label="Match plan">
+      <div className="plan__head"><strong>Game plan</strong><span>Rival corner: {oppStyle}{opp.focus !== 'none' ? ` · ${oppFocus}` : ''}</span></div>
+      <div className="plan__row" role="group" aria-label="Style">
+        {PLAN_STYLES.map(s => <button key={s.id} type="button" aria-pressed={state.plan.style === s.id} onClick={() => api.setPlan({ ...state.plan, style: s.id })}>{s.label}</button>)}
+      </div>
+      <small className="plan__note">{style.note}</small>
+      <div className="plan__row plan__row--focus" role="group" aria-label="Focus">
+        {PLAN_FOCUS.map(f => <button key={f.id} type="button" aria-pressed={state.plan.focus === f.id} onClick={() => api.setPlan({ ...state.plan, focus: f.id })}>{f.label}</button>)}
+      </div>
+      <small className="plan__note">{focus.note}</small>
+      <div className="plan__row" role="group" aria-label="On top">
+        {PLAN_TOP.map(t => <button key={t.id} type="button" aria-pressed={topPlanOf(state.plan) === t.id} onClick={() => api.setPlan({ ...state.plan, top: t.id })}>{t.label}</button>)}
+      </div>
+      <small className="plan__note">On top: {PLAN_TOP.find(t => t.id === topPlanOf(state.plan))!.note}</small>
+      {state.refereeNote && <small className="plan__note plan__note--ref">{state.refereeNote}</small>}
+    </div>
+  );
+}
+
+/** On top at the whistle: the top plan, picked right there (it stays the plan until changed). */
+function TopRestart({ state, api }: { state: UiState; api: GameApi }) {
+  const current = state.topRestartCut ? 'cut' : topPlanOf(state.plan);
+  const choose = (top: TopPlan) => { api.setPlan({ ...state.plan, top }); api.chooseTopRestart(top === 'cut'); };
+  return (
+    <div className="top-restart">
+      <strong>At the whistle</strong>
+      {PLAN_TOP.map(t => <button key={t.id} type="button" aria-pressed={current === t.id} title={t.note} onClick={() => choose(t.id)}>{t.id === 'cut' ? 'Cut · give 1' : t.label}</button>)}
+    </div>
+  );
+}
+
+/** The disc flip between the first and second periods. */
+function CoinToss({ state }: { state: UiState }) {
+  const w = state.coinTossWinner;
+  if (w === null || !state.wrestlers) return null;
+  const name = state.wrestlers[w].lastName;
+  return (
+    <div className="toss" aria-label="Coin toss">
+      <div className={`toss__disc toss__disc--${CORNER[w]}`}><span className="toss__face toss__face--red">Red</span><span className="toss__face toss__face--green">Green</span></div>
+      <strong>{CORNER[w] === 'red' ? 'Red' : 'Green'} · {name}</strong>
+      <em>{state.dual ? `${w === state.humanSide ? 'You have' : 'He has'} the choice from the dual's coin toss: top, bottom, neutral, or defer to the third period` : `${w === state.humanSide ? 'You' : 'He'} won the toss: top, bottom, neutral, or defer to the third period`}</em>
+    </div>
+  );
+}
+
 function Choice({ state, api }: { state: UiState; api: GameApi }) {
-  const options: Array<{ id: 'neutral' | 'top' | 'bottom'; label: string; note: string }> = [
+  const options: Array<{ id: 'neutral' | 'top' | 'bottom' | 'defer'; label: string; note: string }> = [
     { id: 'neutral', label: 'Neutral', note: 'On your feet. Shots, ties and sprawls.' },
     { id: 'top', label: 'Top', note: 'Ride him, break him down, turn him for back points.' },
     { id: 'bottom', label: 'Bottom', note: 'Escape for one, reverse for two.' },
+    ...(state.canDefer ? [{ id: 'defer' as const, label: 'Defer', note: state.period >= 3 ? 'He chooses now; you choose the second tiebreaker period.' : 'He chooses now; you choose in the third period.' }] : []),
   ];
+  const next = state.period + 1;
+  const kicker = next <= 3 ? `Period ${next}` : `Tiebreaker ${overtimeRound(next)} · ${overtimePart(next) === 1 ? 'first' : 'second'} 30 seconds`;
   return (
     <div className="modal" role="dialog" aria-label="Choose your position">
-      <div className="modal__card">
-        <div className="modal__kicker">Period {state.period + 1}</div>
+      <div className="modal__card modal__card--choice">
+        <div className="modal__kicker">{kicker}</div>
         <h3>Your choice</h3>
+        {state.difficulty !== 'practice' && <PlanCard state={state} api={api} inline />}
         <div className="choices">
           {options.map((o, i) => (
             <button key={o.id} type="button" className="choices__btn" onClick={() => api.choosePosition(o.id)} autoFocus={i === 0}>
-              <PositionIcon kind={o.id} />
+              {o.id !== 'defer' && <PositionIcon kind={o.id} />}
               <strong>{o.label}</strong>
               <em>{o.note}</em>
             </button>
@@ -226,9 +295,13 @@ function Pause({ state, api }: { state: UiState; api: GameApi }) {
           <button type="button" className="menu__btn" onClick={() => api.toggleMute()}>
             Sound {state.muted ? 'off' : 'on'} <Key>M</Key>
           </button>
-          <button type="button" className="menu__btn menu__btn--ghost" onClick={() => api.toTitle()}>
+          {state.tournament ? <button type="button" className="menu__btn menu__btn--ghost" onClick={() => api.toTournament()}>
+            Back to the bracket (match not scored)
+          </button> : state.dual ? <button type="button" className="menu__btn menu__btn--ghost" onClick={() => api.toDual()}>
+            Back to the dual (bout not scored)
+          </button> : <button type="button" className="menu__btn menu__btn--ghost" onClick={() => api.toTitle()}>
             Leave match
-          </button>
+          </button>}
         </div>
       </div>
     </div>
@@ -245,7 +318,8 @@ export function Hud({ state, api }: { state: UiState; api: GameApi }) {
       <Scorebug state={state} />
       {live && <PlayerCard state={state} />}
       {live && <ActionPad state={state} />}
-      {state.phase === 'setPosition' && state.top === state.humanSide && <div className="top-restart"><strong>At the whistle</strong><button aria-pressed={state.topRestartCut} onClick={() => api.chooseTopRestart(true)}>Cut · give 1</button><button aria-pressed={!state.topRestartCut} onClick={() => api.chooseTopRestart(false)}>Ride</button></div>}
+      {live && !state.touchControls && state.edgeHint && <div className="edge-hint" role="status">{state.edgeHint}</div>}
+      {state.phase === 'setPosition' && state.top === state.humanSide && <TopRestart state={state} api={api} />}
       <ScoreBanner state={state} />
       <Nameplate state={state} />
       {state.announcement && (
@@ -273,6 +347,8 @@ export function Hud({ state, api }: { state: UiState; api: GameApi }) {
           )}
         </>
       )}
+      {state.phase === 'coinToss' && <CoinToss state={state} />}
+      {state.difficulty !== 'practice' && !state.result && !state.awaitingChoice && ['intros', 'handshake', 'coinToss', 'periodBreak', 'positionChoice'].includes(state.phase) && <PlanCard state={state} api={api} />}
       {state.awaitingChoice && <Choice state={state} api={api} />}
       {state.paused && <Pause state={state} api={api} />}
       {import.meta.env.DEV && new URLSearchParams(location.search).has('fps') && <div className="fps">{state.fps} fps</div>}

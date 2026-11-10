@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react';
-import {ARM_BARS,ARM_BAR_LABELS,isArmBar} from '../sim/armBars';
+import {ARM_BARS,ARM_BAR_LABELS,CRADLE_LABELS,isArmBar,isCradleTurn} from '../sim/armBars';
 import type {GameApi,UiState} from '../game/store';
 export function TopTurnPicker({state,api}:{state:UiState;api:GameApi}){
  const [choice,setChoice]=useState('auto');
@@ -9,9 +9,11 @@ export function TopTurnPicker({state,api}:{state:UiState;api:GameApi}){
   <select aria-label="Top attack combination" value={choice} onChange={e=>{
    const value=e.target.value;setChoice(value);
    const [style,side]=value.split(':');
-   api.setTopTurn(isArmBar(style)?{style,mirror:side==='right'}:undefined);
+   api.setTopTurn(isArmBar(style)?{style,mirror:side==='right'}:isCradleTurn(style)?{style,mirror:false}:undefined);
   }}>
    <option value="auto">Athlete's preferred turn</option>
+   <option value="cradle:near">{CRADLE_LABELS.cradle}</option>
+   <option value="crossfaceCradle:far">{CRADLE_LABELS.crossfaceCradle}</option>
    {ARM_BARS.flatMap(style=>['left','right'].map(side=><option key={style+side} value={style+':'+side}>{ARM_BAR_LABELS[style]} · {side==='left'?'Left':'Right'}</option>))}
   </select>
   <small>Break down, then tap Turn</small>

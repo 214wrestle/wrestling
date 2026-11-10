@@ -82,8 +82,8 @@ export function headgearPrims(scale: number): Prim[] {
 
   // Ear cups with a softer rim against the head.
   for (const side of [1, -1]) {
-    prims.push(ellipsoid(s([0.097 * side, 1.638, -0.008]), s([0.016, 0.045, 0.036]), 0.004 * scale));
-    prims.push(ellipsoid(s([0.089 * side, 1.638, -0.008]), s([0.01, 0.05, 0.041]), 0.006 * scale, false, undefined, GEAR.Foam));
+    prims.push(ellipsoid(s([0.095 * side, 1.636, -0.008]), s([0.013, 0.038, 0.03]), 0.004 * scale));
+    prims.push(ellipsoid(s([0.088 * side, 1.636, -0.008]), s([0.009, 0.042, 0.034]), 0.006 * scale, false, undefined, GEAR.Foam));
   }
 
   // Crown strap: an arc over the top of the head.
@@ -97,7 +97,7 @@ export function headgearPrims(scale: number): Prim[] {
     const c: V3 = [cx + Math.sin(phi) * ax, cy + Math.cos(phi) * ay, z0];
     const t: V3 = [Math.cos(phi) * ax, -Math.sin(phi) * ay, 0];
     const n: V3 = [Math.sin(phi), Math.cos(phi), 0];
-    prims.push(strapPiece(s(c), t, n, 0.009 * scale, 0.0042 * scale, 0.013 * scale));
+    prims.push(strapPiece(s(c), t, n, 0.009 * scale, 0.0026 * scale, 0.014 * scale));
   }
 
   // Two straps around the back of the head.
@@ -107,7 +107,7 @@ export function headgearPrims(scale: number): Prim[] {
       const c: V3 = [Math.sin(th) * a, y, zc + Math.cos(th) * b];
       const t: V3 = [Math.cos(th) * a, 0, -Math.sin(th) * b];
       const n: V3 = [Math.sin(th) / a, 0, Math.cos(th) / b];
-      prims.push(strapPiece(s(c), t, n, 0.008 * scale, 0.0042 * scale, 0.0105 * scale));
+      prims.push(strapPiece(s(c), t, n, 0.008 * scale, 0.0026 * scale, 0.012 * scale));
     }
   };
   back(1.706, 0.084, 0.103, -0.004, 100);
@@ -142,11 +142,11 @@ export function headgearPrims(scale: number): Prim[] {
   // Vents on each cup.
   for (const side of [1, -1]) {
     // A ring of vents round the cup centre.
-    prims.push(ellipsoid(s([0.115 * side, 1.638, -0.008]), s([0.006, 0.0062, 0.0062]), 0.0015 * scale, true));
+    prims.push(ellipsoid(s([0.108 * side, 1.636, -0.008]), s([0.006, 0.0056, 0.0056]), 0.0015 * scale, true));
     for (let i = 0; i < 6; i++) {
       const a = (i / 6) * Math.PI * 2 + 0.3;
       prims.push(
-        ellipsoid(s([0.113 * side, 1.638 + Math.cos(a) * 0.024, -0.008 + Math.sin(a) * 0.02]), s([0.006, 0.0042, 0.0042]), 0.0015 * scale, true),
+        ellipsoid(s([0.106 * side, 1.636 + Math.cos(a) * 0.02, -0.008 + Math.sin(a) * 0.016]), s([0.006, 0.0038, 0.0038]), 0.0015 * scale, true),
       );
     }
   }

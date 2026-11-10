@@ -8,9 +8,15 @@ export interface WrestlingStyle {
   stanceWidth: number; levelOffset: number; tempo: number; handActivity: number;
   pressure: number; circle: number; attackRate: number;
   topPatience?: number; turnPreference?: number;
-  preferredTurn?: 'cradle' | import('./armBars').ArmBar;
+  preferredTurn?: 'cradle' | 'crossfaceCradle' | import('./armBars').ArmBar;
   highCrotchHand?: 'left' | 'right';
   shots: { double: number; single: number; highCrotch: number };
+  /** Animation only. Foot stagger: about 0.5 is square, 1 a normal stance, 1.3 a long split. */
+  stagger?: number;
+  /** Animation only. Hands carried higher (+) or lower (-), metres. */
+  handHeight?: number;
+  /** Animation only. How much he sways and bobs while in stance. */
+  bounce?: number;
 }
 export interface AthleteProfile {
   era: string;
@@ -153,4 +159,40 @@ export function applyGablePressure(w:Wrestler):void {
  w.attributes.conditioning=Math.max(w.attributes.conditioning,IOWA_LATE_ATTACK_NAMES.has(name)?.97:.93);
  const pressureStyle='Heavy head ties, persistent hand fighting and sustained pace';
  if(!w.style?.includes(pressureStyle)) w.style=w.style ? `${w.style}; ${pressureStyle}` : pressureStyle;
+}
+
+/** How a wrestler's stance looks. Animation only; never read by the match logic. */
+export interface StanceLook { stanceWidth: number; levelOffset: number; stagger: number; handHeight: number; bounce: number }
+
+/**
+ * Every wrestler gets his own look in stance: which foot leads, square or split,
+ * wide or narrow, high or low, hands up or down and how much he bounces. Picked
+ * from the name so it never changes between matches. Kept apart from `motion`
+ * because the match logic treats a missing `motion` differently (shot mix).
+ * Hand-set width and level from a profile are kept.
+ */
+export function stanceStyleFor(name: string, base: WrestlingStyle = DEFAULT_MOTION): {lead: 1 | -1; look: StanceLook} {
+  let h = 2166136261;
+  for (let i = 0; i < name.length; i++) { h ^= name.charCodeAt(i); h = Math.imul(h, 16777619); }
+  const next = () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 10000) / 10000; };
+  const lead: 1 | -1 = next() < 0.5 ? 1 : -1;
+  const kind = next();
+  const square = kind < 0.25, split = kind >= 0.7;
+  const stagger = (square ? 0.5 : split ? 1.25 : 0.88) + (next() - 0.5) * 0.16;
+  const width = 0.9 + next() * 0.2 + (square ? 0.05 : split ? -0.03 : 0);
+  const level = -0.08 + next() * 0.15;
+  const handHeight = (next() - 0.5) * 0.1;
+  const bounce = 0.55 + next() * 0.95;
+  const handSet = base.stanceWidth !== 1 || base.levelOffset !== 0;
+  return {lead, look: {
+    stanceWidth: handSet ? base.stanceWidth : +width.toFixed(3),
+    levelOffset: handSet ? base.levelOffset : +level.toFixed(3),
+    stagger: base.stagger ?? +stagger.toFixed(3),
+    handHeight: base.handHeight ?? +handHeight.toFixed(3),
+    bounce: base.bounce ?? +bounce.toFixed(3)}};
+}
+
+/** The motion the animator uses: the match style plus his own stance look. */
+export function animationMotion(w: {motion?: WrestlingStyle; stanceLook?: StanceLook}): WrestlingStyle | undefined {
+  return w.stanceLook ? {...(w.motion ?? DEFAULT_MOTION), ...w.stanceLook} : w.motion;
 }

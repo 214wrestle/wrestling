@@ -1,4 +1,5 @@
-import { CanvasTexture, Color, LinearFilter, MeshPhysicalMaterial, ShaderChunk, SRGBColorSpace } from 'three';
+import { CanvasTexture, Color, DataTexture, LinearFilter, MeshPhysicalMaterial, ShaderChunk, SRGBColorSpace, TextureLoader, Vector4 } from 'three';
+import type { Texture } from 'three';
 import type { IUniform } from 'three';
 
 /**
@@ -16,7 +17,53 @@ import type { IUniform } from 'three';
  * mesh panels, laces and a gum sole.
  */
 
+/** How a singlet of the wrestler's era is cut and decorated. */
+export interface KitLook {
+  /** 0 modern high cut .. 1 deep low cut (front and back scoop, armholes down the ribs). */
+  cut?: number;
+  /** Leg length along the thigh, metres: 0.2 today, shorter in older singlets. */
+  leg?: number;
+  /** Side panels and their piping (default on). */
+  panel?: boolean;
+  /** Upper body in a second colour (two-tone). */
+  top?: string;
+  /** Wide cuff at the leg hem. */
+  cuff?: string;
+  /** Horizontal band around the body (chest by default; Penn State's sits at the waist). */
+  chestBand?: string;
+  /** Height of that band's centre, metres on a 1.76 m body: 1.29 chest, about 1.03 waist. */
+  bandY?: number;
+  /** Two thin stripes just above the leg hem. */
+  hemStripes?: string;
+  /** Full-length tights under the singlet. */
+  tights?: string;
+}
+
+const colourOn = (hex?: string) => {
+  const c = new Color(hex ?? '#000000');
+  return new Vector4(c.r, c.g, c.b, hex ? 1 : 0);
+};
+
+const blank = (() => { const t = new DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); t.needsUpdate = true; return t; })();
+/** The portrait for a photo-fitted face (loads in the background; blank until then). */
+function facePhotoTexture(url: string | undefined, ready: IUniform): Texture {
+  if (!url) return blank;
+  const tex = new TextureLoader().load(url, () => { ready.value = 1; });
+  tex.colorSpace = SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+
 export interface RealLook {
+  /** Portrait URL for a photo-fitted face, and how much to brighten it (its own lighting is baked in). */
+  facePhoto?: string;
+  photoGain?: number;
+  /** How much of the portrait's colour (vs its brightness) shows; low for colour-cast photos. */
+  photoChroma?: number;
+  /** The portrait's mean cheek colour (sRGB hex), to match it to the body's skin. */
+  photoMean?: string;
+  /** Era singlet; omitted is today's high-cut panelled singlet. */
+  kit?: KitLook;
   skin: string;
   hair: string;
   primary: string;
@@ -25,6 +72,13 @@ export interface RealLook {
   piping: string;
   wordmark: string;
   wordmarkColor?: string;
+  chestEmblem?: boolean;
+  /** The official: striped shirt, black slacks and shoes instead of a singlet. */
+  referee?: boolean;
+  /** Face is the CC0 base head: skip paint tied to the generated face's features. */
+  baseHead?: boolean;
+  /** Strength of abdominal definition under the singlet, 0..1. */
+  abs?: number;
   band: string;
   shoe: string;
   shoeAccent: string;
@@ -35,20 +89,28 @@ export interface RealLook {
   stubble: number;
   /** Hair density on the clipped sides, 0..1. */
   sides: number;
+  /** Hair texture: 0 tightly coiled .. 1 straight. */
+  hairStraight?: number;
   /** Eyebrow lift, slope (outer end up), arch, thickness. */
   brow: [number, number, number, number];
   hairFront: number;
+  /** Side and back hairline lowered over the ears (0..1). */
+  hairLow?: number;
   /** Mouth-corner lift (paint curvature): 0 = flat and serious, 4 = a smile. */
   smile: number;
   /** Head size multiplier about the head pivot (paint works in the unscaled frame). */
   headScale: number;
   /** Eye aperture height multiplier, as the anatomy. */
   eyeOpen: number;
+  eyeWidth?: number;
+  naturalNasalBase?: boolean;
+  /** Match thin natural lid margins to the reconstructed fold. */
+  naturalLidFold?: boolean;
   /** Nose length offset, as the anatomy (to place the nostril paint). */
   nose: number;
 }
 
-function wordmarkTexture(text: string): CanvasTexture {
+function wordmarkTexture(text: string, emblem = false): CanvasTexture {
   const c = document.createElement('canvas');
   c.width = 1024;
   c.height = 256;
@@ -64,7 +126,19 @@ function wordmarkTexture(text: string): CanvasTexture {
     size -= 4;
     g.font = font(size);
   }
-  g.fillText(text, c.width / 2, c.height / 2 + 8);
+  if (emblem) {
+    // Reference-inspired block I and crossing STATE; not a photographed texture.
+    g.translate(512, 0); g.scale(2.5, 1); g.translate(-512, 0);
+    g.font = '900 238px "Arial Black", "Arial", sans-serif';
+    g.lineJoin = 'miter';
+    g.strokeStyle = '#f5c635'; g.lineWidth = 18;
+    g.strokeText('I', 512, 133);
+    g.fillStyle = '#9e1736'; g.fillText('I', 512, 133);
+    g.font = '900 82px "Arial Black", "Arial", sans-serif';
+    g.strokeStyle = '#9e1736'; g.lineWidth = 12;
+    g.strokeText('STATE', 512, 135);
+    g.fillStyle = '#f5c635'; g.fillText('STATE', 512, 135);
+  } else g.fillText(text, c.width / 2, c.height / 2 + 8);
   const tex = new CanvasTexture(c);
   tex.colorSpace = SRGBColorSpace;
   tex.minFilter = LinearFilter;
@@ -76,14 +150,23 @@ const VERTEX_HEAD = /* glsl */ `
 attribute float aPart;
 attribute float aAO;
 attribute vec3 aSmoothN;
+attribute vec4 aPhoto;
 varying vec3 vSmoothN;
 varying vec3 vBind;
 varying vec3 vBindN;
 varying float vAO;
+varying vec4 vPhoto;
 flat varying float vPart;
 `;
 
 const FRAGMENT_HEAD = /* glsl */ `
+varying vec4 vPhoto;
+uniform sampler2D uFacePhoto;
+uniform float uPhotoGain;
+uniform float uPhotoReady;
+uniform float uPhotoBroad;
+uniform float uPhotoChroma;
+uniform vec3 uPhotoMean;
 varying vec3 vSmoothN;
 varying vec3 vBind;
 varying vec3 vBindN;
@@ -94,6 +177,21 @@ uniform vec3 uHair;
 uniform vec3 uPrimary;
 uniform vec3 uSecondary;
 uniform vec3 uWordmarkColor;
+uniform float uChestEmblem;
+// Era singlet: cut depth (0 modern high cut .. 1 deep low cut), leg length along the thigh,
+// side panels on/off, and optional two-tone top, wide leg cuffs, chest band and tights (rgb + on).
+uniform float uCut;
+uniform float uLegLen;
+uniform float uPanel;
+uniform vec4 uTop;
+uniform vec4 uCuff;
+uniform vec4 uChestBand;
+uniform float uBandY;
+uniform vec4 uHemStripes;
+uniform vec4 uTights;
+uniform float uReferee;
+uniform float uBaseHead;
+uniform float uAbs;
 uniform vec3 uPiping;
 uniform vec3 uBand;
 uniform vec3 uShoe;
@@ -104,12 +202,14 @@ uniform float uFlush;
 uniform float uFaceLen;
 uniform float uStubble;
 uniform float uSides;
+uniform float uHairStraight;
 uniform sampler2D uWordmark;
 uniform float uBumpAmt;
 uniform float uAOAmt;
 uniform float uBrowLift;
 uniform float uClay;
 uniform float uHairFront;
+uniform float uHairLow;
 uniform float uSmile;
 uniform float uSSSAmt;
 uniform float uBrowSlope;
@@ -117,12 +217,16 @@ uniform float uBrowArch;
 uniform float uBrowThick;
 uniform float uHeadScale;
 uniform float uEyeOpen;
+uniform float uNaturalLid;
 uniform float uNose;
+uniform float uEyeWidth;
+uniform float uNaturalNose;
 
 // Set by the look, read by the lighting functions below.
 float gSSS = 0.0;
 float gH = 0.0;
 float gCloth = 0.0;
+float gAbs = 0.0;
 float gFaceAO = 1.0;
 float gThin = 0.0;
 
@@ -199,6 +303,10 @@ Look bodyLook() {
   gFaceAO = mix(1.0, 0.42, smoothstep(1.5, 1.575, p.y));
   float ax = abs(p.x);
   float foot = length(fwidth(vBind));
+  // The portrait's footprint per pixel, taken here in uniform control flow: derivatives inside the
+  // face branch below are undefined, and the GPU then picked a far-blurred mip (the photo vanished
+  // from every face smaller than a close-up).
+  vec2 phDx = dFdx(vPhoto.xy), phDy = dFdy(vPhoto.xy);
   // Detail fades as a pixel covers more surface.
   float fineFade = 1.0 - smoothstep(0.0004, 0.0016, foot);
   float midFade = 1.0 - smoothstep(0.0015, 0.006, foot);
@@ -248,6 +356,25 @@ Look bodyLook() {
   L.coatRough = 0.28;
   L.sheenRough = 0.6;
 
+  // ---- arm definition: creases between muscles, on bare skin ------------------
+  if (isArm) {
+    float outer = ax - 0.19;
+    float aZ = p.z + 0.026;
+    // Deltoid's tip: a soft V down the outside of the upper arm.
+    float deltV = (1.0 - smoothstep(0.003, 0.014, abs(p.y - 1.296 - abs(aZ) * 1.25))) * smoothstep(-0.03, 0.012, outer) * (1.0 - smoothstep(0.05, 0.075, abs(aZ)));
+    // Biceps from triceps, on both sides of the arm.
+    float split = (1.0 - smoothstep(0.002, 0.011, abs(aZ + 0.002 + (1.23 - p.y) * 0.06))) * smoothstep(1.155, 1.2, p.y) * (1.0 - smoothstep(1.285, 1.32, p.y)) * smoothstep(0.012, 0.03, abs(outer));
+    // Biceps' lower end, above the elbow crease.
+    float bicepEnd = (1.0 - smoothstep(0.003, 0.012, abs(p.y - 1.168 - aZ * 0.25))) * smoothstep(0.0, 0.02, aZ) * 0.8;
+    // Triceps' horseshoe on the back of the arm.
+    float triceps = (1.0 - smoothstep(0.003, 0.012, abs(p.y - 1.215 - abs(outer) * 0.8))) * smoothstep(-0.018, -0.042, aZ) * 0.65;
+    // Forearm: brachioradialis and extensors separate, then run into the wrist.
+    float fore = (1.0 - smoothstep(0.002, 0.009, abs(aZ - 0.012 + (1.1 - p.y) * 0.07))) * smoothstep(0.96, 1.02, p.y) * (1.0 - smoothstep(1.09, 1.125, p.y)) * smoothstep(-0.008, 0.012, outer) * 0.7;
+    float cut = clamp(max(max(deltV, split), max(max(bicepEnd, triceps), fore)), 0.0, 1.0) * uAbs;
+    skin *= 1.0 - cut * vec3(0.17, 0.21, 0.2);
+    height -= cut * 0.7;
+  }
+
   // ---- head -------------------------------------------------------------
   float hairMask = 0.0;
   if (isHead || part > 6.5) {
@@ -274,7 +401,7 @@ Look bodyLook() {
     L.thin = max(ear, part > 6.5 && part < 7.5 ? 1.0 : 0.0) * 0.5 + (1.0 - smoothstep(0.004, 0.016, length(vec2(ax, p.y - 1.612)))) * step(0.1, p.z) * 0.3;
 
     // Beard shadow on a clean-shaven face: jaw, chin, upper lip.
-    float mouthY = 1.5813 - lenOff * 0.35;
+    float mouthY = uBaseHead > 0.5 ? 1.5745 - (lenOff + 0.005) * 0.7 : 1.5813 - lenOff * 0.35;
     float beard = smoothstep(1.585, 1.562, p.y + ax * 0.5) * smoothstep(1.52, 1.545, p.y) * step(0.0, p.z + 0.01);
     beard *= 1.0 - smoothstep(0.06, 0.074, ax);
     beard *= 1.0 - (1.0 - smoothstep(0.006, 0.012, abs(p.y - mouthY + 0.001))) * (1.0 - smoothstep(0.022, 0.03, ax));
@@ -298,8 +425,9 @@ Look bodyLook() {
     skin = mix(skin, lipCol, (upper * 0.75 + lower * 0.7) * lips);
     // Nostrils: dark inside the openings carved under the tip.
     vec3 nq = vec3((ax - 0.0078) / 0.0055, (p.y - 1.6052 + uNose * 0.8) / 0.0034, (p.z - 0.1045 - uNose * 0.3) / 0.0068);
+    if (uNaturalNose > 0.5) nq = vec3((ax - 0.0102) / 0.0037, (p.y - 1.6082 + uNose * 0.8) / 0.0027, (p.z - 0.1093 - uNose * 0.3) / 0.005);
     float nos = 1.0 - smoothstep(0.55, 1.0, length(nq));
-    skin = mix(skin, skin * vec3(0.45, 0.3, 0.28), nos * 0.6);
+    skin = mix(skin, skin * vec3(0.45, 0.3, 0.28), nos * mix(0.6,0.3,uNaturalNose) * (1.0 - uBaseHead));
     rough = mix(rough, 0.56, lips);
     float mouth = soft(0.0006 - abs(p.y - my), 0.0005) * (1.0 - smoothstep(0.021, 0.028, ax)) * step(0.08, p.z);
     // Shadowed mouth corners.
@@ -311,13 +439,14 @@ Look bodyLook() {
     // degrees so the outer corner sits higher).
     if (part > 8.5) {
       vec2 dq = vec2(ax - 0.0327, p.y - (pupil - 0.0004));
-      float u = dq.x * 0.99619 + dq.y * 0.08716;
+      float u = (dq.x * 0.99619 + dq.y * 0.08716) / uEyeWidth;
       float v = -dq.x * 0.08716 + dq.y * 0.99619;
       float hApt = 0.0049 * uEyeOpen * sqrt(max(0.0, 1.0 - (u / 0.0152) * (u / 0.0152)));
       float isUp = step(0.0, v);
       float dM = abs(v) - hApt;
       // Upper lash line: dense, thicker toward the outer corner; lower: a hint.
       float wLash = isUp > 0.5 ? mix(0.0007, 0.0014, smoothstep(-0.012, 0.012, u)) : 0.0005;
+      wLash *= mix(1.0, 0.48, uNaturalLid);
       float lash = 1.0 - smoothstep(wLash * 0.4, wLash, abs(dM));
       lash *= isUp > 0.5 ? 0.9 : 0.3;
       lash *= smoothstep(-0.0152, -0.011, u) * (1.0 - smoothstep(0.0135, 0.0158, u));
@@ -325,10 +454,10 @@ Look bodyLook() {
       float wall = (1.0 - smoothstep(-0.0002, 0.0005, dM)) * (1.0 - smoothstep(0.013, 0.0152, abs(u)));
       skin = mix(skin, skin * vec3(0.86, 0.8, 0.78), wall * 0.6);
       rough = mix(0.5, 0.25, wall);
-      skin = mix(skin, uHair * 0.18, lash);
+      skin = mix(skin, mix(uHair * 0.18, skin * vec3(0.48, 0.35, 0.31), uNaturalLid), lash * mix(1.0, 0.65, uNaturalLid));
       // Upper-lid crease: a soft shadow line following the margin, 7 mm up.
       float crease = (1.0 - smoothstep(0.0, 0.0022, abs(dM - 0.0068))) * isUp * smoothstep(-0.014, -0.006, u);
-      skin *= 1.0 - crease * 0.14;
+      skin *= 1.0 - crease * mix(0.14, 0.06, uNaturalLid);
     }
 
     // Eyebrows: strands along a gentle arch, denser at the head of the brow.
@@ -347,32 +476,62 @@ Look bodyLook() {
     skin = mix(skin, uHair * 0.62, brow * 0.8);
     height += brow * strand * 0.5;
 
+    // Photo-fitted face: the portrait itself, over the painted features it replaces.
+    float pm = vPhoto.z * uPhotoReady;
+    if (pm > 0.002) {
+      // The portrait with its own shading and colour (beard shadow, brows, eye sockets, flush), white-balanced
+      // so its skin averages the body's skin. Toward the edge the balance turns local (photo over a blurred copy
+      // of itself), so the fade meets the head with the same tone on both sides and no ring shows.
+      vec3 ph = textureGrad(uFacePhoto, vPhoto.xy, phDx, phDy).rgb;
+      // A blurred copy at a fixed size on the face (mip 4, about 16 texels of the portrait), or coarser
+      // where a pixel already covers more than that.
+      vec2 tsz = vec2(textureSize(uFacePhoto, 0));
+      float lodPh = log2(max(1.0, max(length(phDx * tsz), length(phDy * tsz))));
+      vec3 lo = textureLod(uFacePhoto, vPhoto.xy, max(4.0, lodPh + 1.0)).rgb;
+      vec3 local = ph / max(lo, vec3(0.004));
+      // The photo's broad shading (its light falling on cheekbones and sockets) is partly redundant with
+      // the renderer's own light on the fitted shape; keep uPhotoBroad of it (as a power) in the middle.
+      vec3 broad = pow(max(lo / max(uPhotoMean, vec3(0.01)), vec3(0.02)), vec3(uPhotoBroad * smoothstep(0.35, 0.95, pm)));
+      // Colour within the face (lips, flush, beard) relative to its brightness; a colour-cast photo keeps less of it.
+      vec3 ratio = local * broad;
+      ratio = mix(vec3(dot(ratio, vec3(0.2126, 0.7152, 0.0722))), ratio, uPhotoChroma);
+      vec3 photo = skin0 * clamp(ratio, 0.05, 2.2) * uPhotoGain;
+      skin = mix(skin, photo, pm);
+      height *= 1.0 - pm * 0.7;
+      poreAmt *= 1.0 - pm * 0.5;
+    }
+
     // Hair: mirrors hairAt() in anatomy.ts, with the same soft falloff.
     float hf = uHairFront + 0.007 * smoothstep(0.016, 0.044, ax);
-    float front = -0.5 * (p.y - hf) + 0.866 * (p.z - 0.07) + hairlineNoise(p.x, p.y, p.z);
+    // Straight hair grows to a smoother hairline than coiled hair's broken edge.
+    float front = -0.5 * (p.y - hf) + 0.866 * (p.z - 0.07) + hairlineNoise(p.x, p.y, p.z) * mix(1.0, 0.55, uHairStraight);
     float frontHair = smoothstep(0.006, -0.009, front);
     float y1 = mix(1.635, 1.69, smoothstep(0.016, 0.03, p.z));
     y1 = mix(y1, 1.672, smoothstep(0.006, -0.002, p.z));
     y1 = mix(y1, 1.594, smoothstep(-0.021, -0.065, p.z));
+    y1 -= uHairLow * 0.05 * smoothstep(0.03, 0.0, p.z);
     float hw = 0.006 + 0.008 * smoothstep(-0.03, -0.07, p.z);
     float sideHair = smoothstep(-hw * 0.5, hw, p.y - y1 + hairlineNoise(p.z, p.y, p.x) * 0.8);
     float sideGate = smoothstep(0.044, 0.064, ax);
-    hairMask = min(frontHair, sideHair) * step(1.575, p.y);
+    hairMask = min(frontHair, sideHair) * step(1.575 - uHairLow * 0.05, p.y);
     // Fine irregularity at the edge only.
-    hairMask = clamp(hairMask + (vnoise(p * 300.0) - 0.5) * 0.35 * hairMask * (1.0 - hairMask) * 4.0, 0.0, 1.0);
+    hairMask = clamp(hairMask + (vnoise(p * 300.0) - 0.5) * 0.35 * mix(1.0, 0.25, uHairStraight) * hairMask * (1.0 - hairMask) * 4.0, 0.0, 1.0);
     float top = smoothstep(1.7, 1.73, p.y) * (1.0 - sideGate * 0.5);
     float density = mix(uSides, 1.0, max(top, isHairVol ? 1.0 : 0.0));
     if (isHairVol) hairMask = max(hairMask, 0.98);
     // Strands flow front to back on top, down on the sides.
-    vec3 flow = p * vec3(1500.0, 1500.0, 220.0);
-    flow = mix(flow, p * vec3(1500.0, 260.0, 1500.0), sideGate * (1.0 - top));
+    // Tightly coiled hair reads as fine speckle; straight hair as long strands along its direction.
+    vec3 flowTop = mix(vec3(1500.0, 1500.0, 220.0), vec3(2600.0, 2600.0, 80.0), uHairStraight);
+    vec3 flowSide = mix(vec3(1500.0, 260.0, 1500.0), vec3(2600.0, 90.0, 2600.0), uHairStraight);
+    vec3 flow = mix(p * flowTop, p * flowSide, sideGate * (1.0 - top));
     float strands = vnoise(flow);
     float clump = vnoise(p * 140.0);
-    vec3 hairCol = uHair * (0.7 + strands * 0.45 + clump * 0.2);
+    vec3 hairCol = uHair * mix(0.7 + strands * 0.45 + clump * 0.2, 0.82 + strands * 0.28 + clump * 0.12, uHairStraight);
     vec3 scalp = skin * 0.86;
     vec3 hairArea = mix(scalp, hairCol, density * (0.75 + 0.25 * strands));
     skin = mix(skin, hairArea, hairMask);
-    rough = mix(rough, 0.52, hairMask);
+    // Matte enough that the cap never reads as a helmet; the shell above carries the strand sheen.
+    rough = mix(rough, mix(0.7, 0.6, uHairStraight), hairMask);
     height = mix(height, strands * 0.8 + clump * 0.4, hairMask);
     sweatMask *= 1.0 - hairMask * 0.6;
     L.sss = 1.0 - hairMask * 0.7;
@@ -398,19 +557,20 @@ Look bodyLook() {
 
   // ---- singlet ----------------------------------------------------------
   float frontF = smoothstep(-0.05, 0.03, p.z);
-  float scoopF = mix(1.462, 1.36, smoothstep(0.082, 0.03, ax));
-  float scoopB = mix(1.462, 1.31, smoothstep(0.08, 0.024, ax));
+  float scoopF = mix(1.462, mix(1.36, 1.285, uCut), smoothstep(0.082, 0.03, ax));
+  float scoopB = mix(1.462, mix(1.31, 1.215, uCut), smoothstep(0.08, 0.024, ax));
   float scoop = mix(scoopB, scoopF, frontF);
-  float strapOuter = 0.13;
-  float armhole = 1.24 - max(0.0, ax - strapOuter) * 1.6;
-  float inStrap = aa(ax - 0.078) * aa(strapOuter - ax);
+  // A low-cut singlet has narrower straps and armholes cut down the ribs.
+  float strapOuter = mix(0.13, 0.118, uCut);
+  float armhole = mix(1.24, 1.15, uCut) - max(0.0, ax - strapOuter) * 1.6;
+  float inStrap = aa(ax - mix(0.078, 0.088, uCut)) * aa(strapOuter - ax);
   float topY = mix(ax < strapOuter ? scoop : armhole, 1.62, inStrap);
   float topDist = topY - p.y;
 
   vec3 hip = vec3(side * 0.09, 0.925, 0.0);
   vec3 thighDir = vec3(side * 0.0698, -0.9976, 0.0);
   float alongT = dot(p - hip, thighDir);
-  float legDist = 0.2 - alongT;
+  float legDist = uLegLen - alongT;
 
   float singlet = 0.0;
   float edge = 1.0;
@@ -422,6 +582,7 @@ Look bodyLook() {
     edge = legDist;
   }
 
+  if (uReferee > 0.5) singlet = 0.0;
   if (singlet > 0.0) {
     // Very dark team colours (navy) are lifted so their hue survives the
     // lights and the tone curve instead of collapsing to charcoal.
@@ -433,22 +594,37 @@ Look bodyLook() {
     float halfW = 0.036;
     float lateralOk = isTorso ? aa(ax - 0.07) * soft(1.3 - p.y, 0.01) : aa(p.x * side - 0.1);
     float dz = abs(p.z - zc);
-    float panel = aa(halfW - dz) * lateralOk;
+    // Two-tone: the upper body (chest, shoulders, straps) in its own colour.
+    if (isTorso && uTop.w > 0.5) kit = mix(kit, uTop.rgb, aa(p.y - (1.272 + ax * 0.25)));
+    // Horizontal band across the chest and back, an older design.
+    if (isTorso && uChestBand.w > 0.5) kit = mix(kit, uChestBand.rgb, aa(0.022 - abs(p.y - uBandY)));
+    float panel = aa(halfW - dz) * lateralOk * uPanel;
     kit = mix(kit, uSecondary, panel);
     // Piping along both panel edges.
-    float pipe = (1.0 - smoothstep(0.0016, 0.003, abs(dz - halfW))) * lateralOk;
+    float pipe = (1.0 - smoothstep(0.0016, 0.003, abs(dz - halfW))) * lateralOk * uPanel;
     kit = mix(kit, uPiping, pipe);
     float lateral = dz - halfW;
     float panelEdge = 0.0;
     // Binding at the openings.
     float bind = (1.0 - smoothstep(0.004, 0.0065, edge)) * singlet;
     kit = mix(kit, uPiping, bind);
+    // Wide contrasting cuff at the leg hem.
+    if (isLeg && uCuff.w > 0.5) kit = mix(kit, uCuff.rgb, (1.0 - smoothstep(0.034, 0.037, edge)) * singlet);
+    // Two thin stripes just above the leg hem.
+    if (isLeg && uHemStripes.w > 0.5) {
+      float hs = (1.0 - smoothstep(0.0028, 0.0045, abs(edge - 0.016))) + (1.0 - smoothstep(0.0028, 0.0045, abs(edge - 0.029)));
+      kit = mix(kit, uHemStripes.rgb, clamp(hs, 0.0, 1.0) * singlet);
+    }
 
     // Wordmark across the chest.
-    vec2 uv = vec2(0.5 + p.x / 0.2, (p.y - 1.236) / 0.05);
+    vec2 uv = vec2(0.5 + p.x / mix(0.2, 0.32, uChestEmblem), (p.y - mix(1.236, 1.17, uChestEmblem)) / mix(0.05, 0.15, uChestEmblem));
     float inMark = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0) * smoothstep(0.02, 0.05, p.z) * (isTorso ? 1.0 : 0.0);
-    float ink = texture2D(uWordmark, uv).a * inMark;
-    kit = mix(kit, uWordmarkColor, ink * 0.95);
+    vec4 emblem = texture2D(uWordmark, uv);
+    float ink = emblem.a * inMark;
+    kit = mix(kit, mix(uWordmarkColor, emblem.rgb, uChestEmblem), ink * 0.95);
+
+    float legStripe = (1.0 - smoothstep(0.003, 0.006, abs(p.y - 0.735))) + (1.0 - smoothstep(0.003, 0.006, abs(p.y - 0.753)));
+    kit = mix(kit, uPiping, clamp(legStripe, 0.0, 1.0) * uChestEmblem * (1.0 - uCuff.w) * singlet);
 
     // Lycra: fine knit, seams, tight sheen.
     float knit = vnoise(vec3(p.x * 2600.0, p.y * 900.0, p.z * 2600.0));
@@ -462,6 +638,43 @@ Look bodyLook() {
     float rowH = (1.0 - smoothstep(0.0003, 0.0007, abs(edge - 0.0105))) * step(0.0, edge);
     float stitch = max(rowA, rowH) * dash * fineFade;
     kit = mix(kit, mix(kit, vec3(1.0), 0.25), stitch * 0.6);
+    // Lycra clings: abs, obliques and the lower pec read through it as shading,
+    // crisp at any mesh resolution and any camera distance.
+    if (isTorso && p.z > 0.0) {
+      // Real abs aren't a grid: rows slope up and out, sit unevenly left to right,
+      // narrow toward the navel, and the grooves are soft valleys.
+      float wob = (vnoise(vec3(p.y * 26.0, side * 3.0, 1.7)) - 0.5) * 0.006;
+      float zone = (1.0 - smoothstep(0.044 + (p.y - 1.08) * 0.09, 0.07, ax + wob)) * smoothstep(1.045, 1.09, p.y) * (1.0 - smoothstep(1.235, 1.275, p.y));
+      float tilt = ax * 0.16 + ax * ax * 1.6;
+      float rows = (1.0 - smoothstep(0.0018, 0.0085, abs(p.y - 1.236 - tilt - side * 0.0016))) * 0.8;
+      rows = max(rows, 1.0 - smoothstep(0.0018, 0.0085, abs(p.y - 1.179 - tilt + side * 0.0022)));
+      rows = max(rows, (1.0 - smoothstep(0.0018, 0.0085, abs(p.y - 1.122 - tilt * 0.7 - side * 0.0012))) * 0.85);
+      float linea = (1.0 - smoothstep(0.0012, 0.0075, abs(p.x + (p.y - 1.15) * 0.012 + wob * 0.3))) * mix(0.75, 1.0, smoothstep(1.2, 1.1, p.y));
+      float groove = max(rows, linea) * zone;
+      groove = max(groove, (1.0 - smoothstep(0.003, 0.013, abs(ax - 0.062 - (1.15 - p.y) * 0.03 + wob))) * smoothstep(1.06, 1.11, p.y) * (1.0 - smoothstep(1.225, 1.265, p.y)) * 0.7);
+      float inguinal = (1.0 - smoothstep(0.002, 0.008, abs((p.y - 0.985) - (ax - 0.02) * 0.82))) * smoothstep(0.015, 0.03, ax) * (1.0 - smoothstep(0.09, 0.115, ax)) * 0.7;
+      float serratus = (1.0 - smoothstep(0.003, 0.012, abs(ax - 0.112 + (p.y - 1.2) * 0.2))) * smoothstep(1.13, 1.17, p.y) * (1.0 - smoothstep(1.22, 1.26, p.y)) * 0.45;
+      float pecLine = (1.0 - smoothstep(0.0024, 0.01, abs(p.y - 1.283 - (ax - 0.075) * (ax - 0.075) * 3.0))) * smoothstep(0.004, 0.02, ax) * (1.0 - smoothstep(0.12, 0.15, ax)) * 0.8;
+      float cut = clamp(max(max(groove, inguinal), max(serratus, pecLine)), 0.0, 1.0) * uAbs;
+      kit *= 1.0 - cut * 0.27;
+      float block = zone * (1.0 - groove) * uAbs;
+      // Black kit can't get darker, so light the blocks for the grooves to read against.
+      kit += vec3(0.022) * block;
+      height -= cut * 0.8 * singlet;
+      gAbs = zone * uAbs * singlet;
+    }
+    // The back reads through the cloth too: spine channel, shoulder blades, lats.
+    if (isTorso && p.z <= 0.0) {
+      float wobB = (vnoise(vec3(p.y * 22.0, side * 3.0, 4.1)) - 0.5) * 0.005;
+      float spine = (1.0 - smoothstep(0.002, 0.012, ax + wobB)) * smoothstep(1.0, 1.06, p.y) * (1.0 - smoothstep(1.36, 1.44, p.y));
+      vec2 sq = vec2((ax - 0.09) / 0.052, (p.y - 1.355) / 0.078);
+      float scap = (1.0 - smoothstep(0.0, 0.2, abs(length(sq) - 1.0))) * smoothstep(1.26, 1.3, p.y) * (1.0 - smoothstep(0.1, 0.16, ax - 0.09)) * 0.75;
+      float lat = (1.0 - smoothstep(0.003, 0.014, abs(ax - 0.05 - (p.y - 1.06) * 0.42 + wobB))) * smoothstep(1.06, 1.1, p.y) * (1.0 - smoothstep(1.24, 1.3, p.y)) * 0.6;
+      float back = clamp(max(spine, max(scap, lat)), 0.0, 1.0) * uAbs;
+      kit *= 1.0 - back * 0.27;
+      kit += vec3(0.012) * uAbs * (1.0 - back) * smoothstep(1.05, 1.15, p.y) * (1.0 - smoothstep(0.1, 0.13, ax));
+      height -= back * 0.8 * singlet;
+    }
     L.color = mix(L.color, kit, singlet);
     L.rough = mix(L.rough, 0.6 - ink * 0.1, singlet);
     L.coat = mix(L.coat, 0.0, singlet);
@@ -472,6 +685,48 @@ Look bodyLook() {
     L.cloth = singlet;
     height = mix(height, knit * 0.25 * fineFade - seam * 0.6 + bind * 0.5, singlet);
     red = 0.0;
+  }
+  // Tights under the singlet, hip to ankle: matte knit, no skin showing.
+  if (uTights.w > 0.5 && isLeg && uReferee < 0.5) {
+    float tights = (1.0 - singlet) * aa(p.y - 0.13);
+    float tknit = vnoise(vec3(p.x * 2200.0, p.y * 800.0, p.z * 2200.0));
+    vec3 tcol = uTights.rgb * mix(1.0, 1.6, 1.0 - smoothstep(0.004, 0.05, dot(uTights.rgb, vec3(0.2126, 0.7152, 0.0722))));
+    L.color = mix(L.color, tcol * (0.96 + tknit * 0.06 * fineFade), tights);
+    L.rough = mix(L.rough, 0.66, tights);
+    L.coat = mix(L.coat, 0.0, tights);
+    L.sheen = mix(L.sheen, tcol * 0.5, tights);
+    L.sheenRough = mix(L.sheenRough, 0.5, tights);
+    L.sss = mix(L.sss, 0.0, tights);
+    L.cloth = max(L.cloth, tights);
+    height = mix(height, tknit * 0.2 * fineFade, tights);
+    red = mix(red, 0.0, tights);
+  }
+
+  // ---- official's uniform ------------------------------------------------
+  if (uReferee > 0.5) {
+    vec3 black = vec3(0.022, 0.024, 0.03);
+    vec3 shoulder = vec3(side * 0.19, 1.43, -0.025);
+    vec3 armDir = normalize(vec3(side * 0.788, -0.616, 0.0));
+    float armAlong = dot(p - shoulder, armDir);
+    float sleeve = isArm ? aa(0.15 - armAlong) : 0.0;
+    float shirt = isTorso ? aa(p.y - 1.0) : sleeve;
+    float slacks = clamp((isTorso ? aa(1.0 - p.y) : 0.0) + (isLeg ? 1.0 : 0.0), 0.0, 1.0);
+    float collar = isTorso ? aa(p.y - 1.44) * aa(0.075 - ax) : 0.0;
+    float stripe = step(0.5, fract((p.x + 0.0125) / 0.05));
+    vec3 shirtCol = mix(mix(vec3(0.9, 0.9, 0.88), black, stripe), black, collar);
+    float clothed = clamp(shirt + slacks, 0.0, 1.0);
+    L.color = mix(L.color, shirtCol, shirt);
+    L.color = mix(L.color, black, slacks);
+    L.rough = mix(L.rough, 0.86, clothed);
+    L.coat = mix(L.coat, 0.0, clothed);
+    L.sheen = mix(L.sheen, vec3(0.08), clothed);
+    L.sss = mix(L.sss, 0.0, clothed);
+    height = mix(height, 0.0, clothed);
+    red = mix(red, 0.0, clothed);
+    float wristBand = isArm ? aa(armAlong - 0.485) * aa(0.53 - armAlong) : 0.0;
+    vec3 wristCol = side > 0.0 ? vec3(0.75, 0.08, 0.07) : vec3(0.08, 0.55, 0.2);
+    L.color = mix(L.color, wristCol, wristBand);
+    L.sss = mix(L.sss, 0.0, wristBand);
   }
 
   // ---- ankle band -------------------------------------------------------
@@ -600,11 +855,32 @@ export function createRealBodyMaterial(look: RealLook, share?: RealBodyMaterial)
     sheenColor: new Color('#ffffff'),
   }) as RealBodyMaterial;
 
+  const photoReady: IUniform = { value: 0 };
   const uniforms: Record<string, IUniform> = share ? share.userData.uniforms : {
     uSkin: { value: new Color(look.skin) },
     uHair: { value: new Color(look.hair) },
     uPrimary: { value: new Color(look.primary) },
     uSecondary: { value: new Color(look.secondary) },
+    uChestEmblem: { value: look.chestEmblem ? 1 : 0 },
+    // Until the portrait has loaded the face keeps its painted features.
+    uPhotoReady: photoReady,
+    uFacePhoto: { value: facePhotoTexture(look.facePhoto, photoReady) },
+    uPhotoGain: { value: look.photoGain ?? 1 },
+    uPhotoBroad: { value: 0.7 },
+    uPhotoChroma: { value: look.photoChroma ?? 0.8 },
+    uPhotoMean: { value: new Color(look.photoMean ?? '#808080') },
+    uCut: { value: look.kit?.cut ?? 0 },
+    uLegLen: { value: look.kit?.leg ?? 0.2 },
+    uPanel: { value: look.kit?.panel === false ? 0 : 1 },
+    uTop: { value: colourOn(look.kit?.top) },
+    uCuff: { value: colourOn(look.kit?.cuff) },
+    uChestBand: { value: colourOn(look.kit?.chestBand) },
+    uBandY: { value: look.kit?.bandY ?? 1.29 },
+    uHemStripes: { value: colourOn(look.kit?.hemStripes) },
+    uTights: { value: colourOn(look.kit?.tights) },
+    uReferee: { value: look.referee ? 1 : 0 },
+    uBaseHead: { value: look.baseHead ? 1 : 0 },
+    uAbs: { value: look.abs ?? 0 },
     uWordmarkColor: { value: new Color(look.wordmarkColor ?? look.secondary) },
     uPiping: { value: new Color(look.piping) },
     uBand: { value: new Color(look.band) },
@@ -616,11 +892,13 @@ export function createRealBodyMaterial(look: RealLook, share?: RealBodyMaterial)
     uFaceLen: { value: look.faceLen },
     uStubble: { value: look.stubble },
     uSides: { value: look.sides },
-    uWordmark: { value: wordmarkTexture(look.wordmark.toUpperCase()) },
+    uHairStraight: { value: look.hairStraight ?? 0 },
+    uWordmark: { value: wordmarkTexture(look.wordmark.toUpperCase(), look.chestEmblem) },
     uBumpAmt: { value: dbgParam('bump', 1) },
     uBrowLift: { value: look.brow[0] },
     uClay: { value: dbgParam('clay', 0) },
     uHairFront: { value: look.hairFront },
+    uHairLow: { value: look.hairLow ?? 0 },
     uSmile: { value: look.smile },
     uSSSAmt: { value: dbgParam('sss', 1) },
     uBrowSlope: { value: look.brow[1] },
@@ -629,7 +907,10 @@ export function createRealBodyMaterial(look: RealLook, share?: RealBodyMaterial)
     uAOAmt: { value: dbgParam('ao', 1) },
     uHeadScale: { value: look.headScale },
     uEyeOpen: { value: look.eyeOpen },
+    uNaturalLid: { value: look.naturalLidFold ? 1 : 0 },
     uNose: { value: look.nose },
+    uEyeWidth: { value: look.eyeWidth ?? 1 },
+    uNaturalNose: { value: look.naturalNasalBase ? 1 : 0 },
   };
   mat.userData.uniforms = uniforms;
 
@@ -650,7 +931,7 @@ export function createRealBodyMaterial(look: RealLook, share?: RealBodyMaterial)
       )
       .replace(
         '#include <begin_vertex>',
-        '#include <begin_vertex>\nvBind = position;\nvBindN = normal;\nvPart = aPart;\nvAO = aAO;',
+        '#include <begin_vertex>\nvBind = position;\nvBindN = normal;\nvPart = aPart;\nvAO = aAO;\nvPhoto = aPhoto;',
       );
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${FRAGMENT_HEAD}`)
@@ -663,7 +944,7 @@ export function createRealBodyMaterial(look: RealLook, share?: RealBodyMaterial)
       .replace(
         '#include <normal_fragment_maps>',
         `{
-          normal = normalize( mix( normal, normalize( vSmoothN ) * faceDirection, gCloth * 0.85 ) );
+          normal = normalize( mix( normal, normalize( vSmoothN ) * faceDirection, gCloth * 0.85 * ( 1.0 - gAbs * 0.5 ) ) );
           vec2 dH = vec2( dFdx( gH ), dFdy( gH ) ) * 0.0016 * uBumpAmt;
           normal = realPerturb( - vViewPosition, normal, dH, faceDirection );
         }`,
@@ -681,7 +962,8 @@ export function createRealBodyMaterial(look: RealLook, share?: RealBodyMaterial)
       .replace(
         '#include <aomap_fragment>',
         `{
-          float ao = mix( 1.0, clamp( vAO, 0.0, 1.0 ), uAOAmt * ( 1.0 - gCloth * 0.85 ) * gFaceAO );
+          // A photo face carries its own occlusion; the baked value under it was measured on the unwarped head.
+          float ao = mix( 1.0, clamp( vAO, 0.0, 1.0 ), uAOAmt * ( 1.0 - gCloth * 0.85 ) * gFaceAO * ( 1.0 - max( smoothstep( 0.55, 1.0, vPhoto.z * uPhotoReady ), vPhoto.w ) * 0.85 ) );
           float aoSoft = mix( 1.0, ao * ao, 0.9 );
           // Occlusion on skin keeps its red (light bleeds through the crease), so
           // creases read as warm form shadow rather than grey grime.

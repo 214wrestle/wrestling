@@ -1,10 +1,13 @@
 import { careerCredentials } from '../sim/credentials';
+import { schoolLabel } from '../sim/schoolAbbr';
 import './branding.css';
 import { wrestlerFamilyNote, morenoMatchupNote, ncaaMatchupNotes, historicalMeetingText } from '../sim/easterEggs';
 import { useEffect, useState } from 'react';
 import type { Difficulty } from '../sim/ai';
 import { MEET, ROSTER, LEGENDS_TEAMS, LEGENDS_WEIGHTS, byId } from '../sim/roster';
 import type { Wrestler } from '../sim/types';
+import { cornerPick, marquee, pickList } from '../sim/dual';
+import { tournamentField } from '../sim/tournament';
 import type { GameApi, UiState } from '../game/store';
 import { Key } from './glyphs';
 
@@ -23,7 +26,8 @@ const ATTRS: Array<[Exclude<keyof Wrestler['attributes'], 'legRiding'>, string]>
   ['defense', 'Defense'],
 ];
 
-function Tile({ w, on, onPick, corner }: { w: Wrestler; on: boolean; onPick: () => void; corner?: 'red' | 'green' }) {
+/** A wrestler's card. An Icon shows his own school, except in a dual (`team`), where he wrestles for the Icons. */
+export function Tile({ w, on, onPick, corner, team = false }: { w: Wrestler; on: boolean; onPick: () => void; corner?: 'red' | 'green'; team?: boolean }) {
   return (
     <button
       type="button"
@@ -33,7 +37,7 @@ function Tile({ w, on, onPick, corner }: { w: Wrestler; on: boolean; onPick: () 
       aria-pressed={on}
     >
       <span className="tile__flag" />
-      <span className="tile__school">{w.school.name}</span>
+      <span className="tile__school">{schoolLabel(w, team).name}</span>
       <span className="tile__name-row"><span className="tile__name">
         <span className="tile__first">{w.firstName}</span> {w.lastName}
       </span><span className="tile__rating" title={w.rating === undefined ? "Historical rating research pending" : "Overall rating"}>{w.rating ?? "Unrated"}</span></span>
@@ -52,6 +56,10 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
   const [opponent, setOpponent] = useState(state.matchup[1]);
   const [difficulty, setDifficulty] = useState<Difficulty>(state.difficulty);
   const [quick, setQuick] = useState(state.quick);
+  // Single match or a dual meet (owner, November 10: all 12 weights, pick your man at each one).
+  const [mode, setMode] = useState<'single' | 'dual' | 'tournament'>(state.dual ? 'dual' : state.tournament ? 'tournament' : 'single');
+  // Dual order: up from 118 (owner), or an NCAA-style draw for the starting weight.
+  const [draw, setDraw] = useState(false);
 
   useEffect(() => {
     api.preview([pick, opponent]);
@@ -75,7 +83,13 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
     setPick(a.id); setOpponent(b.id); setTheirTeam(b.school.id);
   };
 
-  const go = () => api.start({ humanSide: 0, difficulty, matchup: [pick, opponent], quick });
+  const dualTeams: [string, string] = [yourTeam, theirTeam !== yourTeam ? theirTeam : LEGENDS_TEAMS.find(t => t.id !== yourTeam)!.id];
+  const dualReady = difficulty !== 'practice';
+  const go = () => mode === 'tournament'
+    ? dualReady && api.startTournament({ pick, difficulty, quick })
+    : mode === 'dual'
+    ? dualReady && api.startDual({ teams: dualTeams, difficulty, quick, draw })
+    : api.start({ humanSide: 0, difficulty, matchup: [pick, opponent], quick });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -103,6 +117,36 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
         </header>
 
         <section className="field">
+          <h2>Mode</h2>
+          <div className="seg">
+            <button type="button" className={`seg__btn ${mode === 'single' ? 'seg__btn--on' : ''}`} onClick={() => setMode('single')} aria-pressed={mode === 'single'}>Single match</button>
+            <button type="button" className={`seg__btn ${mode === 'dual' ? 'seg__btn--on' : ''}`} onClick={() => setMode('dual')} aria-pressed={mode === 'dual'}>Dual meet</button>
+            <button type="button" className={`seg__btn ${mode === 'tournament' ? 'seg__btn--on' : ''}`} onClick={() => setMode('tournament')} aria-pressed={mode === 'tournament'}>Tournament</button>
+          </div>
+          <p className="field__note">{mode === 'tournament' ? 'One weight, the best 32 by rating from any school (yours always in), seeded, teammates apart in the first round. Championship bracket and NCAA double-elimination consolations, places 1st to 8th. Wrestle or sim your matches.' : mode === 'dual' ? 'Team against team at all 12 weights. Before each bout you pick your wrestler at that weight; wrestle the bout or sim it.' : 'One bout at one weight.'}</p>
+        </section>
+
+        {mode === 'dual' ? <section className="field">
+          <h2>Your team</h2>
+          <select aria-label="Your team" className="roster-select" value={yourTeam} onChange={e => setYourTeam(e.target.value)}>
+            {LEGENDS_TEAMS.map(t => <option key={t.id} value={t.id}>{t.team}</option>)}
+          </select>
+          <h2>Opponent team</h2>
+          <select aria-label="Opponent team" className="roster-select" value={dualTeams[1]} onChange={e => setTheirTeam(e.target.value)}>
+            {LEGENDS_TEAMS.filter(t => t.id !== yourTeam).map(t => <option key={t.id} value={t.id}>{t.team}</option>)}
+          </select>
+          <p className="field__note">{LEGENDS_TEAMS.find(t => t.id === dualTeams[1])?.staff.join(' · ')}</p>
+          <h2>First bout</h2>
+          <div className="seg">
+            <button type="button" className={`seg__btn ${!draw ? 'seg__btn--on' : ''}`} onClick={() => setDraw(false)} aria-pressed={!draw}>118 and up</button>
+            <button type="button" className={`seg__btn ${draw ? 'seg__btn--on' : ''}`} onClick={() => setDraw(true)} aria-pressed={draw}>Draw: marquee last</button>
+          </div>
+          <p className="field__note">{draw ? (() => {
+            const m = marquee(dualTeams);
+            return `The draw saves the marquee bout for last: ${m.weight === 285 ? 'HWT' : m.weight}, ${m.ours.lastName} vs ${m.theirs.lastName} (${m.titles} titles between them). The bouts start at the next weight and wrap round.`;
+          })() : '118 first, then 125, 133 and on up to heavyweight.'}</p>
+        </section> : <>
+        <section className="field">
           <h2>Weight class</h2>
           <select aria-label="Weight class" className="roster-select" value={weight} onChange={e => changeWeight(Number(e.target.value))}>
             {LEGENDS_WEIGHTS.map(w => <option key={w} value={w}>{w === 285 ? 'HWT' : `${w} lbs`}</option>)}
@@ -122,7 +166,7 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
           </div>
         </section>
 
-        <section className="field">
+        {mode === 'single' && <section className="field">
           <h2>Opponent team</h2>
           <select aria-label="Opponent team" className="roster-select" value={theirTeam} onChange={e => {
             setTheirTeam(e.target.value);
@@ -137,13 +181,13 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
               <Tile key={w.id} w={w} on={opponent === w.id} onPick={() => setOpponent(w.id)} corner="green" />
             ))}
           </div>
-        </section>
+        </section>}</>}
 
         <section className="field field--row">
           <div className="field__col">
             <h2>Difficulty</h2>
             <div className="seg">
-              {DIFFICULTIES.map((d) => (
+              {DIFFICULTIES.filter((d) => mode === 'single' || d.id !== 'practice').map((d) => (
                 <button
                   key={d.id}
                   type="button"
@@ -171,11 +215,11 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
           </div>
         </section>
 
-        {[you, them].filter(w => wrestlerFamilyNote(w)).map(w => <p className="field__note matchup-history" key={`family-${w.id}`}>{wrestlerFamilyNote(w)}</p>)}
-        {ncaaMatchupNotes(you, them).map(meeting => <p className="field__note matchup-history" key={`${meeting.year}-${meeting.round}-${meeting.weight}`}><strong>NCAA history:</strong> {historicalMeetingText(meeting)} <a href={meeting.source} target="_blank" rel="noopener noreferrer">View source</a></p>)}
+        {mode === 'single' && [you, them].filter(w => wrestlerFamilyNote(w)).map(w => <p className="field__note matchup-history" key={`family-${w.id}`}>{wrestlerFamilyNote(w)}</p>)}
+        {mode === 'single' && ncaaMatchupNotes(you, them).map(meeting => <p className="field__note matchup-history" key={`${meeting.year}-${meeting.round}-${meeting.weight}`}><strong>NCAA history:</strong> {historicalMeetingText(meeting)} <a href={meeting.source} target="_blank" rel="noopener noreferrer">View source</a></p>)}
 
         <button type="button" className="cta" onClick={go}>
-          <span>{difficulty==='practice'?'Practice':'Wrestle'}</span>
+          <span>{mode === 'tournament' ? (dualReady ? 'Start the tournament' : 'Pick a difficulty') : mode === 'dual' ? (dualReady ? 'Start the dual' : 'Pick a difficulty') : difficulty==='practice'?'Practice':'Wrestle'}</span>
           <Key>Enter</Key>
         </button>
 
@@ -206,11 +250,57 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
         </div>
       </aside>
 
+      {mode === 'tournament' ? <section className="tape" aria-label="Tournament field">
+        <div className="tape__head">
+          <div className="tape__side" style={{ ['--school' as string]: you.school.primary }}>
+            <span className="tape__corner tape__corner--red" />
+            <span className="tape__name">{weight === 285 ? 'Heavyweight' : `${weight} lbs`} field</span>
+          </div>
+        </div>
+        <table className="dual-sheet">
+          <thead><tr><th>Seed</th><th>Wrestler</th><th>Team</th><th>Rating</th></tr></thead>
+          <tbody>
+            {tournamentField(weight, you).map((id, i) => {
+              const w = byId(id);
+              return <tr key={id} className={id === pick ? 'dual-sheet__now' : ''}>
+                <td>{i + 1}</td><td>{w.firstName} {w.lastName}</td><td>{schoolLabel(w).name}</td><td><em>{w.rating ?? '—'}</em></td>
+              </tr>;
+            })}
+          </tbody>
+        </table>
+        <p className="field__note">The best 32 at the weight by rating, your pick always in, seeded by rating; teammates never meet in the first round.</p>
+      </section> : mode === 'dual' ? <section className="tape" aria-label="Dual lineups">
+        <div className="tape__head">
+          <div className="tape__side" style={{ ['--school' as string]: you.school.primary }}>
+            <span className="tape__corner tape__corner--red" />
+            <span className="tape__name">{LEGENDS_TEAMS.find(t => t.id === dualTeams[0])?.team}</span>
+          </div>
+          <div className="tape__vs">vs</div>
+          <div className="tape__side tape__side--right">
+            <span className="tape__corner tape__corner--green" />
+            <span className="tape__name">{LEGENDS_TEAMS.find(t => t.id === dualTeams[1])?.team}</span>
+          </div>
+        </div>
+        <table className="dual-sheet">
+          <thead><tr><th>Wt</th><th>Your options (you pick before each bout)</th><th>Their starter</th></tr></thead>
+          <tbody>
+            {LEGENDS_WEIGHTS.map(wt => {
+              const mine = pickList(dualTeams[0], wt), theirs = cornerPick(dualTeams[1], wt);
+              return <tr key={wt}>
+                <td>{wt === 285 ? 'HWT' : wt}</td>
+                <td>{mine[0].firstName} {mine[0].lastName} <em>{mine[0].rating ?? '—'}</em>{mine.length > 1 && <span className="dual-sheet__more"> +{mine.length - 1} more</span>}</td>
+                <td>{theirs.firstName} {theirs.lastName} <em>{theirs.rating ?? '—'}</em></td>
+              </tr>;
+            })}
+          </tbody>
+        </table>
+        <p className="field__note">Nothing is set up front: when each bout comes up you pick your wrestler at that weight from your list, highest rating first. Decision 3, major 4, tech fall 5, fall 6.</p>
+      </section> :
       <section className="tape" aria-label="Tale of the tape">
         <div className="tape__head">
           <div className="tape__side" style={{ ['--school' as string]: you.school.primary }}>
             <span className="tape__corner tape__corner--red" />
-            <span className="tape__school">{you.school.name}</span>
+            <span className="tape__school">{schoolLabel(you).name}</span>
             <span className="tape__name">{you.firstName} {you.lastName}</span>
             <span className="tape__meta">
               {you.weightClass === 285 ? 'HWT' : `${you.weightClass} lbs`} · Legends
@@ -219,7 +309,7 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
           <div className="tape__vs">vs</div>
           <div className="tape__side tape__side--right" style={{ ['--school' as string]: them.school.primary }}>
             <span className="tape__corner tape__corner--green" />
-            <span className="tape__school">{them.school.name}</span>
+            <span className="tape__school">{schoolLabel(them).name}</span>
             <span className="tape__name">{them.firstName} {them.lastName}</span>
             <span className="tape__meta">
               {them.weightClass === 285 ? 'HWT' : `${them.weightClass} lbs`} · Legends
@@ -255,7 +345,11 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
           <span>“{you.style}”</span>
           <span>“{them.style}”</span>
         </div>
-      </section>
+        {(you.signature || them.signature) && <div className="tape__styles tape__signature">
+          <span>{you.signature ? `Signature: ${you.signature.label}` : ''}</span>
+          <span>{them.signature ? `Signature: ${them.signature.label}` : ''}</span>
+        </div>}
+      </section>}
     </div>
   );
 }

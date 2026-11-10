@@ -1,12 +1,12 @@
 import {registerHold,registerMove} from '../clips';
 import {holdAt,BALL,POST} from './kit';
 registerHold({id:'legRide',A:[
- {base:holdAt('ride','A',0),hips:[0.28,0.5,-0.14],kneeL:[0.4,0.2,0.15],footL:[0.35,0.12,-0.1,0,35]},
+ {base:holdAt('rideLegWork','A',0),hips:[0.28,0.5,-0.14],kneeL:[0.4,0.2,0.15],footL:[0.35,0.12,-0.1,0,35]},
  {hips:[0.12,0.54,-0.08],rot:[-8,38,0],kneeL:[0.26,0.34,0.1],footL:[0.08,0.25,0.21,0,45],footR:[0.3,BALL,-0.48,0,65],handL:[0.17,0.36,0.34],handR:[-0.08,0.4,0.03]}],
- B:[{base:holdAt('ride','B',0)},{hips:[0,0.44,-0.02],kneeL:[.4,.3,.3],kneeR:[-.4,.3,.3],handL:[0.16,POST,0.4],handR:[-0.16,POST,0.4],elbowL:[0.2,0.26,0.2],elbowR:[-0.2,0.26,0.2]}],
+ B:[{base:holdAt('rideLegWork','B',0)},{hips:[0,0.44,-0.02],kneeL:[.4,.3,.3],kneeR:[-.4,.3,.3],handL:[0.16,POST,0.4],handR:[-0.16,POST,0.4],elbowL:[0.2,0.26,0.2],elbowR:[-0.2,0.26,0.2]}],
  contacts:[{who:'A',hand:'L',on:'forearmL',at:[0,-0.02,0]},{who:'A',hand:'R',on:'hips',at:[-0.08,0.02,0.08]}],struggle:{A:0.6,B:0.8},tempo:1.5});
-registerHold({id:'closedPockets',A:[{base:holdAt('ride','A',0)},{base:holdAt('ride','A',0)}],
- B:[{base:holdAt('ride','B',0)},{base:holdAt('ride','B',0),handL:[0.12,0.28,0.16],handR:[-0.12,0.28,0.16],elbowL:[0.17,0.3,-0.02],elbowR:[-0.17,0.3,-0.02]}],struggle:{A:0.5,B:0.5},tempo:1.4});
+registerHold({id:'closedPockets',A:[{base:holdAt('rideLegWork','A',0)},{base:holdAt('rideLegWork','A',0)}],
+ B:[{base:holdAt('rideLegWork','B',0)},{base:holdAt('rideLegWork','B',0),handL:[0.12,0.28,0.16],handR:[-0.12,0.28,0.16],elbowL:[0.17,0.3,-0.02],elbowR:[-0.17,0.3,-0.02]}],struggle:{A:0.5,B:0.5},tempo:1.4});
 // Catch first, then shift weight over the free-hand post. The rider follows
 // the hip displacement while keeping waist control; catching a leg is no escape.
 registerHold({id:'catchRidingLeg',A:[
@@ -35,11 +35,11 @@ registerHold({id:'closedPocketsFlat',
 // split the legs, chest over the front thigh, then circle below the rider.
 // Authoring lab only: no automatic escape or reversal is implied by this pose.
 registerHold({id:'seatedLegDefense',
- A:[{base:holdAt('ride','A',0),hips:[.12,.105,-.32],rot:[-5,38,0],
+ A:[{base:holdAt('rideLegWork','A',0),hips:[.12,.105,-.32],rot:[-5,38,0],
      spine:[12,0,0],palms:[0,1],footL:[.25,.10,.30,0,55],kneeL:[.65,.05,.05],
      footR:[-.44,BALL,-.42,0,70],kneeR:[-.65,.3,-.06],
      handL:[.18,.28,.24],handR:[-.42,POST,.04],elbowR:[-.43,.24,-.12]},{}],
- B:[{base:holdAt('ride','B',0),hips:[.06,.085,.07],rot:[0,62,-10],
+ B:[{base:holdAt('rideLegWork','B',0),hips:[.06,.085,.07],rot:[0,62,-10],
      spine:[8,0,0],head:[-25,0,0],
      footL:[.22,.045,.73,0,30],kneeL:[.6,.16,.43],
      footR:[-.32,.04,-.71,0,15],kneeR:[-.65,.20,-.3],
@@ -98,7 +98,7 @@ registerHold({id:'seatedDefenseGather',
      kneeL:[.6,.12,.25],kneeR:[-.4,.2,.05],
      handL:[.2,POST,.55],handR:[-.2,POST,.55],palms:[1,1]},{}]});
 registerHold({id:'seatedDefenseBase',
- A:[{base:holdAt('ride','A',1),hips:[.12,.54,-.08],rot:[-8,38,0],
+ A:[{base:holdAt('rideLegWork','A',1),hips:[.12,.54,-.08],rot:[-8,38,0],
      kneeL:[.5,.3,.25],kneeR:[-.3,.3,.2]},{}],
  B:[{base:holdAt('legRide','B',1)},{}]});
 registerHold({id:'seatedDefenseRecovered',

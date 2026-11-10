@@ -177,6 +177,17 @@ registerSolo({
   ],
 });
 
+// "Work!": the near arm out toward the wrestler at chest height, palm up, the forearm beckoning him in
+// (the stalling cue before a warning, and with the call itself). The side is chosen by mirroring.
+registerSolo({
+  id: 'refWork',
+  loop: true,
+  keys: [
+    { t: 0, pose: { ...tall, spine: [6, 0, 0], head: [-4, 0, 0], look: 0.8, handL: [0.42, 1.22, 0.42], elbowL: [0.7, 1.1, 0.0], wristL: [-20, 0, -80] } },
+    { t: 0.5, pose: { handL: [0.36, 1.32, 0.26], elbowL: [0.7, 1.1, 0.0], wristL: [30, 0, -80] } },
+  ],
+});
+
 // Signal: one arm straight up (the side is chosen by mirroring).
 registerSolo({
   id: 'refPoints',
