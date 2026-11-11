@@ -96,6 +96,8 @@ export interface UiState {
   /** Per wrestler: warned for stalling yet, and how many stalling points he has given up. */
   stalls: [{ warned: boolean; points: number }, { warned: boolean; points: number }];
   topRestartCut: boolean;
+  /** The player's breakdown at the whistle on top (OPENER). */
+  topRestartBreakdown: import('../sim/bout').Breakdown | null;
   introFocus: Side | null;
   showHelp: boolean;
   muted: boolean;
@@ -162,6 +164,7 @@ export const initialState: UiState = {
   refereeNote: '',
   stalls: [{ warned: false, points: 0 }, { warned: false, points: 0 }],
   topRestartCut: false,
+  topRestartBreakdown: 'chop',
   introFocus: null,
   showHelp: false,
   muted: false,
@@ -216,6 +219,7 @@ export interface GameApi {
   cancelTouch: (key?: import("../engine/TouchGestures").TouchKey) => void;
   skipIntros: () => void;
   chooseTopRestart: (cut: boolean) => void;
+  chooseBreakdown: (kind: import('../sim/bout').Breakdown) => void;
   /** Dual meet: start one, pick the wrestler at the current weight, wrestle or sim the bout, back to the dual. */
   startDual: (options: { teams: [string, string]; difficulty: Difficulty; quick: boolean; draw?: boolean }) => void;
   pickDual: (id: string) => void;

@@ -15,7 +15,9 @@ for(const id of variants){
   handR:double?[-.13,.29,.18]:wrist?[-.24,.09,.44]:[-.22,.06,.62],
   elbowR:double?[-.34,.20,.40]:[-.40,.13,.38],...(id==='armBar'?{shrugL:[10,5] as [number,number]}:{})};
  const top:PoseSpec={base:holdAt('flat','A',0),hips:[double?.16:.28,.38,-.12],
-  rot:[-12,76,0],kneeL:[.58,.08,-.14],kneeR:[-.12,.08,-.38],
+  // Owner, November 11: to turn him the rider gets out to the side and perpendicular; he can't ride parallel and
+  // expect to turn him. Setting the bar he already angles off (was 12 degrees).
+  rot:[-24,76,0],kneeL:[.58,.08,-.14],kneeR:[-.12,.08,-.38],
   footL:[.66,BALL,-.54,0,65],footR:[-.26,BALL,-.7,0,65],
   handL:[.22,.30,.35],handR:half?[-.12,.38,.62]:double?[-.22,.30,.35]:wrist?[-.24,.12,.44]:[-.13,.28,.05],
   elbowL:[.42,.30,.42],elbowR:half?[-.30,.36,.58]:[-.32,.28,.28]};
@@ -37,7 +39,8 @@ for(const id of variants){
   handL:half?[.28,.16,.43]:wrist?[.23,.19,.24]:[.14,.19,.24],elbowL:half?[.38,.12,.30]:[.34,.15,.43],
   handR:double?[-.14,.19,.24]:wrist?[-.28,.16,.4]:id==='armBar'?[-.18,.22,.44]:[-.36,.14,.5],
   elbowR:double?[-.34,.15,.43]:[-.45,.16,.34],head:[double?18:-12,half?-18:0,0],...(id==='armBar'?{shrugL:[24,10] as [number,number]}:{})};
- const backA:PoseSpec={base:holdAt('exposed','A',0),hips:[double?.01:.22,double?.31:.34,.02],rot:[-35,76,0],
+ // Turned: out to the side and close to perpendicular (75 degrees, the double bar 65 over the top); it finished at 35.
+ const backA:PoseSpec={base:holdAt('exposed','A',0),hips:[double?.1:.32,double?.31:.34,.02],rot:double?[-65,80,0]:[-75,76,0],
   footL:[double?DOUBLE_BAR_FRONT_SUPPORT_X:.75,BALL,.4,-55,65],footR:[.65,BALL,-.45,-30,65],
   kneeL:[.65,.06,.3],kneeR:[.55,.06,-.25],
   ...(half?{handL:[-.14,.24,.29] as [number,number,number]}:{}),
@@ -49,15 +52,15 @@ for(const id of variants){
    kneeL:[.55,.70,.35] as [number,number,number],kneeR:[.55,.70,-.25] as [number,number,number]}:{})};
  registerHold({id:id+'Control',A:[top,{...top,hips:[double?.20:.32,.35,.02]}],
   B:[bottom,{...bottom,hips:[.04,.15,.04]}],contacts,struggle:{A:.35,B:.45},tempo:1.1});
- registerHold({id:id+'Pin',A:[backA,{...backA,hips:[double?.01:id==='armBar'?.17:.20,.31,.08]}],
+ registerHold({id:id+'Pin',A:[backA,{...backA,hips:[double?.08:id==='armBar'?.17:.28,.31,.08]}],
   B:[backB,{...backB,hips:[.04,.19,.02]}],contacts:finishContacts,struggle:{A:.35,B:.6},tempo:1.2});
  registerMove({id:id+'Turn',A:[
   {t:0,pose:{base:holdAt('flat','A',0)}},
   ...(wrist?[{t:.11,pose:wristLiftA},{t:.22,pose:wristReachA}]:[]),
   {t:wrist?.38:.28,pose:half?{...top,handR:[-.18,.31,.48],elbowR:[-.36,.28,.40]}:top},
   // Bar first; the opposite hand threads beneath the upper arm before the half closes.
-  {t:.6,pose:{...top,hips:[double?.20:.32,.34,.08],rot:id==='armBar'?[-45,76,0]:[-20,76,0],footL:[double?DOUBLE_BAR_FRONT_SUPPORT_X:.75,BALL,.4,-55,65],...(id==='armBar'?{hips:[.40,.34,.18] as [number,number,number]}:{})}},
-  {t:.78,pose:{...backA,hips:[double?.06:.28,.35,.05],...(id==='armBar'?{rot:[0,90,0,80] as [number,number,number,number]}:{})}},
+  {t:.6,pose:{...top,hips:[double?.20:.32,.34,.08],rot:id==='armBar'?[-45,76,0]:[-45,76,0],footL:[double?DOUBLE_BAR_FRONT_SUPPORT_X:.75,BALL,.4,-55,65],...(id==='armBar'?{hips:[.40,.34,.18] as [number,number,number]}:{})}},
+  {t:.78,pose:{...backA,hips:[double?.1:.32,.35,.05],...(id==='armBar'?{rot:[0,90,0,80] as [number,number,number,number]}:{})}},
   {t:1,pose:backA}],B:[
   {t:0,pose:{base:holdAt('flat','B',0)}},
   ...(wrist?[{t:.22,pose:wristReachB}]:[]),
@@ -92,7 +95,7 @@ for(const id of variants){
   {t:1,pose:{base:holdAt('flat','B',0)}}],contacts:contacts.map(c=>({...c,from:wrist?(c.hand==='L'?.3:.38):.3,to:wrist?(c.hand==='R'?.50:.68):.55,fade:.18}))});
  registerMove({id:id+'Exit',A:[{t:0,pose:backA},
    // Recover the rear support first; keep the forward foot planted until it lands.
-   {t:.25,pose:{...top,hips:[.25,.36,-.05],rot:id==='armBar'?[0,76,0,80]:[-24,76,0],
+   {t:.25,pose:{...top,hips:[.25,.36,-.05],rot:id==='armBar'?[0,76,0,80]:[-40,76,0],
     footL:[double?DOUBLE_BAR_FRONT_SUPPORT_X:.75,BALL,.4,-55,65],kneeL:[.65,.06,.3],...(half?{handR:[-.4,.5,.45] as [number,number,number],elbowR:[-.5,.5,.5] as [number,number,number]}:{}),...(double?{...backA,footR:top.footR,kneeR:top.kneeR}:{})}},
    // Once the half clears, recover toward the near ribs before the waist.
    // Holding the neck target until halfway forced a long last-moment reach.
@@ -107,6 +110,6 @@ for(const id of variants){
     kneeL:[.3,.16,-.55],kneeR:[-.3,.16,-.55],handL:[.22,.06,.56],elbowL:[.35,.14,.42]}},
    {t:1,pose:{base:holdAt('flat','B',0)}}],
   contacts:finishContacts.map(c=>({...c,from:0,to:ARM_BAR_GRIP_RELEASE-(double?.22:.15),fade:double?.22:.15}))});
- registerMove({id:id+'Fall',A:[{t:0,pose:backA},...(double?[{t:.25,pose:{...backA,hips:[.01,.29,.04] as [number,number,number],rot:[-35,84,0] as [number,number,number]}}]:[]),{t:1,pose:{...backA,hips:[double?.01:.20,double?.25:.31,.08],...(double?{rot:[-35,90,0] as [number,number,number]}:{})}}],
+ registerMove({id:id+'Fall',A:[{t:0,pose:backA},...(double?[{t:.25,pose:{...backA,hips:[.08,.29,.04] as [number,number,number],rot:[-65,84,0] as [number,number,number]}}]:[]),{t:1,pose:{...backA,hips:[double?.08:.28,double?.25:.31,.08],...(double?{rot:[-65,90,0] as [number,number,number]}:{})}}],
   B:[{t:0,pose:backB},{t:1,pose:{...backB,rot:[0,90,0,170]}}],contacts:finishContacts});
 }

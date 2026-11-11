@@ -37,6 +37,13 @@ export interface TopPlanEffects {
  * Riding without trying to turn him is stalling (NCAA: the top man must work to improve his position).
  * Every rider gets the same clock; a Ride plan holds him tighter and turns less, so it reaches it sooner.
  */
+/**
+ * Owner, November 11: "he can't ride parallel and expect to turn someone unless he gets the legs in"; riding parallel
+ * and not working for a turn or a fall is more apt to draw stalling on top. Broken down flat on his back with no leg
+ * ride, the grace before stall time builds is cut to 60% and it builds 1.4x faster.
+ */
+export const PARALLEL_STALL = { grace: 0.6, rate: 1.4 };
+
 export function topPlanEffects(plan: MatchPlan | undefined): TopPlanEffects {
   return topPlanOf(plan) === 'ride'
     ? { control: 0.62, escape: -0.13, turn: -0.08, stallGrace: 10, stallRate: 0.6 }

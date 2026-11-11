@@ -51,7 +51,7 @@ function ncaaCredentials(career?:CareerScore,name?:string):string|undefined {
   if(name === 'Andrew Alirez')return '1x National Champ · 2020 NWCA Honorable Mention';
   if(name === 'Gray Simons')return '7x National Champ (3x NCAA · 4x NAIA)';
   if(name === 'Rick Sanders')return '5x National Champ (2x DI · 2x DII · 1x NAIA)';
-  if(name === 'Carleton Haselrig')return '6x National Champ (3x DI · 3x DII)';
+  if(name === 'Carlton Haselrig')return '6x National Champ (3x DI · 3x DII)';
   if(name === 'Wade Schalles')return '4x National Champ (2x DI · 2x College Division)';
   // Penn State verifies five AA honors for Brooks, including the cancelled
   // 2020 season. This bio-only honor never becomes an NCAA placement or points.

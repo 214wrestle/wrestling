@@ -68,7 +68,11 @@
     "check:tournament": "esbuild src/dev/checkTournament.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-tournament.mjs --log-level=warning && node node_modules/.cache/check-tournament.mjs",
     "check:fatigue": "esbuild src/dev/checkFatigue.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-fatigue.mjs --log-level=warning && node node_modules/.cache/check-fatigue.mjs",
     "check:stall-legs": "esbuild src/dev/checkStallingAndLegs.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-stall-legs.mjs --log-level=warning && node node_modules/.cache/check-stall-legs.mjs",
-    "check:bottom-work": "esbuild src/dev/checkBottomWork.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-bottom-work.mjs --log-level=warning && node node_modules/.cache/check-bottom-work.mjs"
+    "check:bottom-work": "esbuild src/dev/checkBottomWork.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-bottom-work.mjs --log-level=warning && node node_modules/.cache/check-bottom-work.mjs",
+    "check:whistle-work": "esbuild src/dev/checkWhistleWork.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-whistle-work.mjs --log-level=warning && node node_modules/.cache/check-whistle-work.mjs",
+    "check:coaches": "esbuild src/dev/checkCoaches.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-coaches.mjs --log-level=warning && node node_modules/.cache/check-coaches.mjs",
+    "check:school-kits": "esbuild src/dev/checkSchoolKits.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-school-kits.mjs --log-level=warning && node node_modules/.cache/check-school-kits.mjs",
+    "check:shot-timing": "esbuild src/dev/checkShotTiming.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-shot-timing.mjs --log-level=warning && node node_modules/.cache/check-shot-timing.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",

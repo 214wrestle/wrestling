@@ -43,7 +43,7 @@ const ICON_SCHOOL_NAMED: Readonly<Record<string, string>> = { 'Shane Griffith': 
 const ICON_SCHOOL_ABBR: Readonly<Record<string, string>> = {
   Syracuse: 'SYR', 'Fresno State': 'FRES', Clarion: 'CLAR', Washington: 'WASH', Stanford: 'STAN', LSU: 'LSU',
   Edinboro: 'EDIN', Northwestern: 'NW', American: 'AMER', 'Pitt-Johnstown': 'UPJ', 'Lock Haven': 'LHU',
-  'Portland State': 'PORT', 'Cal State Bakersfield': 'CSUB', 'Northern Colorado': 'UNCO',
+  'Portland State': 'PORT', 'Cal State Bakersfield': 'CSUB', 'Northern Colorado': 'UNCO', Clemson: 'CLEM',
 };
 
 type Schooled = { firstName: string; lastName: string; school: { id: string; name: string }; legends?: { source: string } };

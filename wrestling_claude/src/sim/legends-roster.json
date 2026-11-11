@@ -2000,7 +2000,7 @@
           "source": "HWT — Zach Rey"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nBobby Weaver — 118/125\nYoshi Nakamura — 157\nMike Fickell — 197\nMike Brown\nOwner revision: Bobby Weaver is eligible only at 125.",
+      "notesAndChoices": "Coach's Choice:\nBobby Weaver — 118/125\nYoshi Nakamura — 157\nMike Fickell — 197\nMike Brown\nOwner revision: Bobby Weaver is eligible only at 125.\nOwner revision November 10, 2026: Yoshi Nakamura and Mike Fickell wrestled at Penn (they stay on Penn), so they come off Lehigh. Lehigh Coach's Choice: Josh Humphreys — 157; Mike Brown — 197.",
       "id": "lehigh",
       "choices": [
         {
@@ -2009,14 +2009,14 @@
           "source": "Bobby Weaver — 118/125"
         },
         {
-          "name": "Yoshi Nakamura",
+          "name": "Josh Humphreys",
           "weight": "157",
-          "source": "Yoshi Nakamura — 157"
+          "source": "Owner revision November 10, 2026: Josh Humphreys — 157"
         },
         {
-          "name": "Mike Fickell",
+          "name": "Mike Brown",
           "weight": "197",
-          "source": "Mike Fickell — 197"
+          "source": "Owner revision November 10, 2026: Mike Brown — 197"
         }
       ]
     },
@@ -2155,8 +2155,8 @@
         },
         {
           "weight": "190",
-          "name": "Dominick Black",
-          "source": "190 — Dominick Black"
+          "name": "Dominic Black",
+          "source": "190 — Dominic Black (owner revision November 10, 2026: spelled as West Virginia spells it; was Dominick)"
         },
         {
           "weight": "197",
@@ -2187,8 +2187,8 @@
       "starters": [
         {
           "weight": "118",
-          "name": "Sam Henson",
-          "source": "118 — Sam Henson"
+          "name": "Joe Spinnazola",
+          "source": "118 — Joe Spinnazola (owner revision November 10, 2026: replaces Sam Henson, moved to the Icons)"
         },
         {
           "weight": "125",
@@ -2246,7 +2246,7 @@
           "source": "HWT — Mark Ellis"
         }
       ],
-      "notesAndChoices": "Special:\nMichael Chandler receives MMA-specific commentary/Easter eggs.",
+      "notesAndChoices": "Special:\nMichael Chandler receives MMA-specific commentary/Easter eggs.\nOwner revision November 10, 2026: Sam Henson (one season at Missouri, NCAA titles at Clemson) moved to the Icons; Joe Spinnazola (1984 NCAA fourth at 118) is the 118 starter.",
       "id": "missouri",
       "choices": []
     },
@@ -2482,11 +2482,11 @@
         },
         {
           "weight": "HWT",
-          "name": "Carleton Haselrig",
-          "source": "HWT — Carleton Haselrig — Pitt-Johnstown"
+          "name": "Carlton Haselrig",
+          "source": "HWT — Carlton Haselrig — Pitt-Johnstown"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\n141 — Andrew Alirez — Northern Colorado\n118 — Gray Simons — Lock Haven\n118 — Rick Sanders — Portland State\n165 — Chance Marsteller — Lock Haven\nHWT — Stephen Neal — Cal State Bakersfield\nHWT — Kurt Angle — Clarion\n\nIcons philosophy:\nReserve this roster and Coach's Choice pool for historically significant\nwrestlers from discontinued programs, smaller programs, or schools without\na full playable Legends team.\nOwner addition: Aden Valencia — Stanford, 149 Coach’s Choice, 2026 NCAA champion.",
+      "notesAndChoices": "Coach's Choice:\n141 — Andrew Alirez — Northern Colorado\n118 — Gray Simons — Lock Haven\n118 — Rick Sanders — Portland State\n118 — Sam Henson — Clemson (owner revision November 10, 2026: moved from Missouri)\n165 — Chance Marsteller — Lock Haven\nHWT — Stephen Neal — Cal State Bakersfield\nHWT — Kurt Angle — Clarion\n\nIcons philosophy:\nReserve this roster and Coach's Choice pool for historically significant\nwrestlers from discontinued programs, smaller programs, or schools without\na full playable Legends team.\nOwner addition: Aden Valencia — Stanford, 149 Coach’s Choice, 2026 NCAA champion.",
       "id": "college-wrestling-icons",
       "choices": [
         {
@@ -2498,6 +2498,11 @@
           "name": "Rick Sanders",
           "weight": "118",
           "source": "118 — Rick Sanders — Portland State"
+        },
+        {
+          "name": "Sam Henson",
+          "weight": "118",
+          "source": "118 — Sam Henson — Clemson"
         },
         {
           "name": "Chance Marsteller",

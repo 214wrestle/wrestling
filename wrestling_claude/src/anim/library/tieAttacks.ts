@@ -42,6 +42,30 @@ registerMove({id:'firemansCarry',A:[{t:0,pose:{base:startA}},
  {who:'A',hand:'L',on:'armR',at:[0,-.24,.025],from:.22,to:.74,fade:.12},
  {who:'A',hand:'R',on:'thighR',at:[.02,-.24,.05],from:.28,to:.64,fade:.12}
 ]});
+// Fireman's carry to the back (owner, November 11; Austin DeSanto "inside carry for 6", Earn Your Gold Medal
+// zfsrEnyH3pM at 124-130 s): the same entry and carry across the shoulders, then he keeps turning and dumps him
+// straight to his back, coming down chest to chest across him (the exposed hold the throws land in).
+// Yaw 180 keeps his body pointing the way he is carried; 90 swung his legs a quarter turn across the mat as he landed.
+export const CARRY_BACK_END={x:0,z:0.5,yaw:180};
+registerMove({id:'firemansCarryBack',A:[{t:0,pose:{base:startA}},
+ {t:0.3,pose:{hips:[0.05,0.42,0.14],rot:[-75,18,0],spine:[20,0,0],handL:[0.18,1.1,0.5],handR:[0.1,0.7,0.4],footR:[0.22,BALL,-0.1,-90,70]}},
+ {t:0.55,pose:{hips:[0.06,0.67,0.28],rot:[-90,25,25],spine:[12,0,15]}},
+ // Turning under him and following him down.
+ {t:0.68,pose:{hips:[0.08,0.5,0.34],rot:[-110,50,10],spine:[16,0,6]}},
+ {t:0.84,pose:{base:holdAt('exposed','A',0,CARRY_BACK_END)}},
+ {t:1,pose:{base:holdAt('exposed','A',0,CARRY_BACK_END)}}],
+ B:[{t:0,pose:{base:startB}},{t:0.55,pose:{hips:[0.12,1.1,0.25],rot:[180,88,35],footL:[-0.35,0.7,0.5,150,20],footR:[0.45,0.8,0.1,180,25],handR:[-.20,1.08,.18],elbowR:[.01,.92,.20]}},
+ // Over the shoulders and turning to his back in the air.
+ {t:0.66,pose:{hips:[0.1,0.82,0.42],rot:[180,90,0,110],footL:[-0.2,0.9,0.6,150,20],footR:[0.3,0.95,0.3,180,25],handL:[0.3,0.95,0.35],handR:[-0.25,1.0,0.3],elbowL:[0.55,0.9,0.3],elbowR:[-0.5,0.95,0.3]}},
+ // Legs swinging down as his back comes to the mat (a hard ease here whipped the shin at 16 m/s).
+ {t:0.76,pose:{hips:[0.05,0.42,0.5],rot:[180,90,0,118],footL:[-0.1,0.45,0.75,150,20],footR:[0.25,0.5,0.6,180,25],handL:[0.35,0.32,0.1],handR:[-0.3,0.55,0.22],elbowL:[0.6,0.2,0.2],elbowR:[-0.5,0.25,0.3]}},
+ {t:0.86,pose:{base:holdAt('exposed','B',0,CARRY_BACK_END)}},
+ {t:1,pose:{base:holdAt('exposed','B',0,CARRY_BACK_END)}}],contacts:[
+ {who:'A',hand:'L',on:'armR',at:[0,-.24,.025],from:.22,to:.66,fade:.12},
+ {who:'A',hand:'R',on:'thighR',at:[.02,-.24,.05],from:.28,to:.64,fade:.12},
+ {who:'A',hand:'L',on:'neck',at:[0,.04,-.07],from:.78,to:1,fade:.2},
+ {who:'A',hand:'R',on:'thighR',at:[0,-.2,.05],from:.82,to:1,fade:.1}
+]});
 registerMove({id:'tieAttackCounter',A:[{t:0,pose:{base:startA}},{t:1,pose:{base:holdAt('fhl','B',0,{x:0,z:0.1,yaw:180})}}],B:[{t:0,pose:{base:startB}},{t:1,pose:{base:holdAt('fhl','A',0,{x:0,z:0.1,yaw:180})}}],contacts:[
  {who:'B',hand:'L',on:'neck',at:[0,.02,.08],from:.22,to:1,fade:.16},
  {who:'B',hand:'R',on:'armL',at:[0,-.14,-.045],from:.30,to:1,fade:.16},
@@ -137,10 +161,16 @@ registerMove({id:'lateralDrop',A:[{t:0,pose:{base:startA}},
  {t:0.54,pose:{hips:[0.22,0.6,-0.08],rot:[-30,-6,-48],spine:[-8,0,-20],head:[-20,0,0]}},
  {t:0.66,land:true,pose:{base:holdAt('exposed','A',0,dropEnd)}},
  {t:1,pose:{base:holdAt('exposed','A',0,dropEnd)}}],
+ // Feet flying (owner, November 11: "I'd love to see feet flying through the air on throws"): lifted clear, then
+ // turned well past sideways over the arch so his legs go up past the thrower's head before he lands on his back. His
+ // feet only reached 0.3 m on the lift and 0.7 m at the turn.
  B:[{t:0,pose:{base:startB}},
  {t:0.22,pose:{hips:[0,0.86,0.2],rot:[180,6,0],spine:[4,0,0]}},
- {t:0.42,pose:{hips:[0.06,1.04,0.12],rot:[180,-8,24],footL:[0.14,0.32,0.26,180,0],footR:[-0.14,0.26,0.24,180,0]}},
- {t:0.54,pose:{hips:[0.26,0.86,0.14],rot:[180,-6,60],footL:[-0.1,0.7,0.24,180,0],footR:[-0.24,0.6,0.2,180,0]}},
+ {t:0.4,pose:{hips:[0.06,1.12,0.12],rot:[180,-8,35],footL:[0.18,0.5,0.3,180,0],footR:[-0.1,0.42,0.28,180,0]}},
+ // Arms already reaching for where they land (the landing pose's arms), so they do not whip there on impact.
+ {t:0.52,pose:{base:holdAt('exposed','B',0,dropEnd),hips:[0.2,1.06,0.14],rot:[180,-6,118],spine:[4,0,0],head:[0,0,0],footL:[-0.25,1.55,0.26,180,0],footR:[-0.4,1.45,0.2,180,0]}},
+ // Legs on the way down just before he lands.
+ {t:0.6,pose:{base:holdAt('exposed','B',0,dropEnd),hips:[0.26,0.6,0.14],rot:[180,-6,115],spine:[4,0,0],head:[0,0,0],footL:[-0.4,0.85,0.26,180,0],footR:[-0.55,0.75,0.2,180,0]}},
  {t:0.66,land:true,pose:{base:holdAt('exposed','B',0,dropEnd)}},
  {t:1,pose:{base:holdAt('exposed','B',0,dropEnd)}}],contacts:[
  {who:'A',hand:'L',on:'spine',at:[.04,0,-.13],from:0,to:.6,fade:.1},
@@ -166,9 +196,13 @@ registerMove({id:'headlockThrow',A:[{t:0,pose:{base:startA}},
  // Pulled onto his back, chest to the thrower's back, head over the left shoulder.
  {t:0.22,pose:{hips:[0,0.9,0.36],rot:[180,18,0],spine:[16,0,6],head:[20,0,0]}},
  // Over the hip: feet off the mat, body tipping over the thrower.
- {t:0.42,pose:{hips:[-0.02,1.14,0.12],rot:[200,62,0,30],footL:[0.12,0.62,0.5,180,0],footR:[0.24,0.72,0.46,180,0]}},
+ {t:0.42,pose:{hips:[-0.02,1.16,0.12],rot:[200,62,0,30],footL:[0.12,0.95,0.55,180,0],footR:[0.24,1.05,0.5,180,0]}},
+ // Feet flying (owner, November 11): at the top his legs go up over the thrower's head (1.65-1.75 m; they reached
+ // 0.95 m), before he comes down on his back.
+ {t:0.5,pose:{hips:[0.02,1.12,-0.08],rot:[230,80,0,95],footL:[0.2,1.75,0.3,230,0],footR:[0.32,1.65,0.2,230,0]}},
  // Upside over, on his back in the air in front of the thrower, then down.
- {t:0.56,pose:{hips:[0.04,0.82,-0.36],rot:[250,86,0,150],footL:[0.3,0.95,-0.2,250,0],footR:[0.42,0.85,-0.36,250,0]}},
+ // Arms already reaching for where they land, so they do not whip there on impact.
+ {t:0.58,pose:{base:holdAt('exposed','B',0,headlockEnd),hips:[0.04,0.82,-0.36],rot:[250,86,0,150],spine:[0,0,0],footL:[0.3,0.95,-0.2,250,0],footR:[0.42,0.85,-0.36,250,0]}},
  {t:0.68,land:true,pose:{base:holdAt('exposed','B',0,headlockEnd)}},
  {t:1,pose:{base:holdAt('exposed','B',0,headlockEnd)}}],contacts:[
  {who:'A',hand:'L',on:'neck',at:[0,.04,-.07],from:.1,to:.72,fade:.1},

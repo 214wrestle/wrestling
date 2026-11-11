@@ -12,6 +12,10 @@ export interface Athlete {
   name: string;
   school: string;
   wordmark: string;
+  /** Wordmark colour; the piping colour when left out. */
+  wordmarkColor?: string;
+  /** The wordmark's first line arches; '\n' in `wordmark` stacks lines. */
+  wordmarkArch?: boolean;
   height: number;
   mass: number;
   skin: string;

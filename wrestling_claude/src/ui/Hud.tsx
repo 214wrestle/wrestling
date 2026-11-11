@@ -7,7 +7,8 @@ import type { ButtonId, GameApi, UiState } from '../game/store';
 import type { Side } from '../sim/types';
 import { actionInstruction } from '../game/prompts';
 import { Glyph, Key, PositionIcon } from './glyphs';
-import { PLAN_FOCUS, PLAN_STYLES, PLAN_TOP, topPlanOf, type TopPlan } from '../sim/strategy';
+import { PLAN_FOCUS, PLAN_STYLES, PLAN_TOP, topPlanOf } from '../sim/strategy';
+import { BREAKDOWNS, type Breakdown } from '../sim/bout';
 
 const CORNER = ['red', 'green'] as const;
 
@@ -225,13 +226,20 @@ function PlanCard({ state, api, inline = false }: { state: UiState; api: GameApi
 }
 
 /** On top at the whistle: the top plan, picked right there (it stays the plan until changed). */
+/** Before the whistle on top: the breakdown he goes to at the whistle (owner, November 10), or cut him. */
 function TopRestart({ state, api }: { state: UiState; api: GameApi }) {
-  const current = state.topRestartCut ? 'cut' : topPlanOf(state.plan);
-  const choose = (top: TopPlan) => { api.setPlan({ ...state.plan, top }); api.chooseTopRestart(top === 'cut'); };
+  const cut = state.topRestartCut;
+  const pick = (kind: Breakdown) => { if (topPlanOf(state.plan) === 'cut') api.setPlan({ ...state.plan, top: 'turn' }); api.chooseTopRestart(false); api.chooseBreakdown(kind); };
+  const chooseCut = () => { api.setPlan({ ...state.plan, top: 'cut' }); api.chooseTopRestart(true); };
+  const note = cut ? 'Let him up for one point and go back to your feet' : BREAKDOWNS.find(b => b.id === state.topRestartBreakdown)?.note;
   return (
     <div className="top-restart">
       <strong>At the whistle</strong>
-      {PLAN_TOP.map(t => <button key={t.id} type="button" aria-pressed={current === t.id} title={t.note} onClick={() => choose(t.id)}>{t.id === 'cut' ? 'Cut · give 1' : t.label}</button>)}
+      <div className="top-restart__options">
+        {BREAKDOWNS.map(b => <button key={b.id} type="button" aria-pressed={!cut && state.topRestartBreakdown === b.id} title={b.note} onClick={() => pick(b.id)}>{b.label}</button>)}
+        <button type="button" aria-pressed={cut} onClick={chooseCut}>Cut · give 1</button>
+      </div>
+      {note && <small className="top-restart__note">{note}</small>}
     </div>
   );
 }

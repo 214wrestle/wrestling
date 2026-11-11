@@ -2040,6 +2040,9 @@ button:focus-visible {
 .tile__rating { display: inline-block; border: 1px solid var(--accent); border-radius: 4px; padding: 0.2em 0.45em; font: 700 0.8rem/1 var(--body); color: var(--ink); white-space: nowrap; }
 
 .top-restart {position:absolute;top:28%;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;pointer-events:auto;background:#171b24;padding:14px;border-radius:12px;color:white;max-width:calc(100vw - 32px);box-sizing:border-box;}
+.top-restart {flex-direction:column;gap:8px;}
+.top-restart__options {display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.top-restart__note {color:#c8d2de;font-size:.8rem;text-align:center;max-width:28rem;}
 .top-restart button {padding:12px;background:#283b52;color:white;border:1px solid #8298ad;border-radius:8px;white-space:nowrap;}
 
 .top-restart button[aria-pressed="true"] {border-color:#f2c36b;background:#66502e;}

@@ -175,17 +175,19 @@ registerHold({
 
 /* --------------------------------------------------------- front headlock */
 
-// He is down on his knees with his head under A's chest; A has sprawled his
-// hips back and wrapped the head, other hand on the near arm.
+// Snapped down to a knee with his head under A's chest, posting a hand; A has his hips back and the head wrapped,
+// other hand on the near arm. One knee down and the other foot planted (owner OK, November 11; film: Bo Nickal front
+// headlock study, DPS jE2c6nYQ7Fw at 26 s, "force opponent's near side arm post": the snapped man is down on a knee
+// posting a hand, ready to come up). It had both knees down.
 const fhlB0: PoseSpec = {
   hips: [0, 0.58, 0.46],
   rot: [180, 66, 0],
   spine: [38, 0, 0],
   head: [35, 0, 0],
   look: 0,
-  footL: [-0.15, BALL, 0.86, 180, 75],
+  footL: [-0.27, 0.06, 0.2, 180, 0],
   footR: [0.15, BALL, 0.86, 180, 75],
-  kneeL: [-0.15, -0.3, 0.1],
+  kneeL: [-0.32, 0.6, -0.5],
   kneeR: [0.15, -0.3, 0.1],
   handL: [-0.22, 0.055, 0.02],
   handR: [0.12, 0.38, -0.08],
@@ -203,21 +205,25 @@ const fhlB1: PoseSpec = {
   hips: [0, 0.62, 0.36],
   rot: [180, 32, 0],
   spine: [16, 0, 0],
-  head: [-30, 0, 0],
+  head: [-14, 0, 0],
   handL: [-0.22, 0.66, 0.08],
   elbowL: [-0.4, 0.45, 0.3],
 };
 
+// Up on his feet over him, not flat in the sprawl (owner, November 10: realism; Bo Nickal front headlock go-behinds,
+// DPS Breakdowns jE2c6nYQ7Fw at 4-26 s: a crouch above the snapped man, hips back, knees bent, feet under him, chest
+// over the head, circling to the side). The sprawl move keeps its flat sprawl; this is where he comes up to work.
+// Was hips 0.52, feet 1.32-1.36 back, knees aimed down.
 const fhlA0: PoseSpec = {
-  hips: [0, 0.52, -0.66],
-  rot: [0, 50, 0],
-  spine: [14, 0, 0],
+  hips: [0, 0.66, -0.6],
+  rot: [0, 54, 0],
+  spine: [20, 0, 0],
   head: [-20, 0, 0],
   look: 0,
-  footL: [0.26, BALL, -1.36, 0, 72],
-  footR: [-0.24, BALL, -1.32, 0, 72],
-  kneeL: [0.3, -0.6, -0.9],
-  kneeR: [-0.28, -0.6, -0.9],
+  footL: [0.3, BALL, -1.0, 0, 55],
+  footR: [-0.28, BALL, -0.94, 0, 55],
+  kneeL: [0.32, 0.2, -0.5],
+  kneeR: [-0.3, 0.2, -0.5],
   handL: [0.0, 0.42, 0.0],
   handR: [-0.2, 0.45, 0.1],
   elbowL: [0.35, 0.28, -0.15],
@@ -229,12 +235,14 @@ const fhlA0: PoseSpec = {
   toes: [1, 1],
 };
 
+// As he fights his posture back the attacker is pushed back and up, not drawn in (owner, November 10: realism;
+// the heads went 20 cm into each other's chest here, was hips -0.56, spine 14, his head -30).
 const fhlA1: PoseSpec = {
-  hips: [0, 0.56, -0.56],
+  hips: [0, 0.66, -0.74],
   rot: [0, 38, 0],
-  spine: [14, 0, 0],
-  footL: [0.26, BALL, -1.2, 0, 60],
-  footR: [-0.24, BALL, -1.16, 0, 60],
+  spine: [4, 0, 0],
+  footL: [0.3, BALL, -1.06, 0, 50],
+  footR: [-0.28, BALL, -1.0, 0, 50],
 };
 
 registerHold({
@@ -246,6 +254,9 @@ registerHold({
     { who: 'A', hand: 'R', on: 'armL', at: [0.0, -0.14, -0.045] },
     // One hand supports the base; the free hand peels the controlling forearm.
     { who: 'B', hand: 'R', on: 'forearmL', at: [0.0, -0.16, 0.04] },
+    // Owner, November 10 (realism): as he fights back up, the posted hand comes off the mat to the wrist of the arm
+    // that holds his arm (hand fighting), rather than drifting up through the air.
+    { who: 'B', hand: 'L', on: 'forearmR', at: [0.0, -0.16, 0.04], progressFade: 0.45 },
   ],
   struggle: { A: 0.6, B: 1 },
   tempo: 1.5,

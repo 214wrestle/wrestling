@@ -18,10 +18,14 @@ registerMove({
   id: 'shotDouble',
   startDist: 1.0,
   warpBy: 0.62,
+  // Explosive (owner, November 11: "more explosive and athletic"): a sharp level change, a beat of load, then the
+  // penetration step bursts in and hits the legs still at speed, absorbing the impact in the last quarter. It
+  // used to glide: the hips peaked mid-shot and coasted into the legs over the last 40%.
   A: [
     { t: 0, pose: { base: stanceAt(A_START, 1) } },
     {
-      t: 0.3,
+      t: 0.22,
+      hipsVelocity: [0, -0.1, 0.4],
       pose: {
         hips: [0, 0.6, -0.42],
         rot: [0, 10, 0],
@@ -32,9 +36,10 @@ registerMove({
       },
     },
     {
-      t: 0.64,
+      t: 0.48,
+      hipsVelocity: [0.1, -0.06, 1.3],
       pose: {
-        hips: [0.1, 0.56, -0.1],
+        hips: [0.07, 0.57, -0.26],
         rot: [-5, 24, -6],
         spine: [10, -6, 0],
         head: [-30, -15, 0],
@@ -44,19 +49,23 @@ registerMove({
         handR: [-0.16, 0.56, 0.36],
       },
     },
+    // Contact: in on his legs while still driving.
+    { t: 0.74, hipsVelocity: [0, -0.05, 0.6], pose: { base: holdAt('legsDouble', 'A', 0) } },
     { t: 1, pose: { base: holdAt('legsDouble', 'A', 0) } },
   ],
   B: [
     { t: 0, pose: { base: stanceAt(B_START, 1) } },
-    { t: 0.55, pose: { hips: [0, 0.86, 0.55], spine: [22, 0, 0], head: [22, 0, 0] } },
+    { t: 0.62, pose: { hips: [0, 0.86, 0.55], spine: [22, 0, 0], head: [22, 0, 0] } },
     { t: 1, pose: { base: holdAt('legsDouble', 'B', 0) } },
   ],
   contacts: [
-    { who: 'A', hand: 'L', on: 'thighR', at: [-0.02, -0.25, -0.07], from: 0.82, to: 1 },
-    { who: 'A', hand: 'R', on: 'thighL', at: [0.02, -0.25, -0.07], from: 0.82, to: 1 },
+    // Grips take hold as he arrives (fade 0.14): with well-timed shots up to 14% faster (TIMING) the short default
+    // fade snapped a hand onto the thigh at 24 m/s.
+    { who: 'A', hand: 'L', on: 'thighR', at: [-0.02, -0.25, -0.07], from: 0.72, to: 1, fade: 0.14 },
+    { who: 'A', hand: 'R', on: 'thighL', at: [0.02, -0.25, -0.07], from: 0.72, to: 1, fade: 0.14 },
     // Build the defensive frame during penetration, then retain the hold anchors.
-    { who: 'B', hand: 'L', on: 'chest', at: [-0.1, 0.18, -0.12], from: 0.55, to: 1, fade: 0.2 },
-    { who: 'B', hand: 'R', on: 'chest', at: [0.1, 0.18, -0.12], from: 0.65, to: 1, fade: 0.2 },
+    { who: 'B', hand: 'L', on: 'chest', at: [-0.1, 0.18, -0.12], from: 0.6, to: 1, fade: 0.2 },
+    { who: 'B', hand: 'R', on: 'chest', at: [0.1, 0.18, -0.12], from: 0.68, to: 1, fade: 0.2 },
   ],
 });
 
@@ -68,7 +77,8 @@ registerMove({
   A: [
     { t: 0, pose: { base: stanceAt(A_START, 1) } },
     {
-      t: 0.3,
+      t: 0.27,
+      hipsVelocity: [0.1, -0.06, 0.3],
       pose: {
         hips: [0.20, 0.60, -0.36],
         rot: [-24, 10, 0],
@@ -80,7 +90,8 @@ registerMove({
       },
     },
     {
-      t: 0.64,
+      t: 0.5,
+      hipsVelocity: [0.35, -0.08, 1.1],
       pose: {
         hips: [0.38, 0.53, 0.02],
         rot: [-42, 22, 0],
@@ -96,22 +107,25 @@ registerMove({
       },
     },
     // Collect the leg after rounding the outside of the lead knee, staying angled.
-    { t: .82, pose: { hips: [.31,.54,.06], rot: [-40,20,0],
+    { t: .7, pose: { hips: [.31,.54,.06], rot: [-40,20,0],
       footL: [.44,BALL,-.14,-25,65], footR: [.02,.06,-.20,-40,20],
       kneeL: [.38,.10,.35], handL: [.22,.45,.48],handR: [.07,.50,.48], elbowL: [.6,.6,.4], elbowR: [-.3,.7,.5] } },
     { t: 1, pose: { base: holdAt('legsSingle', 'A', 0) } },
   ],
   B: [
     { t: 0, pose: { base: stanceAt(B_START, 1) } },
-    { t: 0.55, pose: { hips: [-0.03, 0.88, 0.55], spine: [20, 0, -4], head: [20, 0, 0] } },
+    { t: 0.62, pose: { hips: [-0.03, 0.88, 0.55], spine: [20, 0, -4], head: [20, 0, 0] } },
     { t: 1, pose: { base: holdAt('legsSingle', 'B', 0) } },
   ],
   contacts: [
-    { who: 'A', hand: 'L', on: 'shinR', at: [0.0, -0.04, -0.05], from: 0.82, to: 1 },
-    { who: 'A', hand: 'R', on: 'thighR', at: [0.03, -0.32, 0.07], from: 0.82, to: 1 },
-    { who: 'B', hand: 'L', on: 'head', at: [0, 0.1, -0.04], from: 0.55, to: 1, fade: 0.2 },
+    // The grips take hold as he arrives on the leg (fade ramps in before `from`): a well-timed single (TIMING) is up to
+    // 14% faster, and the short 0.06 fade snapped the hands on at 13 m/s, while ramping in during the burst (.4-.6)
+    // dragged the hands after a head and shin that were moving fastest.
+    { who: 'A', hand: 'L', on: 'shinR', at: [0.0, -0.04, -0.05], from: 0.72, to: 1, fade: 0.14 },
+    { who: 'A', hand: 'R', on: 'thighR', at: [0.03, -0.32, 0.07], from: 0.72, to: 1, fade: 0.14 },
+    { who: 'B', hand: 'L', on: 'head', at: [0, 0.1, -0.04], from: 0.72, to: 1, fade: 0.2 },
     // Whizzer: the arm on the attacked side overhooks his near arm (reference S1rUJQXhnoY).
-    { who: 'B', hand: 'R', on: 'armL', at: [0.0, -0.07, -0.045], from: 0.65, to: 1, fade: 0.2 },
+    { who: 'B', hand: 'R', on: 'armL', at: [0.0, -0.07, -0.045], from: 0.68, to: 1, fade: 0.2 },
   ],
 });
 
@@ -942,15 +956,22 @@ const SIT_B: PoseSpec = { hips: [0, 0.13, -0.08], rot: [0, -4, 0], spine: [-10, 
   footL: [0.22, 0.05, 0.62, 0, 20], footR: [-0.22, 0.05, 0.62, 0, 20], kneeL: [0.3, 0.5, 0.4], kneeR: [-0.3, 0.5, 0.4],
   handL: [0.1, 0.42, 0.22], handR: [-0.1, 0.42, 0.22], elbowL: [0.24, 0.42, 0.0], elbowR: [-0.24, 0.42, 0.0] };
 // The rider stays chest to his back, then goes under the near arm to the neck and pulls him over.
-const SIT_A: PoseSpec = { hips: [0.14, 0.46, -0.36], rot: [-20, 40, 0], spine: [28, -4, 0], elbowL: [0.24, 0.28, -0.24] };
+const SIT_A: PoseSpec = { hips: [0.3, 0.46, -0.36], rot: [-20, 40, 0], spine: [20, -4, 0], elbowL: [0.24, 0.28, -0.24] };
 const SIT_PULL_B: PoseSpec = { ...SIT_B, hips: [0, 0.13, -0.1], rot: [0, -14, 0], spine: [-16, 0, 0], head: [10, 0, 0] };
-const SIT_PULL_A: PoseSpec = { hips: [0.14, 0.42, -0.42], rot: [-20, 28, 0], spine: [20, -4, 0], elbowL: [0.22, 0.26, -0.3] };
+const SIT_PULL_A: PoseSpec = { hips: [0.3, 0.42, -0.42], rot: [-20, 28, 0], spine: [14, -4, 0], elbowL: [0.22, 0.26, -0.3] };
+// Owner, November 10 (fluidity and realism): the rider's head stays beside the bottom man's near shoulder, never on
+// top of his head. Wider (hips 0.3 to the near side, was 0.14) and more upright through the sit, chest up as he sits.
+const SIT_CLEAR_A: PoseSpec = { hips: [0.28, 0.5, -0.32], rot: [-12, 26, 0], spine: [8, -4, 0] };
 registerMove({
   id: 'sitOutPull',
   A: [
     { t: 0, pose: { base: holdAt('ride', 'A', 0.3) } },
-    { t: 0.3, pose: SIT_A },
+    // His head comes up and out to the near side as the bottom man's head rises through the sit (no head clash).
+    { t: 0.18, pose: SIT_CLEAR_A },
+    { t: 0.32, pose: SIT_A },
     { t: 0.55, pose: SIT_PULL_A },
+    { t: 0.78, pose: SIT_A },
+    { t: 0.88, pose: SIT_CLEAR_A },
     { t: 1, pose: { base: holdAt('ride', 'A', 0.45) } },
   ],
   B: [
@@ -979,14 +1000,25 @@ registerMove({
   id: 'sitOutEscape',
   A: [
     { t: 0, pose: { base: holdAt('ride', 'A', 0.3) } },
+    { t: 0.18, pose: SIT_CLEAR_A },
     { t: 0.32, pose: SIT_A },
+    // He turns in toward the rider: the rider comes up and back off him to his feet (no head clash).
+    { t: 0.5, pose: { hips: [0.24, 0.6, -0.42], rot: [-10, 12, 0], spine: [2, 0, 0] } },
     { t: 1, pose: { base: stanceAt({ x: 0.05, z: -0.42, yaw: 0 }, 1) } },
   ],
+  // The escape is the short sit (video review, November 11: Jon Morrison, "Sit Out, Turn In",
+  // https://www.youtube.com/watch?v=vkY16JCnNnQ, 97-107 s): he sits through low onto his near hip, near leg folded under,
+  // a hand posted, and turns straight in to his knees facing the rider. It used to sit square with both knees up first
+  // (the back-pressure sit, which the pull and the turn keep), then turn: a slow two-step.
   B: [
     { t: 0, pose: { base: holdAt('ride', 'B', 0.3) } },
     { t: 0.16, pose: SIT_THROUGH_B },
-    { t: 0.36, pose: SIT_B },
-    { t: 0.64, pose: { hips: [0.06, 0.34, 0.2], rot: [110, 40, 0], spine: [12, 6, 0], handL: [0.2, POST, 0.1], handR: [-0.1, POST, 0.5] } },
+    // Short sit: low on the near hip, turned partway, posted on the near hand.
+    { t: 0.3, pose: { hips: [0.06, 0.22, -0.04], rot: [50, 18, -22], spine: [8, 10, 0], head: [-10, 20, 0],
+      footL: [0.3, 0.06, 0.2, 40, 60], footR: [-0.32, 0.06, 0.3, 60, 30], kneeL: [0.12, 0.12, 0.08], kneeR: [-0.2, 0.35, 0.3],
+      handL: [0.32, POST, -0.02], handR: [0.05, 0.4, 0.25], elbowL: [0.4, 0.25, -0.1], elbowR: [-0.15, 0.4, 0.1] } },
+    // Turned in on his knees, hands posted, facing the rider.
+    { t: 0.56, pose: { hips: [0.06, 0.36, 0.2], rot: [110, 40, 0], spine: [12, 6, 0], handL: [0.2, POST, 0.1], handR: [-0.1, POST, 0.5] } },
     { t: 1, pose: { base: stanceAt({ x: 0, z: 0.62, yaw: 180 }, 1) } },
   ],
   contacts: [
@@ -998,6 +1030,7 @@ registerMove({
   id: 'sitOutTurn',
   A: [
     { t: 0, pose: { base: holdAt('ride', 'A', 0.3) } },
+    { t: 0.16, pose: SIT_CLEAR_A },
     { t: 0.28, pose: SIT_A },
     { t: 0.5, pose: SIT_PULL_A },
     { t: 1, pose: { base: holdAt('exposed', 'A', 0) } },
@@ -1023,17 +1056,31 @@ registerMove({
   ],
 });
 
-// Tilt from the ride: trap the near arm, drive across and rock him over.
+// Tilt from the ride: trap the near arm, drive the chest down across his back, then rock back onto the hip and lever
+// him over the trapped arm, his legs swinging up in the air, and come back over on top for the near fall. Film (video
+// review, November 11: Josh Dziewa, "Reinforced arm bar tilt", https://www.youtube.com/watch?v=ytreRDhWFv4, 50-66 s):
+// chest low over the back with the arm barred, then the top man rocks back on his side and the bottom man's legs go up.
+// It used to stay up on his knees while the bottom man simply rolled to his back, which read as a half nelson.
 registerMove({
   id: 'tilt',
   A: [
     { t: 0, pose: { base: holdAt('ride', 'A', 1) } },
-    { t: 0.4, pose: { hips: [0.3, 0.4, 0.05], rot: [-40, 60, 0], spine: [16, -10, 0] } },
+    // Chest down across his back, arm trapped.
+    { t: 0.28, pose: { hips: [0.28, 0.42, -0.02], rot: [-45, 52, 0], spine: [30, -10, 0], head: [10, 0, 0] } },
+    // The rock-back: down on his hip beside him, leaning back and levering him over.
+    { t: 0.52, pose: { hips: [0.46, 0.17, -0.08], rot: [-70, 8, -46], spine: [-14, -18, 0], head: [12, 0, 0],
+      footL: [0.95, 0.06, 0.3, -60, 20], footR: [1.0, 0.06, -0.3, -100, 20], kneeL: [0.8, 0.2, 0.2], kneeR: [0.8, 0.2, -0.3] } },
+    // Back over on top as he lands.
+    { t: 0.82, pose: { hips: [0.44, 0.34, 0.2], rot: [-90, 70, 0], spine: [12, 0, 0] } },
     { t: 1, pose: { base: holdAt('exposed', 'A', 0) } },
   ],
   B: [
     { t: 0, pose: { base: holdAt('ride', 'B', 1) } },
-    { t: 0.45, pose: { hips: [0, 0.32, 0.0], rot: [0, 86, 0, 45] } },
+    // Flattened by the chest.
+    { t: 0.28, pose: { hips: [0, 0.36, 0.0], rot: [0, 86, 0, 8], spine: [10, 0, 0] } },
+    // Levered over the trapped arm: on his side, knees and feet swung up in the air.
+    { t: 0.52, pose: { hips: [0.06, 0.3, 0.0], rot: [0, 84, 0, 78], spine: [-6, 0, 0],
+      kneeL: [-0.2, 0.75, -0.25], kneeR: [0.15, 0.85, -0.2], footL: [-0.2, 0.7, -0.62, 160, 0], footR: [0.1, 0.82, -0.6, 200, 0] } },
     { t: 0.72, land: true, pose: { hips: [0, 0.16, 0.0], rot: [0, 90, 0, 120] } },
     { t: 1, pose: { base: holdAt('exposed', 'B', 0) } },
   ],
@@ -1090,7 +1137,9 @@ registerMove({
   A: [
     { t: 0, pose: { base: holdAt('ride', 'A', 0) } },
     { t: 0.36, pose: { hips: [0.2, 0.5, -0.3], rot: [-22, 28, 0], spine: [20, -4, 0] } },
-    { t: 0.62, pose: { hips: [0.14, 0.64, -0.34], rot: [-10, 28, 0], spine: [16, -4, 0], footL: [0.42, BALL, -0.5, -15, 60], footR: [0.02, BALL, -0.62, -20, 60] } },
+    // Dragged up with him.
+    { t: 0.56, pose: { hips: [0.14, 0.66, -0.34], rot: [-10, 28, 0], spine: [16, -4, 0], footL: [0.42, BALL, -0.5, -15, 60], footR: [0.02, BALL, -0.62, -20, 60] } },
+    { t: 0.72, pose: { hips: [0.13, 0.76, -0.35], rot: [-2, 26, 0], spine: [14, -2, -6] } },
     { t: 1, pose: { base: holdAt('standing', 'A', 0, { x: 0, z: 0.06, yaw: 0 }) } },
   ],
   B: [
@@ -1099,10 +1148,15 @@ registerMove({
       handR: [-0.22, POST, 0.3], footL: [0.22, 0.12, -0.04, 10, 35] } },
     { t: 0.32, pose: { hips: [0, 0.44, -0.05], rot: [0, 22, 0], spine: [2, 0, 0], head: [-8, 0, 0], handL: [0.1, 0.5, 0.2],
       handR: [-0.22, POST, 0.3], footL: [0.2, BALL, 0.26, 10, 4], kneeL: [0.24, 0.6, 0.5], kneeR: [-0.16, -0.3, 0.2] } },
-    { t: 0.44, pose: { hips: [0, 0.48, -0.03], rot: [0, 10, 0], spine: [0, 0, 0], head: [-6, 0, 0], handR: [-0.08, 0.5, 0.2],
+    // Then explode (owner, November 11: "more explosive and athletic"): hand control set, he drives up off the planted
+    // foot and is on both feet by 0.56 and standing tall into the rider by 0.7. It crept up at about 1 m/s and only
+    // reached full height at the end.
+    { t: 0.42, hipsVelocity: [0, 1.5, 0], pose: { hips: [0, 0.5, -0.03], rot: [0, 10, 0], spine: [0, 0, 0], head: [-6, 0, 0], handR: [-0.08, 0.5, 0.2],
       footL: [0.2, BALL, 0.26, 10, 4], kneeL: [0.24, 0.6, 0.5], kneeR: [-0.16, -0.3, 0.2] } },
-    { t: 0.62, pose: { hips: [0, 0.62, 0.0], rot: [0, 10, 0], spine: [0, 0, 0], head: [-4, 0, 0],
-      footL: [0.24, BALL, 0.26, 10, 4], footR: [-0.24, BALL, -0.08, -10, 8], kneeL: [0.3, 0.6, 0.6], kneeR: [-0.3, 0.6, 0.5] } },
+    { t: 0.56, hipsVelocity: [0, 1.0, -0.05], pose: { hips: [0, 0.72, -0.02], rot: [0, 8, 0], spine: [-2, 0, 0], head: [-6, 0, 0],
+      footL: [0.24, BALL, 0.26, 10, 4], footR: [-0.24, BALL, -0.02, -10, 8], kneeL: [0.3, 0.6, 0.6], kneeR: [-0.3, 0.6, 0.5] } },
+    { t: 0.72, pose: { hips: [0, 0.82, -0.05], rot: [0, -2, 0], spine: [-8, 0, 0], head: [-8, 0, 0],
+      footL: [0.22, BALL, 0.18, 10, 10], footR: [-0.21, BALL, 0.06, -10, 10] } },
     { t: 1, pose: { base: holdAt('standing', 'B', 0, { x: 0, z: 0.06, yaw: 0 }) } },
   ],
   contacts: [
@@ -1133,28 +1187,45 @@ registerMove({
   ],
 });
 
-// Lift and return him to the mat, sweeping his leg out.
+// Mat return (owner, November 10: "bring them down with authority"): sink the hips under him, lift him clean off
+// his feet, swing his legs out, and drive him to the mat on his hips and chest, following him down. A legal return,
+// not a slam: the rider comes down with him.
 registerMove({
   id: 'returnMat',
   A: [
     { t: 0, pose: { base: holdAt('standing', 'A', 0) } },
-    { t: 0.4, pose: { hips: [0.0, 0.78, -0.3], rot: [0, 10, 0], spine: [4, 0, 0] } },
-    { t: 0.72, land: true, pose: { hips: [0.15, 0.5, -0.2], rot: [-10, 50, 0], spine: [24, -10, 0], handL: [.24, .3, .42], elbowL: [.48, .45, .2] } },
+    { t: 0.18, pose: { hips: [0.0, 0.7, -0.27], rot: [0, 20, 0], spine: [12, 0, 0] } },
+    { t: 0.4, pose: { hips: [0.02, 0.9, -0.22], rot: [0, -4, 0], spine: [-8, 0, 0] } },
+    // Arched back under the load as he swings him (50 Mat Returns @ 2023 NCAAs, DPS CpvYR02LFmc at 1.5 s and 7 s).
+    { t: 0.52, pose: { hips: [0.1, 0.86, -0.18], rot: [-22, -2, 0], spine: [-10, -12, 0], head: [-10, 0, 0] } },
+    { t: 0.66, land: true, pose: { hips: [0.15, 0.46, -0.16], rot: [-10, 55, 0], spine: [30, -10, 0], handL: [.24, .3, .42], elbowL: [.48, .45, .2] } },
     { t: 1, pose: { base: holdAt('ride', 'A', 0.2, { x: 0, z: 0.05, yaw: 0 }) } },
   ],
   B: [
     { t: 0, pose: { base: holdAt('standing', 'B', 0), palms: [1, 1] } },
+    { t: 0.18, pose: { hips: [0, 0.9, 0.04], rot: [0, 6, 0] } },
     {
       t: 0.4,
       pose: {
-        hips: [0, 1.02, 0.05],
-        rot: [0, 10, 0],
-        footL: [0.18, 0.25, 0.1, 10, 40],
-        footR: [-0.18, 0.2, 0.0, -10, 40],
+        hips: [0, 1.2, 0.0],
+        rot: [0, 12, 0],
+        footL: [0.2, 0.42, 0.16, 10, 40],
+        footR: [-0.16, 0.36, 0.04, -10, 40],
       },
     },
-    { t: 0.62, pose: { hips: [0, 0.58, 0.03], rot: [0, 62, 0], spine: [6, 0, 0], handL: [0.22, POST, 0.4], handR: [-0.22, POST, 0.42] } },
-    { t: 0.72, land: true, pose: { hips: [0, 0.48, 0.02], rot: [0, 70, 0], handL: [0.22, POST, 0.4], handR: [-0.22, POST, 0.42], palms: [1, 1] } },
+    {
+      t: 0.52,
+      pose: {
+        // Swung nearly horizontal, legs out at the rider's head height (the film's returns at 1.5 s and 7 s).
+        hips: [-0.08, 1.14, 0.02],
+        rot: [-34, 38, 48],
+        footL: [-0.5, 0.95, 0.3, 10, 40],
+        footR: [-0.74, 0.84, 0.16, -10, 40],
+      },
+    },
+    { t: 0.6, pose: { hips: [0, 0.62, 0.03], rot: [-10, 66, 6], spine: [6, 0, 0], handL: [0.24, POST + 0.08, 0.42], handR: [-0.22, POST + 0.08, 0.44] } },
+    { t: 0.66, land: true, pose: { hips: [0, 0.34, 0.02], rot: [0, 82, 0], spine: [-6, 0, 0], handL: [0.26, POST, 0.4], handR: [-0.24, POST, 0.42], palms: [1, 1] } },
+    { t: 0.8, pose: { hips: [0, 0.4, 0.02], rot: [0, 76, 0], handL: [0.24, POST, 0.4], handR: [-0.22, POST, 0.42], palms: [1, 1] } },
     { t: 1, pose: { base: holdAt('ride', 'B', 0.4, { x: 0, z: 0.05, yaw: 0 }) } },
   ],
   contacts: [

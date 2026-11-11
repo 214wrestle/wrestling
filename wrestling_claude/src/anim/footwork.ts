@@ -29,6 +29,9 @@ interface FootState {
   lift: number;
   heel: number;
   fheel: number;
+  /** Height the step leaves from and lands at: a foot getting up off the mat comes down over the step, not in one frame. */
+  fy: number;
+  ty: number;
   /** A running stride: a sine ease, whose peak speed is lower than the walking ease's for the same distance. */
   run?: boolean;
 }
@@ -56,6 +59,8 @@ const newFoot = (): FootState => ({
   lift: 0,
   heel: 0,
   fheel: 0,
+  fy: 0,
+  ty: 0,
 });
 
 const BOTH_FREE: readonly [number, number] = [1, 1];
@@ -134,6 +139,7 @@ export class Footwork {
       const f = this.feet[i];
       if (!f.stepping) continue;
       f.t += dt;
+      f.ty = desired[(i === 0 ? P.FOOT_L : P.FOOT_R) + 1];
       // Keep re-aiming the landing while in the air.
       const at = i === 0 ? P.FOOT_L : P.FOOT_R;
       // Predict only the remaining swing time. Using the full duration on
@@ -225,6 +231,8 @@ export class Footwork {
         f.fz = f.z;
         f.fyaw = f.yaw;
         f.fheel = f.heel;
+        f.fy = f.y;
+        f.ty = desired[at + 1];
         f.tx = desired[at] + vx * f.dur * (running ? .85 : walking ? .65 : .45);
         f.tz = desired[at + 2] + vz * f.dur * (running ? .85 : walking ? .65 : .45);
         f.tyaw = desired[at + FOOT.YAW];
@@ -265,11 +273,13 @@ export class Footwork {
         x = f.fx + (f.tx - f.fx) * e;
         z = f.fz + (f.tz - f.fz) * e;
         yaw = f.fyaw + wrap(f.tyaw - f.fyaw) * e;
-        y = f.y + Math.sin(u * Math.PI) ** 2 * f.lift;
+        // From where it left to where it lands (owner, November 10: up off the mat the foot dropped 0.5 m in one frame).
+        const base = f.fy + (f.ty - f.fy) * e;
+        y = base + Math.sin(u * Math.PI) ** 2 * f.lift;
         heelExtra = this.walking ? (1-e) * f.fheel + Math.sin(2 * u * Math.PI) * .22 : Math.sin(u * Math.PI) * .14;
         // A dorsiflexed foot rotates its heel down around the ball target.
         // Limit that rotation to the available clearance instead of clipping.
-        if (this.walking && heelExtra < 0) heelExtra = Math.max(heelExtra, -Math.asin(Math.min(1, (y-f.y)/(.23*this.bodyScale))));
+        if (this.walking && heelExtra < 0) heelExtra = Math.max(heelExtra, -Math.asin(Math.min(1, (y-base)/(.23*this.bodyScale))));
       }
       const w = weight * this.free[i];
       p[at] += (x - p[at]) * w;

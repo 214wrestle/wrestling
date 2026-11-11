@@ -1,6 +1,8 @@
 import { CanvasTexture, Color, DataTexture, LinearFilter, MeshPhysicalMaterial, ShaderChunk, SRGBColorSpace, TextureLoader, Vector4 } from 'three';
 import type { Texture } from 'three';
 import type { IUniform } from 'three';
+import { MAX_TATTOOS, TATTOO_REGION } from './tattoos';
+import type { Tattoo } from './tattoos';
 
 /**
  * Broadcast-realism body material.
@@ -72,9 +74,15 @@ export interface RealLook {
   piping: string;
   wordmark: string;
   wordmarkColor?: string;
+  /** The first line of the wordmark arches across the chest (lines split on '\n' stack). */
+  wordmarkArch?: boolean;
   chestEmblem?: boolean;
+  /** Tattoos (tattoos.ts), at most MAX_TATTOOS. */
+  tattoos?: Tattoo[];
   /** The official: striped shirt, black slacks and shoes instead of a singlet. */
   referee?: boolean;
+  /** A corner coach: a polo in the school's primary colour with a secondary collar, dark slacks (owner, November 11). */
+  coach?: boolean;
   /** Face is the CC0 base head: skip paint tied to the generated face's features. */
   baseHead?: boolean;
   /** Strength of abdominal definition under the singlet, 0..1. */
@@ -110,10 +118,64 @@ export interface RealLook {
   nose: number;
 }
 
-function wordmarkTexture(text: string, emblem = false): CanvasTexture {
+const markFont = (s: number) => `800 ${s}px "Bahnschrift", "Arial Narrow", "Arial", sans-serif`;
+
+/**
+ * Layout of a stacked or arched chest wordmark (November 11, owner OK: real singlets stack PENN over STATE, arch
+ * ARIZONA over STATE). Lines are split on '\n'; each is sized to fit the chest, capped so a short word is not blown up,
+ * and a long second line (CAL STATE over BAKERSFIELD) comes out smaller on its own. `arch` bends the first line up.
+ * Heights in canvas pixels at 1024 wide (the chest mark is 0.2 m wide, so 1024 px = 0.2 m).
+ */
+export function markLayout(text: string, arch: boolean, measure: (font: string, s: string) => number) {
+  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+  const cap = lines.length > 1 ? 168 : 190;
+  const sizes = lines.map((l) => {
+    let s = cap;
+    while (measure(markFont(s), l) > 940 && s > 40) s -= 4;
+    return s;
+  });
+  const widths = lines.map((l, i) => measure(markFont(sizes[i]), l));
+  // An arch of radius R over a line w wide rises w^2 / 8R in the middle.
+  const radius = arch ? Math.max(widths[0] * 1.15, 420) : 0;
+  const sag = arch ? (widths[0] * widths[0]) / (8 * radius) : 0;
+  const gap = 0.12;
+  let y = 24 + sag;
+  const rows = lines.map((l, i) => {
+    const top = y;
+    y += sizes[i] * (i < lines.length - 1 ? 1 + gap : 1);
+    return { text: l, size: sizes[i], width: widths[i], mid: top + sizes[i] / 2, arch: arch && i === 0 };
+  });
+  const height = Math.max(256, Math.ceil((y + 28) / 16) * 16);
+  return { rows, radius, height };
+}
+
+function drawMarkLines(g: CanvasRenderingContext2D, text: string, arch: boolean) {
+  const { rows, radius } = markLayout(text, arch, (f, s) => { g.font = f; return g.measureText(s).width; });
+  for (const r of rows) {
+    g.font = markFont(r.size);
+    if (!r.arch) { g.fillText(r.text, 512, r.mid + r.size * 0.04); continue; }
+    // Letters along a circle whose top passes through the line's middle at the centre of the chest.
+    const cy = r.mid + radius;
+    let x = -r.width / 2;
+    for (const ch of r.text) {
+      const w = g.measureText(ch).width;
+      const a = (x + w / 2) / radius;
+      g.save();
+      g.translate(512 + Math.sin(a) * radius, cy - Math.cos(a) * radius);
+      g.rotate(a);
+      g.fillText(ch, 0, r.size * 0.04);
+      g.restore();
+      x += w;
+    }
+  }
+}
+
+function wordmarkTexture(text: string, emblem = false, arch = false): CanvasTexture {
   const c = document.createElement('canvas');
   c.width = 1024;
   c.height = 256;
+  const stacked = !emblem && (text.includes('\n') || arch);
+  if (stacked) c.height = markLayout(text, arch, (f, s) => { const g = c.getContext('2d')!; g.font = f; return g.measureText(s).width; }).height;
   const g = c.getContext('2d')!;
   g.clearRect(0, 0, c.width, c.height);
   g.fillStyle = '#fff';
@@ -138,7 +200,8 @@ function wordmarkTexture(text: string, emblem = false): CanvasTexture {
     g.strokeStyle = '#9e1736'; g.lineWidth = 12;
     g.strokeText('STATE', 512, 135);
     g.fillStyle = '#f5c635'; g.fillText('STATE', 512, 135);
-  } else g.fillText(text, c.width / 2, c.height / 2 + 8);
+  } else if (stacked) drawMarkLines(g, text, arch);
+  else g.fillText(text, c.width / 2, c.height / 2 + 8);
   const tex = new CanvasTexture(c);
   tex.colorSpace = SRGBColorSpace;
   tex.minFilter = LinearFilter;
@@ -188,7 +251,11 @@ uniform vec4 uCuff;
 uniform vec4 uChestBand;
 uniform float uBandY;
 uniform vec4 uHemStripes;
+// Tattoos (tattoos.ts): x region (0 none, 1 sleeve, 2 upper arm, 3 arm medallion, 4 forearm, 5 back, 6 thigh,
+// 7 chest script), y side (+1 his left, -1 his right).
+uniform vec4 uTattoo[4];
 uniform vec4 uTights;
+// 0 a wrestler, 1 the official, 2 a corner coach (both wear clothes instead of a singlet).
 uniform float uReferee;
 uniform float uBaseHead;
 uniform float uAbs;
@@ -204,6 +271,7 @@ uniform float uStubble;
 uniform float uSides;
 uniform float uHairStraight;
 uniform sampler2D uWordmark;
+uniform float uMarkH;
 uniform float uBumpAmt;
 uniform float uAOAmt;
 uniform float uBrowLift;
@@ -539,6 +607,67 @@ Look bodyLook() {
 
   // Knees, elbows, knuckles: thinner skin, more blood.
   skin = mix(skin, skin * blood, clamp(red, 0.0, 1.0) * 0.6);
+  // Tattoos (owner, November 11): blue-black ink in the skin, under the singlet. Generic designs, not copies of the real
+  // art: organic linework with shaded fills for pieces and sleeves, a ringed disc with radial ticks for medallions,
+  // slanted script-like strokes for writing.
+  float inkA = 0.0;
+  for (int i = 0; i < 4; i++) {
+    vec4 tt = uTattoo[i];
+    if (tt.x < 0.5 || side != tt.y) continue;
+    float region = tt.x;
+    float a = 0.0;
+    if (region < 2.5 && isArm) {
+      // Sleeve (1): shoulder to wrist. Upper-arm piece (2): shoulder cap to above the elbow.
+      float lo = region < 1.5 ? 0.02 : 0.03, hi = region < 1.5 ? 0.5 : 0.26;
+      float m = smoothstep(lo, lo + 0.03, along) * (1.0 - smoothstep(hi - 0.03, hi, along));
+      // Dense, dark work with shading: bold lines, big solid fills and a grey wash between them.
+      float f = fbm(p * 22.0 + tt.y * 7.0);
+      float lines = 1.0 - smoothstep(0.02, 0.07, abs(f - 0.5));
+      float fills = smoothstep(0.5, 0.56, fbm(p * 12.0 + 3.0));
+      float wash = 0.35 + 0.25 * fbm(p * 30.0 + 9.0);
+      a = clamp(max(max(lines, fills * 0.9), wash), 0.0, 1.0) * m;
+    } else if ((region > 2.5 && region < 4.5 && isArm) || (region > 5.5 && region < 6.5 && isLeg)) {
+      // Medallion: on the front of the upper arm by the elbow (3), a small one on the forearm (4), or on the front of
+      // the thigh above the knee (6, the sun disc).
+      vec3 c = region < 3.5 ? shoulder + armDir * 0.21 + vec3(0.0, 0.0, 0.035)
+             : region < 4.5 ? shoulder + armDir * 0.41 + vec3(0.0, 0.0, 0.03)
+             : vec3(side * 0.115, 0.62, 0.065);
+      float R = region < 3.5 ? 0.035 : region < 4.5 ? 0.018 : 0.05;
+      // Laid on the front of the limb: distance and angle in one fixed forward-facing plane (the centre sits inside the
+      // limb, so a plain 3D distance never reached the inner rings; each pixel's own surface plane wrapped it round the
+      // arm like a band), and only on the near side of the limb.
+      vec3 d3 = p - c;
+      vec3 up = region < 5.5 ? armDir : vec3(0.0, 1.0, 0.0);
+      vec3 nc = vec3(0.0, 0.0, 1.0);
+      vec3 t1 = normalize(cross(nc, up));
+      vec3 t2 = cross(nc, t1);
+      vec2 q = vec2(dot(d3, t1), dot(d3, t2));
+      float r = length(q) / R;
+      float ang = atan(q.y, q.x);
+      float ring = 0.0;
+      for (int k = 0; k < 4; k++) { float rk = 0.3 + 0.22 * float(k); ring = max(ring, 1.0 - smoothstep(0.02, 0.07, abs(r - rk))); }
+      float ticks = step(0.5, fract(ang * 3.8197)) * smoothstep(0.5, 0.54, r) * (1.0 - smoothstep(0.72, 0.76, r));
+      float core = (1.0 - smoothstep(0.18, 0.24, r)) * 0.85;
+      float near = 1.0 - smoothstep(R * 1.6, R * 2.2, length(d3));
+      a = clamp(max(max(ring, ticks), core), 0.0, 1.0) * (1.0 - smoothstep(0.95, 1.02, r)) * near;
+    } else if (region > 4.5 && region < 5.5 && isTorso && p.z < 0.0) {
+      // Back piece: across the shoulder blades and up to the base of the neck.
+      float m = smoothstep(1.2, 1.24, p.y) * (1.0 - smoothstep(1.47, 1.5, p.y)) * (1.0 - smoothstep(0.15, 0.18, ax));
+      float f = fbm(vec3(ax, p.y, p.z) * 16.0 + 5.0);
+      float lines = 1.0 - smoothstep(0.02, 0.07, abs(f - 0.5));
+      float fills = smoothstep(0.5, 0.56, fbm(vec3(ax, p.y, p.z) * 9.0 + 1.0));
+      float wash = 0.3 + 0.25 * fbm(vec3(ax, p.y, p.z) * 26.0 + 2.0);
+      a = clamp(max(max(lines, fills * 0.9), wash), 0.0, 1.0) * m;
+    } else if (region > 6.5 && isTorso && p.z > 0.0) {
+      // A line of script high on the chest toward the armpit, outside the singlet strap (McFadden's photo).
+      float band = (1.0 - smoothstep(0.006, 0.01, abs(p.y - 1.37 + (ax - 0.16) * 0.3))) * smoothstep(0.132, 0.14, ax) * (1.0 - smoothstep(0.19, 0.2, ax));
+      float strokes = step(0.55, fract((ax + (p.y - 1.37) * 0.35) * 260.0)) * step(0.3, vnoise(vec3(ax * 90.0, 1.0, 2.0)));
+      a = band * strokes;
+    }
+    inkA = max(inkA, a);
+  }
+  vec3 inkCol = vec3(0.07, 0.085, 0.12);
+  skin = mix(skin, mix(skin * 0.25, inkCol, 0.6), inkA * 0.92);
   L.color = skin;
   // Pores and fine skin texture: pores at 0.9 mm, a crepey undulation at
   // 4-6 mm that breaks the specular up even where the pores are sub-pixel.
@@ -617,7 +746,8 @@ Look bodyLook() {
     }
 
     // Wordmark across the chest.
-    vec2 uv = vec2(0.5 + p.x / mix(0.2, 0.32, uChestEmblem), (p.y - mix(1.236, 1.17, uChestEmblem)) / mix(0.05, 0.15, uChestEmblem));
+    // The mark's top edge stays at 1.286; a stacked or arched mark (taller texture) reaches further down the chest.
+    vec2 uv = vec2(0.5 + p.x / mix(0.2, 0.32, uChestEmblem), (p.y - mix(1.286 - uMarkH, 1.17, uChestEmblem)) / mix(uMarkH, 0.15, uChestEmblem));
     float inMark = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0) * smoothstep(0.02, 0.05, p.z) * (isTorso ? 1.0 : 0.0);
     vec4 emblem = texture2D(uWordmark, uv);
     float ink = emblem.a * inMark;
@@ -702,8 +832,9 @@ Look bodyLook() {
     red = mix(red, 0.0, tights);
   }
 
-  // ---- official's uniform ------------------------------------------------
+  // ---- official's uniform (and the coach's polo) ------------------------
   if (uReferee > 0.5) {
+    bool coach = uReferee > 1.5;
     vec3 black = vec3(0.022, 0.024, 0.03);
     vec3 shoulder = vec3(side * 0.19, 1.43, -0.025);
     vec3 armDir = normalize(vec3(side * 0.788, -0.616, 0.0));
@@ -714,6 +845,13 @@ Look bodyLook() {
     float collar = isTorso ? aa(p.y - 1.44) * aa(0.075 - ax) : 0.0;
     float stripe = step(0.5, fract((p.x + 0.0125) / 0.05));
     vec3 shirtCol = mix(mix(vec3(0.9, 0.9, 0.88), black, stripe), black, collar);
+    if (coach) {
+      // Polo: team colour (dark ones lifted as on the singlet), collar and placket in the secondary colour.
+      vec3 polo = uPrimary * mix(1.0, 1.6, 1.0 - smoothstep(0.004, 0.05, dot(uPrimary, vec3(0.2126, 0.7152, 0.0722))));
+      float placket = isTorso ? aa(p.y - 1.33) * aa(0.012 - ax) * step(0.0, p.z) : 0.0;
+      shirtCol = mix(mix(polo, uSecondary, collar), uSecondary, placket);
+      black = vec3(0.06, 0.065, 0.075);
+    }
     float clothed = clamp(shirt + slacks, 0.0, 1.0);
     L.color = mix(L.color, shirtCol, shirt);
     L.color = mix(L.color, black, slacks);
@@ -723,7 +861,7 @@ Look bodyLook() {
     L.sss = mix(L.sss, 0.0, clothed);
     height = mix(height, 0.0, clothed);
     red = mix(red, 0.0, clothed);
-    float wristBand = isArm ? aa(armAlong - 0.485) * aa(0.53 - armAlong) : 0.0;
+    float wristBand = isArm && !coach ? aa(armAlong - 0.485) * aa(0.53 - armAlong) : 0.0;
     vec3 wristCol = side > 0.0 ? vec3(0.75, 0.08, 0.07) : vec3(0.08, 0.55, 0.2);
     L.color = mix(L.color, wristCol, wristBand);
     L.sss = mix(L.sss, 0.0, wristBand);
@@ -856,6 +994,7 @@ export function createRealBodyMaterial(look: RealLook, share?: RealBodyMaterial)
   }) as RealBodyMaterial;
 
   const photoReady: IUniform = { value: 0 };
+  const markTex = share ? null : wordmarkTexture(look.wordmark.toUpperCase(), look.chestEmblem, look.wordmarkArch);
   const uniforms: Record<string, IUniform> = share ? share.userData.uniforms : {
     uSkin: { value: new Color(look.skin) },
     uHair: { value: new Color(look.hair) },
@@ -877,8 +1016,12 @@ export function createRealBodyMaterial(look: RealLook, share?: RealBodyMaterial)
     uChestBand: { value: colourOn(look.kit?.chestBand) },
     uBandY: { value: look.kit?.bandY ?? 1.29 },
     uHemStripes: { value: colourOn(look.kit?.hemStripes) },
+    uTattoo: { value: Array.from({ length: MAX_TATTOOS }, (_, i) => {
+      const t = look.tattoos?.[i];
+      return new Vector4(t ? TATTOO_REGION[t.at] : 0, t ? (t.side === 'L' ? 1 : -1) : 0, 0, 0);
+    }) },
     uTights: { value: colourOn(look.kit?.tights) },
-    uReferee: { value: look.referee ? 1 : 0 },
+    uReferee: { value: look.referee ? 1 : look.coach ? 2 : 0 },
     uBaseHead: { value: look.baseHead ? 1 : 0 },
     uAbs: { value: look.abs ?? 0 },
     uWordmarkColor: { value: new Color(look.wordmarkColor ?? look.secondary) },
@@ -893,7 +1036,9 @@ export function createRealBodyMaterial(look: RealLook, share?: RealBodyMaterial)
     uStubble: { value: look.stubble },
     uSides: { value: look.sides },
     uHairStraight: { value: look.hairStraight ?? 0 },
-    uWordmark: { value: wordmarkTexture(look.wordmark.toUpperCase(), look.chestEmblem) },
+    uWordmark: { value: markTex },
+    // Height of the chest mark in metres: 0.05 for one line (1024 x 256 over 0.2 m), taller when stacked or arched.
+    uMarkH: { value: (0.2 * (markTex!.image as HTMLCanvasElement).height) / 1024 },
     uBumpAmt: { value: dbgParam('bump', 1) },
     uBrowLift: { value: look.brow[0] },
     uClay: { value: dbgParam('clay', 0) },

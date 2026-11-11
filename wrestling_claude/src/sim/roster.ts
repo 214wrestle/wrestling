@@ -210,6 +210,36 @@ Object.assign(SCHOOLS.iowa, {primary: '#171717', secondary: '#ffcd00', accent: '
 
 Object.assign(SCHOOLS['iowa-state'], {primary: '#9e1736', secondary: '#f5c635', accent: '#f5c635', gear: '#f0eee7', pattern: 'band'});
 
+/**
+ * Real team colours for every other school (owner, November 11: "Yes, fix them"; they were a rotating placeholder of
+ * four, so Wisconsin and Lehigh came out green). From the singlet photo research (outputs/nov11-singlets) and each
+ * school's official colours. primary paints the scoreboard, banners and plates; secondary is the text on it (so it
+ * must read on primary); accent is drawn as text on the dark menus (so it must read on dark).
+ */
+export const TEAM_COLOURS: Record<string, { primary: string; secondary: string; accent: string }> = {
+  nebraska: { primary: '#d00000', secondary: '#ffffff', accent: '#ff5a4f' },
+  minnesota: { primary: '#7a0019', secondary: '#ffcc33', accent: '#ffcc33' },
+  'oklahoma-state': { primary: '#fe5c00', secondary: '#151515', accent: '#fe5c00' },
+  oklahoma: { primary: '#841617', secondary: '#fdf9d8', accent: '#fdf9d8' },
+  'ohio-state': { primary: '#bb0000', secondary: '#ffffff', accent: '#a7b1b7' },
+  michigan: { primary: '#00274c', secondary: '#ffcb05', accent: '#ffcb05' },
+  'michigan-state': { primary: '#18453b', secondary: '#ffffff', accent: '#7bbd9f' },
+  wisconsin: { primary: '#c5050c', secondary: '#ffffff', accent: '#ff5a5f' },
+  'arizona-state': { primary: '#8c1d40', secondary: '#ffc627', accent: '#ffc627' },
+  'oregon-state': { primary: '#dc4405', secondary: '#151515', accent: '#f26a2e' },
+  illinois: { primary: '#13294b', secondary: '#e84a27', accent: '#e84a27' },
+  indiana: { primary: '#990000', secondary: '#eeedeb', accent: '#eeedeb' },
+  'north-carolina': { primary: '#7bafd4', secondary: '#13294b', accent: '#7bafd4' },
+  'northern-iowa': { primary: '#4b116f', secondary: '#ffcc00', accent: '#ffcc00' },
+  lehigh: { primary: '#4f3324', secondary: '#ffffff', accent: '#c9a77c' },
+  'virginia-tech': { primary: '#630031', secondary: '#ffffff', accent: '#cf4420' },
+  'west-virginia': { primary: '#002855', secondary: '#eaaa00', accent: '#eaaa00' },
+  missouri: { primary: '#f1b82d', secondary: '#000000', accent: '#f1b82d' },
+  'nc-state': { primary: '#cc0000', secondary: '#ffffff', accent: '#ff5a5a' },
+  penn: { primary: '#011f5b', secondary: '#ffffff', accent: '#e8434b' },
+};
+for (const [id, c] of Object.entries(TEAM_COLOURS)) if (SCHOOLS[id]) Object.assign(SCHOOLS[id], c);
+
 export const byId = (id: string): Wrestler => {
   const found = ROSTER.find((w) => w.id === id);
   if (!found) throw new Error(`Unknown wrestler: ${id}`);

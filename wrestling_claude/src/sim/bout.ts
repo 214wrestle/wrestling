@@ -130,6 +130,10 @@ export type Position =
       stumbling?: boolean;
       /** Taken with no setup at all (see startShot): easy to read and to counter. */
       cold?: boolean;
+      /** How well timed, 0..1 (TIMING): 1 off a live reaction, about .6 set up, 0 cold. */
+      timing?: number;
+      /** The contact hit has fired (TIMING.impact). */
+      hit?: boolean;
     }
   | {
       kind: 'legs';
@@ -198,6 +202,17 @@ export type Position =
       fight: number;
       /** Top man over-committed: the switch window. */
       commit: number;
+      /** Bottom man's control of the rider's hand at his waist, 0..1 (HANDS). */
+      hands?: number;
+      /** Bottom man driving his back into the rider, 0..1, fading (HANDS). */
+      back?: number;
+      /** Seconds left of the explosive window off the whistle from the referee's position (HANDS). */
+      whistle?: number;
+      /** The top man's breakdown off this whistle (OPENER), and seconds until it lands. */
+      opener?: Breakdown;
+      openerT?: number;
+      /** Seconds he still holds the near ankle (OPENER.ankle.hold). */
+      ankleT?: number;
       basing: number;
       /** Seconds before the top man can try another turn. */
       turnCool: number;
@@ -233,6 +248,8 @@ export type Position =
       startB: Place;
       /** Neutral shots warp from the real distance to the authored one. */
       dist: number;
+      /** How well timed, 0..1 (TIMING): a burst plays faster and hits harder. */
+      burst?: number;
     };
 
 export interface BoutEvents {
@@ -292,6 +309,28 @@ export const BOUT = {
 /** Shot-quality penalty for a shot taken with no setup at all (see startShot). */
 export const COLD_SHOT = 0.12;
 /**
+ * Well-timed shots are explosive (owner, November 11: "more action, athleticism and explosive moves when it's well
+ * timed"). Timing 1 is a shot right off a live reaction (his reach, snap, stumble or recovery from a sprawl, or a reshot):
+ * the step comes out `fast` times the usual time, so faster on screen and harder to react to, and hits the legs with a
+ * bigger contact `impact`. A set-up shot (fake, hands, lean, angle) is about .6. A cold shot is telegraphed: `cold` times
+ * slower, with only the base hit. `at` is when in the step the shooter hits the legs (the clips' contact key).
+ */
+/**
+ * Lift doubles (owner, November 11: "Yes, more lifts"). About half the NCAA doubles sampled in the video review were
+ * lifts (DPS "40 Double Legs at 2025 NCAAs"); ours lifted only about 1 in 10, and only if won within 1.2 s. Now about a
+ * third of finished doubles for an average man: base plus a strength share, plus `quick` when won inside `quickT`
+ * seconds, and never once he is under `gas` stamina. The look changes, not the score.
+ */
+/**
+ * Upper-body throws off his drive (owner, November 11: "Make all of the upper body throws more effective when the opponent
+ * is pushing in from their feet. If he is pushing in hard it's easier for the thrower to launch"). Pushing in, 0..1: his
+ * speed toward the thrower over `speed` (m/s) plus his forward lean x `lean`. It adds up to `odds` to the lateral drop
+ * and headlock (cap raised to `cap`) and makes the throw a burst (TIMING): faster, landing harder.
+ */
+export const THROW_PUSH = { speed: 0.9, lean: 0.8, odds: 0.3, cap: 0.85 } as const;
+export const LIFT_DOUBLE = { base: 0.12, strength: 0.2, quick: 0.12, quickT: 1.2, gas: 0.3 } as const;
+export const TIMING = { fast: 0.86, setUp: 0.6, cold: 1.08, impact: [0.3, 0.6], at: 0.72 } as const;
+/**
  * Exposures that are a flash (owner, November 10): a tilt, or thrown feet to back from the feet. He is caught on his
  * back for a couple of quick swipes and bellies back out, so these are mostly the 2-point near falls; the top man
  * squeezing can hold some longer. Locked holds (half nelson, turk, cradles, bars) are where 3s, 4s and falls come from.
@@ -301,7 +340,12 @@ export const FLASH_EXPOSURES: ReadonlySet<string> = new Set(['tilt', 'sitOutTurn
  * Throws to his back (owner, November 10): a tight throw lands him locked up, a real chance at a 3, a 4 or a fall;
  * only a loose one is a flash he bellies out of for 2. How often it is tight goes with the thrower's power and skill.
  */
-export const THROW_EXPOSURES: ReadonlySet<string> = new Set(['lateralDrop', 'headlockThrow', 'cementMixer']);
+/**
+ * Fireman's carry to the back (owner, November 11): a won carry sometimes rolls him straight to his back, chest to
+ * chest, for a takedown and near fall (Austin DeSanto's inside carry), instead of landing him on his hands and knees.
+ */
+export const CARRY_BACK = { base: 0.32, strength: 0.4, mat: 0.2 };
+export const THROW_EXPOSURES: ReadonlySet<string> = new Set(['lateralDrop', 'headlockThrow', 'cementMixer', 'firemansCarryBack']);
 export const throwTight = (w: { strength: number; mat: number }) => clamp(0.15 + 0.3 * w.strength + 0.25 * w.mat, 0.2, 0.75);
 /** How fast he rolls out of a flash on his own (fight per second; he is off his back at 1). */
 export let FLASH_ROLL = 0.3;
@@ -351,7 +395,44 @@ export const DANGEROUS_ON_FEET = { snap: 0.04, leg: 0.02 } as const;
 // November 10 (pacescan, stand-in vs AI, Varsity): before (legs 0.11, the rest 1) about 32 points a match, 6.4
 // takedowns, 6.8 escapes, out from bottom in about 10 s. Leg finishes alone tilted it to the player (the AI's
 // takedowns fell three times as fast), the mat levers alone to the AI; together they balance.
-export const PACE = { legs: 0.13, fhl: 0.45, standUp: 0.55, standEscape: 0.45, sitOut: 0.45, turn: 0.7, switch: 0.5 };
+// Owner, November 10: a stand-up should work "more like 25%" (escapescan: 21% at standUp 0.55, flat by weight).
+export const PACE = { legs: 0.13, fhl: 0.45, standUp: 0.66, standEscape: 0.45, sitOut: 0.45, turn: 0.7, switch: 0.5 };
+/**
+ * Big men are hard to hold down (owner, November 10: "even higher when you start to get above 184 lbs. The really
+ * big guys are hard to hold down and ride"). Extra share on the bottom man's stand-up, sit-out escape and breaking
+ * the grip on his feet, and taken off the rider's return, by the bottom man's weight.
+ */
+export const BIG_BOTTOM: Readonly<Record<number, number>> = { 184: 0.22, 190: 0.27, 197: 0.35, 285: 0.6 };
+/**
+ * Stand-ups and sit-outs work off back pressure and hand control, and a stand-up is often an explosive move right off
+ * the whistle (owner, November 10). On the bottom, Hand fight takes hand control of the rider's wrist (the switch
+ * only when he is over, `switchWindow`), Base up drives the back into him (`back`, short-lived), and the first
+ * `whistle` seconds from the referee's position are the explosive window. Each adds to the stand-up and sit-out
+ * escape chance; a chop breaks some hand control; coming up with the hands starts him further along on his feet.
+ */
+export const HANDS = { gain: 0.4, fade: 0.25, chopBreak: 0.4, switchWindow: 0.3, backFade: 1.0,
+  standUp: 0.2, backStand: 0.12, whistle: 0.9, whistleStand: 0.22, sitOut: 0.12, backSit: 0.1, carry: 0.1 } as const;
+/**
+ * The top man's breakdown at the whistle from the referee's position (owner, November 10: "give the top man 3-4
+ * breakdown options prior to the whistle on the restart"). Chosen before the whistle; it lands `delay` after it unless
+ * the bottom man is already gone. Each also shifts the bottom man's whistle stand-up, switch and sit-out while the
+ * whistle window lasts (Near ankle: while he holds the ankle, `hold` seconds).
+ */
+export type Breakdown = 'chop' | 'ankle' | 'spiral' | 'legs';
+export const BREAKDOWNS: { id: Breakdown; label: string; note: string }[] = [
+  { id: 'chop', label: 'Chop', note: 'Chop the near arm and drive him to his belly · a quick stand-up beats it' },
+  { id: 'ankle', label: 'Near ankle', note: 'Pull the near ankle and drive · stops the stand-up, breaks less base' },
+  { id: 'spiral', label: 'Spiral', note: 'Far wrist and spiral him down · safe against the switch and sit-out' },
+  { id: 'legs', label: 'Legs in', note: 'Throw the legs in at the whistle · kills the stand-up, open to the switch' },
+];
+export const OPENER: { delay: number } & Record<Breakdown, { base: number; control: number; standUp: number; switch: number; sitOut: number; hold?: number }> = {
+  delay: 0.35,
+  chop: { base: 0.55, control: 0.05, standUp: 0.1, switch: 0.1, sitOut: 0.05 },
+  ankle: { base: 0.3, control: 0.15, standUp: -0.25, switch: 0, sitOut: -0.05, hold: 1.5 },
+  spiral: { base: 0.42, control: 0.1, standUp: -0.05, switch: -0.15, sitOut: -0.12 },
+  legs: { base: 0.12, control: 0.05, standUp: -0.2, switch: 0.2, sitOut: 0.05 },
+};
+export const bigBottom = (weightClass: number) => 1 + (BIG_BOTTOM[weightClass] ?? (weightClass > 197 ? 0.6 : 0));
 /** Review scans only. */
 export const setPace = (p: Partial<typeof PACE>) => { Object.assign(PACE, p); };
 /**
@@ -501,6 +582,8 @@ export class Bout {
   private lockWatch = 0;
   /** The mat return in the air: how it will land, and whether the bottom man went to turn in as he lands. */
   private returning: { base: number; slam: boolean; turnIn: boolean; escape: number; move: Position } | null = null;
+  /** Hand control he had as his stand-up started; he comes up further along with it (HANDS.carry). */
+  private risingHands = 0;
   /** The stand-up or return already given its one roll for a rider's own slip. */
   private handsRolled: Position | null = null;
   /** The side a person controls. His wrestler sprawls by reflex on a real shot and keeps
@@ -548,7 +631,33 @@ export class Bout {
       x.act = 'paired';
     }
     this.position = this.matPosition(top, { x: center.x, z: center.z, yaw: facing }, 'ride', 1);
+    if (this.position.kind === 'mat') this.position.whistle = HANDS.whistle;
     this.placeHold();
+  }
+
+  /**
+   * The whistle from the referee's position: the top man's breakdown (OPENER) starts now. `kind` undefined lets him
+   * pick his own (the AI): legs for a leg rider, otherwise mostly the chop.
+   */
+  whistleBreakdown(kind?: Breakdown | null): Breakdown | null {
+    const s = this.position;
+    if (s.kind !== 'mat' || s.sub !== 'ride' || kind === null) return null;
+    if (kind === undefined) {
+      const legRider = !!this.wrestlers[s.A].signature?.legRider;
+      const r = this.rng.next();
+      kind = legRider ? (r < 0.6 ? 'legs' : r < 0.85 ? 'chop' : 'ankle') : r < 0.38 ? 'chop' : r < 0.63 ? 'ankle' : r < 0.83 ? 'spiral' : 'legs';
+    }
+    s.opener = kind;
+    s.openerT = OPENER.delay;
+    return kind;
+  }
+
+  /** How the top man's whistle breakdown shifts the bottom man's move (OPENER): only while the whistle window lasts,
+   *  or for the stand-up while he still holds the near ankle. */
+  private openerEdge(s: Extract<Position, { kind: 'mat' }>, move: 'standUp' | 'switch' | 'sitOut'): number {
+    if (!s.opener) return 0;
+    const live = (s.whistle ?? 0) > 0 || move === 'standUp' && (s.ankleT ?? 0) > 0;
+    return live ? OPENER[s.opener][move] : 0;
   }
 
   /** Bodies off the clock: intros, whistles, celebrations. */
@@ -779,7 +888,10 @@ export class Bout {
       + (technique==='kneePick' ? 0.06 : 0)
       + (opponent.act==='reach' ? 0.18 : 0) - (defense.sprawl ? 0.2 : 0) + this.plan(a.side).tie, 0.08, 0.8);
     const wonEntry = this.rng.chance(success);
-    this.startMove(wonEntry ? technique : 'tieAttackCounter', a.side, this.pairFrame(a.side), false);
+    // Some carries roll him straight to his back (CARRY_BACK): more often for the stronger, better mat wrestler.
+    const toBack = wonEntry && technique === 'firemansCarry'
+      && this.rng.chance(clamp(CARRY_BACK.base + (wa.strength - wd.strength) * CARRY_BACK.strength + (wa.mat - 0.5) * CARRY_BACK.mat, 0.15, 0.55));
+    this.startMove(!wonEntry ? 'tieAttackCounter' : toBack ? 'firemansCarryBack' : technique, a.side, this.pairFrame(a.side), false);
     // Name the consumed attack even when it was buffered past the input frame.
     // A committed entry is still working; control is not awarded until the finish.
     this.ev.feedback?.(a.side, 'shoot', wonEntry ? 'ok' : 'lost', TECHNIQUE_LABELS[technique]);
@@ -793,6 +905,13 @@ export class Bout {
    * with his hips in wins them; hips back (sprawl) or a stronger man stops them, and a missed headlock
    * gives up your back.
    */
+  /** How hard `o` is driving in on `a`, 0..1 (THROW_PUSH): his speed toward him plus his forward lean. */
+  pushingIn(o: Athlete, a: Athlete): number {
+    const dx = a.pos.x - o.pos.x, dz = a.pos.z - o.pos.z, d = Math.hypot(dx, dz) || 1;
+    const toward = (o.vel.x * dx + o.vel.z * dz) / d;
+    return clamp01(Math.max(0, toward) / THROW_PUSH.speed + Math.max(0, o.lean) * THROW_PUSH.lean);
+  }
+
   private tryUpperThrow(a: Athlete, kind: 'lateralDrop' | 'headlock', defense: Command): void {
     const o = this.athletes[otherSide(a.side)];
     const d = this.distance();
@@ -807,10 +926,15 @@ export class Bout {
     }
     this.spend(a, cost);
     const wa = this.wrestlers[a.side].attributes, wo = this.wrestlers[o.side].attributes;
+    // Driving in on him (THROW_PUSH): his own momentum is what launches him.
+    const push = this.pushingIn(o, a);
     const p = clamp((kind === 'lateralDrop' ? 0.42 : 0.37) + (wa.strength - wo.strength) * 0.35 + (wa.quickness - wo.quickness) * 0.1
-      + Math.max(0, o.lean) * 0.3 + (o.act === 'reach' || o.act === 'swim' ? 0.12 : 0) - (defense.sprawl ? 0.25 : 0) + this.plan(a.side).tie, 0.08, 0.7);
+      + Math.max(0, o.lean) * 0.3 + (o.act === 'reach' || o.act === 'swim' ? 0.12 : 0) - (defense.sprawl ? 0.25 : 0) + this.plan(a.side).tie
+      + push * THROW_PUSH.odds, 0.08, THROW_PUSH.cap);
     if (this.rng.chance(p)) {
       this.startMove(kind === 'lateralDrop' ? 'lateralDrop' : 'headlockThrow', a.side, this.pairFrame(a.side), false);
+      // Thrown off his own drive: a burst (TIMING), faster and landing harder.
+      this.burst(push);
       this.ev.feedback?.(a.side, 'fight', 'won', TECHNIQUE_LABELS[kind]);
       return;
     }
@@ -1196,6 +1320,9 @@ export class Bout {
     if (this.distance() < BOUT.tieRange + 0.15 && this.rng.chance(clamp(p, 0.08, 0.9))) {
       this.ev.feedback?.(a.side, 'fight', 'won');
       this.startMove('snapDown', a.side, this.pairFrame(a.side), false);
+      // Snapped right as he reaches, fakes or stumbles (or hangs his weight forward): a burst (TIMING).
+      const caught = o.act === 'reach' || o.act === 'stagger' || o.act === 'sprawlRecover' || o.act === 'fake';
+      this.burst(caught ? 1 : clamp01((o.lean - 0.15) * 2));
       return true;
     }
     // He postured up: you are reaching and falling forward.
@@ -1286,7 +1413,11 @@ export class Bout {
     q -= (1 - a.stamina) * 0.25 * focus.tiredShot;
     q = clamp(q, 0.05, 1);
 
-    const dur = (1 / weightPhysics(this.wrestlers[a.side].weightClass).mobility) * (0.3 + 0.28 * Math.max(0, dist - 0.65)) * (1.12 - wa.quickness * 0.25) * (1 + (1 - a.stamina) * 0.3);
+    // Timing (TIMING): right off his reaction, or a reshot, is a burst; set up is good; cold is telegraphed.
+    const live = stumbling || o.act === 'reach' || o.act === 'snap' || o.act === 'stagger' || o.act === 'sprawlRecover';
+    const timing = live ? 1 : setUp ? TIMING.setUp : 0;
+    const speed = live ? TIMING.fast : setUp ? 1 - (1 - TIMING.fast) * TIMING.setUp : TIMING.cold;
+    const dur = speed * (1 / weightPhysics(this.wrestlers[a.side].weightClass).mobility) * (0.3 + 0.28 * Math.max(0, dist - 0.65)) * (1.12 - wa.quickness * 0.25) * (1 + (1 - a.stamina) * 0.3);
     const frame = this.pairFrame(a.side);
     for (const x of this.athletes) {
       x.act = 'paired';
@@ -1307,6 +1438,7 @@ export class Bout {
       reflexAt: stumbling ? -1 : this.reflexFor(o.side, dur, !setUp),
       stumbling,
       cold: !setUp,
+      timing,
     };
     this.ev.move?.(MOVES[SHOT_CLIPS[shot]], a.side);
     this.ev.tell?.(o.side, 'shot');
@@ -1523,6 +1655,13 @@ export class Bout {
       s.quality = Math.max(0.05, s.quality - (1 - late) * 0.4);
       s.sprawlAt = s.dur + 1;
     }
+    // He hits the legs: a contact hit, bigger the better timed (TIMING). Not if the hips are already back.
+    if (!s.hit && s.t >= s.dur * TIMING.at && (s.sprawlAt < 0 || s.sprawlAt > s.dur)) {
+      s.hit = true;
+      const at = frameApply(s.frame, { x: 0, z: 0.3, yaw: 0 });
+      const [lo, hi] = TIMING.impact;
+      this.ev.impact?.(lo + (hi - lo) * (s.timing ?? 0), { x: at.x, z: at.z }, false);
+    }
     if (s.t >= s.dur) {
       const progress = clamp(0.32 + s.quality * 0.4, 0.15, 0.85);
       const frame = s.frame;
@@ -1697,8 +1836,10 @@ export class Bout {
     if (s.whizzer) s.whizzer = Math.max(0, s.whizzer - dt) || undefined;
 
     if (s.progress >= 1) {
-      // A double won quickly, by a strong man with gas left, often goes up in the air.
-      const lift = s.shot === 'double' && s.t < 1.2 && A.stamina > 0.4 && this.rng.chance(0.06 + wa.strength * 0.2);
+      // A double won by a man with gas left often goes up in the air (LIFT_DOUBLE): more for the strong, more again
+      // when he gets there fast.
+      const lift = s.shot === 'double' && A.stamina > LIFT_DOUBLE.gas
+        && this.rng.chance(LIFT_DOUBLE.base + wa.strength * LIFT_DOUBLE.strength + (s.t < LIFT_DOUBLE.quickT ? LIFT_DOUBLE.quick : 0));
       // Defense may lower a previously raised leg while Drive is held.
       // Keep the effort, but finish from the capture's actual elevation.
       this.startMove(s.legFinish === 'trip' ? 'liftedLegTrip' : s.legFinish === 'drive' && (s.lifted ?? 0) > 0.7 ? 'liftedLegDrive' : s.shot === 'lowSingle' ? 'finishLowSingle' : s.shot === 'highCrotch' ? 'finishHighCrotch' : s.shot === 'single' ? 'finishSingle' : lift ? 'liftDouble' : 'finishDouble', s.A, s.frame, s.mirror);
@@ -1812,6 +1953,10 @@ export class Bout {
       if (this.rng.chance((p + this.signatureEdge(T.side, 'fhl', id)) * PACE.fhl * (1 - FATIGUE.finish * (1 - T.stamina)))) {
         this.ev.feedback?.(T.side, 'shoot', 'won', mixer ? 'Cement mixer' : whip ? 'Chin whip' : undefined);
         this.startMove(id, s.A, s.frame, false);
+        // Spun right off the sprawl, before his hips are back under him (film: the sprawler is swinging round
+        // within half a second): a burst (TIMING). Off his rise, the chin whip uses his drive the same way.
+        if (id === 'goBehind') this.burst(clamp01(1 - s.t / 0.9) * clamp01((0.5 - s.recover) * 3));
+        if (id === 'chinWhip') this.burst(clamp01(((s.drive ?? 0) - 0.4) * 2));
         return;
       }
       // A missed cement mixer costs more: he was halfway to rolling and the man underneath comes up.
@@ -1977,6 +2122,30 @@ export class Bout {
       const tp = topPlanEffects(this.plans[s.A]);
       s.control += (tp.control - s.control) * dt * 0.25;
       s.chopT = Math.max(0, (s.chopT ?? 0) - dt);
+      s.hands = Math.max(0, (s.hands ?? 0) - dt * HANDS.fade);
+      s.back = Math.max(0, (s.back ?? 0) - dt * HANDS.backFade);
+      s.whistle = Math.max(0, (s.whistle ?? 0) - dt);
+      s.ankleT = Math.max(0, (s.ankleT ?? 0) - dt);
+      // The breakdown he chose before the whistle lands (OPENER).
+      if (s.opener && s.openerT !== undefined) {
+        s.openerT -= dt;
+        if (s.openerT <= 0) {
+          s.openerT = undefined;
+          const o = OPENER[s.opener];
+          const label = BREAKDOWNS.find(b => b.id === s.opener)!.label;
+          s.base -= o.base * (0.75 + wt.mat * 0.5) * (0.6 + 0.4 * T.stamina) * (s.basing > 0 ? 0.6 : 1);
+          s.control = Math.min(1, s.control + o.control);
+          if (s.opener === 'chop') s.commit = 0.5;
+          if (s.opener === 'ankle') s.ankleT = o.hold;
+          if (s.opener === 'legs') { s.legRide = 1; s.commit = 0.4; }
+          this.spend(T, 0.04);
+          this.ev.feedback?.(T.side, 'fight', 'ok', label);
+          if (s.base <= 0) {
+            this.startMove('breakdown', s.A, s.frame, false);
+            return;
+          }
+        }
+      }
       if (drive > 0.3) {
         s.base -= dt * 0.1 * drive;
         // Riding pressure is not a lunge; only a hard drive leaves a little weight out front.
@@ -1995,6 +2164,7 @@ export class Bout {
         const hit = 0.3 * (0.75 + wt.mat * 0.5) * (0.6 + 0.4 * T.stamina) * (s.basing > 0 ? 0.5 : 1) * (1 + s.chopStreak * Math.max(0.04, 0.14 - (this.wrestlers[Bm.side].turnResist ?? 0) * 0.5)) * (rushed ? CHOP_PACE.rush : 1);
         s.base -= hit;
         s.commit = 0.5;
+        s.hands = Math.max(0, (s.hands ?? 0) - HANDS.chopBreak);
         this.spend(T, 0.035);
         this.ev.feedback?.(T.side, 'fight', 'ok');
         if (s.base <= 0) {
@@ -2012,7 +2182,10 @@ export class Bout {
           this.spend(T, 0.05);
           if (this.rng.chance(p * PACE.turn)) {
             this.ev.feedback?.(T.side, 'shoot', 'won');
-            this.startMove(legsIn ? 'turk' : this.wrestlers[s.A].motion?.preferredTurn === 'cradle' ? 'cradle' : 'tilt', s.A, s.frame, false);
+            const turnId = legsIn ? 'turk' : this.wrestlers[s.A].motion?.preferredTurn === 'cradle' ? 'cradle' : 'tilt';
+            this.startMove(turnId, s.A, s.frame, false);
+            // A tilt off his own drive (basing up or driving back into him) rocks him over fast (TIMING).
+            if (turnId === 'tilt') this.burst(clamp01(Math.max(s.basing ?? 0, s.back ?? 0) * 2));
             return;
           }
           s.turnCool = 0.9;
@@ -2049,26 +2222,33 @@ export class Bout {
       if (this.sitOutPending[Bm.side] > 0 && s.base > 0.3) {
         this.sitOutPending[Bm.side] = 0;
         this.spend(Bm, 0.06);
-        const escape = clamp(0.2 + wb.quickness * 0.25 - s.control * 0.4 + (s.base - 0.5) * 0.5 + (1 - T.stamina) * 0.2 + tp.escape, 0.05, 0.55) * PACE.sitOut;
+        const escape = clamp(0.2 + wb.quickness * 0.25 - s.control * 0.4 + (s.base - 0.5) * 0.5 + (1 - T.stamina) * 0.2 + tp.escape + HANDS.sitOut * (s.hands ?? 0) + HANDS.backSit * (s.back ?? 0) + this.openerEdge(s, 'sitOut'), 0.05, 0.62) * PACE.sitOut * bigBottom(this.wrestlers[Bm.side].weightClass);
         const turn = clamp(0.12 + wt.mat * 0.25 - wb.defense * 0.25 - (this.wrestlers[Bm.side].turnResist ?? 0), 0.03, 0.5);
         const id = T.side === this.practicePartner || this.rng.chance(escape) ? 'sitOutEscape' : this.rng.chance(turn) ? 'sitOutTurn' : 'sitOutPull';
         this.startMove(id, s.A, s.frame, false);
+        // Off the hand control, his back pressure or right on the whistle, the short sit and turn-in explode (TIMING).
+        if (id === 'sitOutEscape') this.burst(clamp01((s.hands ?? 0) + (s.back ?? 0) + ((s.whistle ?? 0) > 0 ? 0.5 : 0)));
         return;
       }
       // Bottom.
       if (this.take(Bm, 'sprawl')) {
         s.base = Math.min(1, s.base + 0.16);
         s.basing = 0.5;
+        // Building up is driving his back into the rider: the pressure a stand-up or sit-out goes off.
+        s.back = 1;
         this.ev.feedback?.(Bm.side, 'sprawl', 'ok');
       }
       if (this.take(Bm, 'shoot')) {
         this.spend(Bm, 0.05);
-        // Standing up off a weak base into a tight rider just gets you chopped back down.
-        const p = clamp(0.3 + wb.quickness * 0.25 - s.control * 0.5 + (s.base - 0.5) * 0.6 + (1 - T.stamina) * 0.2 + tp.escape, 0.05, 0.85) * PACE.standUp;
+        // Standing up off a weak base into a tight rider just gets you chopped back down. Back pressure, hand
+        // control and going right off the whistle make it (HANDS).
+        const off = HANDS.standUp * (s.hands ?? 0) + HANDS.backStand * (s.back ?? 0) + ((s.whistle ?? 0) > 0 ? HANDS.whistleStand : 0) + this.openerEdge(s, 'standUp');
+        const p = clamp(0.3 + wb.quickness * 0.25 - s.control * 0.5 + (s.base - 0.5) * 0.6 + (1 - T.stamina) * 0.2 + tp.escape + off, 0.05, 0.85) * PACE.standUp * bigBottom(this.wrestlers[Bm.side].weightClass);
         // A cooperative practice partner lets a learner rehearse the escape.
         if (T.side === this.practicePartner || s.base > 0.4 && this.rng.chance(p)) {
           this.ev.tell?.(T.side, 'standup');
-          this.ev.feedback?.(Bm.side, 'shoot', 'won');
+          this.ev.feedback?.(Bm.side, 'shoot', 'won', (s.whistle ?? 0) > 0 ? 'Off the whistle' : undefined);
+          this.risingHands = s.hands ?? 0;
           this.startMove('standUp', s.A, s.frame, false);
           return;
         }
@@ -2076,10 +2256,15 @@ export class Bout {
         s.base -= 0.12;
         s.control = Math.min(1, s.control + 0.08);
       }
-      if (this.take(Bm, 'fight')) {
+      if (s.commit < HANDS.switchWindow && this.take(Bm, 'fight')) {
+        // Hand fight: take the rider's wrist at the waist (HANDS). A tight rider gives it up slower.
+        this.spend(Bm, 0.02);
+        s.hands = Math.min(1, (s.hands ?? 0) + HANDS.gain * (0.7 + wb.quickness * 0.6) * (1.15 - 0.4 * s.control) * (0.6 + 0.4 * Bm.stamina));
+        this.ev.feedback?.(Bm.side, 'fight', 'ok', 'Hand control');
+      } else if (this.take(Bm, 'fight')) {
         this.spend(Bm, 0.05);
         // A switch beats weight that is out front: the more he just committed, the better it is.
-        const p = clamp(0.1 + s.commit * 0.8 + (wb.mat - wt.mat) * 0.25 + wb.quickness * 0.1 + tp.escape, 0.05, 0.85) * PACE.switch;
+        const p = clamp(0.1 + s.commit * 0.8 + (wb.mat - wt.mat) * 0.25 + wb.quickness * 0.1 + tp.escape + this.openerEdge(s, 'switch'), 0.05, 0.85) * PACE.switch;
         this.ev.tell?.(T.side, 'switch');
         if (s.base > 0.25 && this.rng.chance(p)) {
           this.ev.feedback?.(Bm.side, 'fight', 'won');
@@ -2183,7 +2368,7 @@ export class Bout {
       }
       if (this.take(Bm, 'fight')) {
         // Breaking the lock is hand-fighting, finger by finger; a tight lock gives less.
-        s.escape += 0.11 * PACE.standEscape * (0.7 + wb.quickness * 0.6) * (0.6 + 0.4 * Bm.stamina) * (1.25 - s.control * 0.5) * (1 + 0.3 * this.edge(Bm.side));
+        s.escape += 0.11 * PACE.standEscape * bigBottom(this.wrestlers[Bm.side].weightClass) * (0.7 + wb.quickness * 0.6) * (0.6 + 0.4 * Bm.stamina) * (1.25 - s.control * 0.5) * (1 + 0.3 * this.edge(Bm.side));
         this.spend(Bm, 0.02);
         this.ev.feedback?.(Bm.side, 'fight', 'ok');
       }
@@ -2207,7 +2392,7 @@ export class Bout {
         const lift = returnAction === 'crotchLift';
         const skill = trip ? wt.quickness : wt.strength;
         const p = clamp(0.22 + skill * 0.35 + s.control * 0.25 - s.escape * 0.7
-          + Math.min(0.15, s.t * 0.05) + (lift ? -0.08 + T.stamina * 0.08 : 0), 0.05, 0.9);
+          + Math.min(0.15, s.t * 0.05) + (lift ? -0.08 + T.stamina * 0.08 : 0), 0.05, 0.9) / bigBottom(this.wrestlers[Bm.side].weightClass);
         this.spend(T, lift ? 0.075 : trip ? 0.035 : 0.05);
         const button = trip ? 'shoot' : lift ? 'fight' : 'sprawl';
         if (this.rng.chance(p)) {
@@ -2396,6 +2581,14 @@ export class Bout {
     this.ev.move?.(def, A);
   }
 
+  /** The move just started is well timed (0..1): it plays faster, by TIMING.fast at 1, and hits harder. */
+  private burst(b: number): void {
+    const m = this.position;
+    if (m.kind !== 'move' || b <= 0) return;
+    m.burst = clamp01(b);
+    m.dur *= 1 - (1 - TIMING.fast) * m.burst;
+  }
+
   private tickMove(dt: number, m: Extract<Position, { kind: 'move' }>): void {
     m.t += dt;
     m.scrambleGuard = Math.max(0, (m.scrambleGuard ?? 0) - dt);
@@ -2404,7 +2597,9 @@ export class Bout {
     if (def.impact && !m.impacted && u >= def.impact.at) {
       m.impacted = true;
       const at = frameApply(m.frame, { x: 0, z: 0.3, yaw: 0 });
-      this.ev.impact?.(def.impact.strength, { x: at.x, z: at.z }, !!def.slowmo);
+      // A well-timed move (burst) lands harder: up to TIMING.impact's top.
+      const strength = def.impact.strength + Math.max(0, TIMING.impact[1] - def.impact.strength) * (m.burst ?? 0);
+      this.ev.impact?.(strength, { x: at.x, z: at.z }, !!def.slowmo);
     }
     if (def.award && !m.awarded && u >= def.award.at) {
       m.awarded = true;
@@ -2485,7 +2680,7 @@ export class Bout {
       case 'mat': {
         const mat = this.matPosition(sideOf(next.A), sub(next.frame), next.sub, next.base ?? 0);
         if (mat.kind === 'mat') {
-          if (next.sub === 'standing') mat.escape = 0.15;
+          if (next.sub === 'standing') { mat.escape = 0.15 + (m.id === 'standUp' ? HANDS.carry * this.risingHands : 0); this.risingHands = 0; }
           // next.frame already reflects the finish; preserve its handed hold too.
           mat.mirror = m.mirror;
           if (m.id === 'cradle' || m.id === 'crossfaceCradle') mat.turnStyle = 'cradle';

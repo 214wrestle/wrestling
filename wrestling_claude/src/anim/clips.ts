@@ -288,6 +288,26 @@ export function sampleHold(
     out[at] += Math.sin(w * 2.1 + at) * 0.015 * amp;
     out[at + 2] += Math.cos(w * 1.7 + at) * 0.015 * amp;
   }
+  if(id==='ride'){
+    // Owner, November 10: "they lay on each other a ton". The ride is a fight, not a rest: the bottom man keeps
+    // building (hips up, chest and head up) and shifting his weight; the rider chest-drives and walks his hips around
+    // the other way. Knees and feet stay where they are; locked hands follow through contact closure.
+    const work=0.55+0.45*intensity;
+    const build=Math.sin(w*1.5+r), sway=Math.sin(w*0.55), drive=Math.sin(w*1.5+r+1.1);
+    if(role==='B'){
+      out[P.HIPS+1]+=.03*build*work;
+      out[P.HIPS]+=.025*sway*work;
+      out[P.SPINE]-=.08*Math.max(0,build)*work;
+      out[P.HEAD]-=.16*Math.max(0,build)*work;
+      out[P.SPINE+2]+=.05*sway*work;
+    } else {
+      out[P.HIPS]-=.03*sway*work;
+      out[P.HIPS+2]+=.025*Math.max(0,drive)*work;
+      out[P.HIPS+1]-=.015*Math.max(0,drive)*work;
+      out[P.SPINE]+=.12*Math.max(0,drive)*work;
+      out[P.HIPS_Q]-=.03*sway*work;
+    }
+  }
   if(id==='cradleHold' && role==='B'){
     // Attempts to extend the trapped leg; the free leg kicks harder for leverage.
     const kick=(.5+.5*Math.sin(w*1.35))*amp;

@@ -52,8 +52,8 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
     title: 'On bottom',
     lead: 'Get your base, then get out. On a phone, tap repeatedly or hold a button to build effort while fighting off your back or breaking a grip.',
     rows: [
-      { key: 'J', move: 'Stand up', note: 'From a good base. Then K for hand control and J to turn out, or K + Shift for a standing switch. Returned to the mat: J as you come down to turn in the moment you land (miss and you land flatter).' },
-      { key: 'K', move: 'Switch', note: 'Right after he chops or drives: a reversal puts you on top.' },
+      { key: 'J', move: 'Stand up', note: 'From a good base, best right off the whistle or with hand control. Then K for hand control and J to turn out, or K + Shift for a standing switch. Returned to the mat: J as you come down to turn in the moment you land (miss and you land flatter).' },
+      { key: 'K', move: 'Hand control · Switch', note: 'Take his hand at your waist: your stand-up and sit-out work far better with it and with back pressure (L builds your base into him). Right after he chops or drives it is a switch: a reversal puts you on top.' },
       { key: 'X', move: 'Sit out', note: 'Sit through and turn in. Risky: he can pull you to your back. X + Shift is a Granby roll.' },
       { key: 'L', move: 'Base up', note: 'Rebuild your base; on your back, hammer to fight off. Against his legs it closes your pockets; Shift catches the leg.' },
     ],

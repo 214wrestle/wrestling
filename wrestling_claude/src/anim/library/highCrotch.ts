@@ -27,21 +27,25 @@ registerMove({
   id: 'shotHighCrotch', startDist: 1, warpBy: 0.65,
   A: [
     { t: 0, pose: { base: stanceAt({ x: 0, z: -0.5, yaw: 0 }, 1) } },
-    { t: 0.3, pose: { hips: [0.08, 0.58, -0.35], rot: [-12, 12, 0], spine: [8, 0, 0], head: [-20, -10, 0], handL: [0.1, 0.65, 0.05], handR: [0.24, 0.55, 0.08] } },
-    { t: 0.65, pose: { hips: [0.22, 0.57, 0.02], footL: [0.2, BALL, 0.2, 0, 25], footR: [-0.06, BALL, -0.38, -15, 55], handL: [0.08, 0.73, 0.45], handR: [0.2, 0.64, 0.45] } },
+    // Explosive like the double: level change, load, burst, hit the leg at speed (owner, November 11).
+    { t: 0.24, hipsVelocity: [0.04, -0.05, 0.35], pose: { hips: [0.08, 0.58, -0.35], rot: [-12, 12, 0], spine: [8, 0, 0], head: [-20, -10, 0], handL: [0.1, 0.65, 0.05], handR: [0.24, 0.55, 0.08] } },
+    { t: 0.5, hipsVelocity: [0.2, -0.04, 1.2], pose: { hips: [0.16, 0.57, -0.14], footL: [0.2, BALL, 0.2, 0, 25], footR: [-0.06, BALL, -0.38, -15, 55], handL: [0.08, 0.73, 0.45], handR: [0.2, 0.64, 0.45] } },
+    { t: 0.74, hipsVelocity: [0, -0.05, 0.6], pose: { base: holdAt('legsHighCrotch', 'A', 0) } },
     { t: 1, pose: { base: holdAt('legsHighCrotch', 'A', 0) } },
   ],
   B: [
     { t: 0, pose: { base: stanceAt({ x: 0, z: 0.5, yaw: 180 }, 1) } },
-    { t: 0.55, pose: { hips: [0, 0.88, 0.55], spine: [14, 0, -6] } },
+    { t: 0.62, pose: { hips: [0, 0.88, 0.55], spine: [14, 0, -6] } },
     { t: 1, pose: { base: holdAt('legsHighCrotch', 'B', 0) } },
   ],
   contacts: [
-    { who: 'A', hand: 'L', on: 'thighR', at: [0.04, -0.12, 0.06], from: 0.82, to: 1 },
-    { who: 'A', hand: 'R', on: 'thighR', at: [-0.04, -0.24, -0.06], from: 0.82, to: 1 },
+    // Grips take hold as he arrives (fade 0.14): with well-timed shots up to 14% faster (TIMING) the short default
+    // fade snapped the hand onto the thigh at 18 m/s (as on the single).
+    { who: 'A', hand: 'L', on: 'thighR', at: [0.04, -0.12, 0.06], from: 0.72, to: 1, fade: 0.14 },
+    { who: 'A', hand: 'R', on: 'thighR', at: [-0.04, -0.24, -0.06], from: 0.72, to: 1, fade: 0.14 },
     // Fade the defender's hands onto the head and chest; they switched on at full strength and snapped.
-    { who: 'B', hand: 'R', on: 'head', at: [0, 0.09, -0.03], from: 0.45, to: 1, fade: 0.2 },
-    { who: 'B', hand: 'L', on: 'chest', at: [-0.1, 0.14, 0.1], from: 0.55, to: 1, fade: 0.2 },
+    { who: 'B', hand: 'R', on: 'head', at: [0, 0.09, -0.03], from: 0.52, to: 1, fade: 0.2 },
+    { who: 'B', hand: 'L', on: 'chest', at: [-0.1, 0.14, 0.1], from: 0.62, to: 1, fade: 0.2 },
   ],
 });
 

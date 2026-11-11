@@ -1,9 +1,11 @@
 import type { Wrestler } from '../../sim/types';
 import { animationMotion } from '../../sim/athleteProfiles';
 import { likenessFor } from './likeness';
-import { eraKitFor } from './eraKits';
+import { eraKitFor, kitIdOf, schoolColours } from './eraKits';
+import { iconSchool } from '../../sim/schoolAbbr';
 import { FIT_FACE, type FaceFitData } from './faceFit';
 import { FACE_FITS } from './faces/fits';
+import { LIKENESS_LOOKS } from './likenessLooks';
 import { LIKENESS_PHOTOS } from './likenessPhotos';
 
 /** Portraits for photo-fitted faces, bundled with the game (no remote images at runtime). */
@@ -19,6 +21,7 @@ import type { BodyParams } from './anatomy';
 import { generateBody } from './generate';
 import type { RealGeometry } from './generate';
 import { RealCharacter } from './Character';
+import { TATTOOS } from './tattoos';
 
 type Quality = 'high' | 'low';
 
@@ -41,8 +44,9 @@ function shaped(mul: Partial<Record<keyof Athlete['frame'], number>>, f: Athlete
 }
 
 const SKIN = ['#f2d6c2', '#eac4a6', '#e0b494', '#d4a37f', '#c69270', '#b47e5b', '#9c6a4a', '#82553a', '#6a432e', '#523224', '#3e261c'];
-/** Rough share of each tone across the roster, lighter to deeper. */
-const SKIN_WEIGHT = [6, 10, 12, 12, 10, 9, 8, 7, 6, 5, 4];
+/** Share of each tone across the roster, lighter to deeper, for the few with no photo: measured from the 302 read
+ * from photos (November 10; was a flat guess [6, 10, 12, 12, 10, 9, 8, 7, 6, 5, 4] that drew a third of them deep brown). */
+const SKIN_WEIGHT = [2, 83, 135, 25, 16, 11, 6, 10, 15, 2, 1];
 const HAIR_LIGHT = ['#17110d', '#2a1d15', '#3d2a1d', '#5a4029', '#7a5a3a', '#a07c50', '#c9a86a', '#8a3f1e'];
 const HAIR_LIGHT_WEIGHT = [14, 22, 22, 16, 10, 7, 5, 3];
 const EYES_LIGHT = ['#3b2416', '#5a3d24', '#6b5a2f', '#4d6a86', '#6f8fa8', '#5b7a52', '#7a8790'];
@@ -106,9 +110,15 @@ const BODY_TYPES: Record<BodyType, {height: number; mass: number; frame: Partial
   rangy: {height: 0.045, mass: -0.03, frame: {limb: 0.95, torsoW: 0.97, torsoD: 0.97, delt: 0.98}},
 };
 
-/** Colouring for roster entries without researched appearance: deterministic per id. */
+/** Colouring for roster entries without researched appearance: deterministic per id. Colours read from a photo
+ * (LIKENESS_LOOKS) win; the random draws still happen first so every other drawn value stays the same. */
 function colouring(w: Wrestler, r: () => number): {skin: string; hair: string; eye: string} {
   if (w.profile) return {skin: w.skinTone, hair: w.hairColor, eye: w.eyeColor};
+  const drawnColour = randomColouring(r);
+  const look = LIKENESS_LOOKS[`${w.firstName} ${w.lastName}`];
+  return look ? {skin: look.skin ?? drawnColour.skin, hair: look.hairColor ?? drawnColour.hair, eye: look.eye ?? drawnColour.eye} : drawnColour;
+}
+function randomColouring(r: () => number): {skin: string; hair: string; eye: string} {
   const tone = SKIN.indexOf(weighted(r, SKIN, SKIN_WEIGHT));
   const deep = tone >= 6;
   const hair = deep ? weighted(r, ['#0f0b09', '#17110d', '#241913'], [5, 4, 2])
@@ -134,12 +144,19 @@ function seasonOf(w: Wrestler, years?: [number, number]): number | undefined {
 function generic(w: Wrestler): Athlete {
   const a = drawn(w);
   const L = likenessFor(a.name);
-  const era = eraKitFor(w.school.id, seasonOf(w, L?.years));
+  // An Icon wears the singlet of the school he wrestled for, not a team kit (owner, November 11).
+  const icon = iconSchool(w);
+  const kitId = icon ? kitIdOf(icon) : w.school.id;
+  const era = eraKitFor(kitId, seasonOf(w, L?.years));
+  const own = icon ? schoolColours(kitId) : undefined;
   const kit = L?.kit ?? era?.kit;
   const colours = {
-    primary: L?.kit?.primary ?? era?.primary ?? a.primary,
-    secondary: L?.kit?.secondary ?? era?.secondary ?? a.secondary,
-    piping: L?.kit?.piping ?? era?.piping ?? a.piping,
+    primary: L?.kit?.primary ?? era?.primary ?? own?.primary ?? a.primary,
+    secondary: L?.kit?.secondary ?? era?.secondary ?? own?.secondary ?? a.secondary,
+    piping: L?.kit?.piping ?? era?.piping ?? own?.piping ?? a.piping,
+    wordmark: era?.mark ?? own?.mark ?? (icon ? icon.toUpperCase() : a.wordmark),
+    wordmarkColor: era?.markColor ?? own?.markColor ?? a.wordmarkColor,
+    wordmarkArch: era ? era.markArch : a.wordmarkArch,
   };
   if (!L) return {...a, ...colours, kit};
   return {
@@ -195,9 +212,11 @@ function drawn(w: Wrestler): Athlete {
   return {
     id: w.id, name: `${w.firstName} ${w.lastName}`, school: w.school.name, wordmark: w.school.mark,
     height, mass: build, skin: colour.skin, hairColor: colour.hair,
-    hair, hairLen, hairFlow, hairSides, hairFront: span(1.69, 1.708), smile,
+    // An owner-given cut (LIKENESS_LOOKS: "short red hair") wins; drawn after, so nothing else changes.
+    hair: LIKENESS_LOOKS[`${w.firstName} ${w.lastName}`]?.hair ?? hair, hairLen: LIKENESS_LOOKS[`${w.firstName} ${w.lastName}`]?.hairLen ?? hairLen,
+    hairFlow, hairSides, hairFront: span(1.69, 1.708), smile,
     brow: [span(-0.002, 0), span(0.02, 0.11), span(1.5, 2.0), span(1.0, 1.3)],
-    eye: colour.eye, stubble: span(0, 0.035), hairStraight: hairTexture(w.hairStyle, colour.skin),
+    eye: colour.eye, stubble: span(0, 0.035), hairStraight: LIKENESS_LOOKS[`${w.firstName} ${w.lastName}`]?.hairStraight ?? hairTexture(w.hairStyle, colour.skin),
     primary: w.school.primary, secondary: w.school.secondary, piping: w.school.accent,
     shoe: '#15161b', shoeAccent: w.school.primary,
     gearShell: w.headgearColor ?? w.school.gear, gearStrap: w.headgearColor ?? w.school.gear,
@@ -326,7 +345,7 @@ function configuration(w: Wrestler, band: string, override?: BuildOverride) {
   const options = {
     motion: animationMotion(w),
     look: {facePhoto: fitted ? photo : undefined, photoMean: fitted?.skin, photoChroma: LIKENESS_PHOTOS[`${w.firstName} ${w.lastName}`]?.photoCast ? 0.2 : undefined, photoGain: import.meta.env.DEV && typeof location !== 'undefined' && new URLSearchParams(location.search).get('photoGain') ? Number(new URLSearchParams(location.search).get('photoGain')) : undefined, kit: a.kit, skin: renderSkin(a.skin), hair: renderHair(a.hairColor), primary: a.primary, secondary: a.secondary,
-      baseHead, abs: Math.max(0.5, Math.min(1, 1.15 - a.mass * 0.75)), piping: a.piping, chestEmblem: a.id === w.id && a.name === 'Michael Moreno', wordmark: a.wordmark, wordmarkColor: a.piping, band, shoe: a.shoe, shoeAccent: a.shoeAccent,
+      baseHead, abs: Math.max(0.5, Math.min(1, 1.15 - a.mass * 0.75)), piping: a.piping, chestEmblem: a.id === w.id && a.name === 'Michael Moreno', wordmark: a.wordmark, wordmarkColor: a.wordmarkColor ?? a.piping, wordmarkArch: a.wordmarkArch, tattoos: TATTOOS[`${w.firstName} ${w.lastName}`]?.ink, band, shoe: a.shoe, shoeAccent: a.shoeAccent,
       scale, faceLen: a.face.faceLen, stubble: a.stubble, sides: a.hairSides, hairStraight: a.hairStraight, brow: a.brow,
       hairFront: a.hairFront, hairLow: a.hairLow, smile: a.smile, headScale: a.frame.head, eyeOpen: a.face.eyeOpen ?? 1, naturalLidFold: a.face.naturalLidFold, eyeWidth: a.face.eyeWidth, naturalNasalBase: a.face.naturalNasalBase, nose: a.face.nose},
     eye: a.eye, gear: {shell: a.gearShell, strap: a.gearStrap}, hairLen: a.hairLen,
@@ -351,6 +370,13 @@ export async function buildRealOfficial(w: Wrestler, quality: Quality): Promise<
   const {params, options, sides} = configuration(w, '#111');
   const geo = await requestGeometry(params, quality, sides);
   return new RealCharacter(geo, {...options, noGear: true, look: {...options.look, referee: true, wordmark: '', shoeAccent: '#15161b'}});
+}
+
+/** A corner coach: the same realistic body in a team polo and slacks, no headgear (owner, November 11). */
+export async function buildRealCoach(w: Wrestler, quality: Quality): Promise<RealCharacter> {
+  const {params, options, sides} = configuration(w, '#111');
+  const geo = await requestGeometry(params, quality, sides);
+  return new RealCharacter(geo, {...options, noGear: true, look: {...options.look, coach: true, primary: w.school.primary, secondary: w.school.secondary, wordmark: '', shoeAccent: '#15161b'}});
 }
 
 /** Synchronous comparison lab; the playable game uses the worker above. */

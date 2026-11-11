@@ -273,7 +273,8 @@ const standingB: PoseSpec = {
   hips: [0, 0.8, -0.06],
   rot: [0, -4, 0],
   spine: [-6, 0, 0],
-  head: [-24, 0, 0],
+  // Head up means eyes forward, chin up (owner, November 10: realism); -24 had him looking at the ceiling.
+  head: [-8, 0, 0],
   look: 0,
   footL: [0.2, BALL, 0.14, 10, 12],
   footR: [-0.2, BALL, 0.08, -10, 12],

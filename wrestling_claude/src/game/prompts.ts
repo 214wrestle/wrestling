@@ -1,7 +1,7 @@
 import {ARM_BAR_LABELS,CRADLE_LABELS,flatTurnFor,isArmBar,type TopTurnChoice} from '../sim/armBars';
 import { LEG_CLEAR_THRESHOLD } from '../sim/legRideQuality';
 import { MOVES } from '../sim/moves';
-import { BOUT, EDGE, edgeDistance, legCounterFor, LEG_COUNTER_LABELS } from '../sim/bout';
+import { BOUT, EDGE, edgeDistance, HANDS, legCounterFor, LEG_COUNTER_LABELS } from '../sim/bout';
 import { MAT } from '../sim/rules';
 import type { MatchSim } from '../sim/MatchSim';
 import { otherSide } from '../sim/types';
@@ -233,11 +233,11 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
               sprawl: P('Ride tight', 'idle', 'Lower: tap Cut · hold Legs in'),
             }
           : {
-              shoot: P('Stand up', pos.base > 0.4 ? 'idle' : 'off', 'Sit out + Lower: Granby roll'),
-              fight: P('Switch', pos.commit > 0 ? 'hot' : 'idle'),
+              shoot: P('Stand up', (pos.whistle ?? 0) > 0 ? 'hot' : pos.base > 0.4 ? 'idle' : 'off', 'Sit out + Lower: Granby roll'),
+              fight: pos.commit >= HANDS.switchWindow ? P('Switch', 'hot') : P('Hand control', 'idle'),
               sprawl: P('Base up', pos.base < 0.5 ? 'hot' : 'idle', legsIn ? 'Closes pockets · Lower: Catch leg' : undefined),
             },
-        meters: [{ label: 'Base', value: pos.base, tone: top ? 'them' : 'you', mark: top ? 0.35 : 0.4 }, ...legMeters],
+        meters: [{ label: 'Base', value: pos.base, tone: top ? 'them' : 'you', mark: top ? 0.35 : 0.4 }, ...((pos.hands ?? 0) > 0.05 ? [{ label: 'Hand control', value: pos.hands!, tone: top ? 'them' as const : 'you' as const }] : []), ...legMeters],
       };
     }
     case 'move': {

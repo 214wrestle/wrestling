@@ -16,11 +16,11 @@ import {
   TIEBREAKER_RIDING_EDGE,
 } from './rules';
 import type { WinType } from './rules';
-import { Bout, Rng } from './bout';
+import { Bout, Rng, type Breakdown } from './bout';
 import type { BoutEvents } from './bout';
 import {CRADLE_GRIP_RELEASE,type MoveDef} from './moves';
 import { otherSide } from './types';
-import { adaptPlan, planEffects, topPlanEffects, topPlanOf, type MatchPlan } from './strategy';
+import { adaptPlan, planEffects, topPlanEffects, topPlanOf, type MatchPlan, PARALLEL_STALL } from './strategy';
 import type {
   Announcement,
   Command,
@@ -103,6 +103,13 @@ export class MatchSim {
   get topRestartCut(): boolean { return this.preWhistleCut; }
   chooseTopRestart(cut: boolean): void {
     if (this.phase === 'setPosition' && this.bout.top === this.humanSide) this.preWhistleCut = cut;
+  }
+  /** The player's breakdown at the whistle on top (OPENER), Chop until he picks; kept for later restarts. */
+  private humanBreakdown: Breakdown | null = 'chop';
+  get topRestartBreakdown(): Breakdown | null { return this.humanBreakdown; }
+  chooseBreakdown(kind: Breakdown | null): void {
+    this.humanBreakdown = kind;
+    if (kind) this.preWhistleCut = false;
   }
   readonly wrestlers: [Wrestler, Wrestler];
   readonly bout: Bout;
@@ -341,6 +348,8 @@ export class MatchSim {
     this.listeners.onWhistle?.('wrestle');
     const top = this.bout.top;
     if (top !== null && (this.preWhistleCut || topPlanOf(this.bout.plans[top]) === 'cut')) this.bout.cut(top);
+    // His breakdown off the whistle (owner, November 10): the player's pick, or the AI's own.
+    else if (top !== null) this.bout.whistleBreakdown(top === this.humanSide ? this.humanBreakdown : undefined);
     this.preWhistleCut = false;
     this.announce({ text: 'Wrestle!', tone: 'whistle', hold: this.firstWhistle ? 1.8 : 0.8, detail: this.firstWhistle ? `Tonight's referee ${this.referee.label}` : undefined });
     this.firstWhistle = false;
@@ -556,6 +565,19 @@ export class MatchSim {
     if(this.result)return;
     this.listeners.onWhistle?.('period');
     this.bout.setFree();
+    // They separate for the break (the view cuts here): ending a period tied up or on the mat left them standing
+    // face to face 0.6 m apart, heads inside each other, for the whole break.
+    {
+      const [a, b] = this.bout.athletes;
+      const dx = b.pos.x - a.pos.x, dz = b.pos.z - a.pos.z, d = Math.hypot(dx, dz);
+      const want = 1.3;
+      if (d < want) {
+        const ux = d > 1e-3 ? dx / d : Math.sin(a.yaw), uz = d > 1e-3 ? dz / d : Math.cos(a.yaw);
+        const half = (want - d) / 2;
+        a.pos = { x: a.pos.x - ux * half, z: a.pos.z - uz * half };
+        b.pos = { x: b.pos.x + ux * half, z: b.pos.z + uz * half };
+      }
+    }
     this.announce({ text: this.period >= 3 ? 'End of period' : `End of period ${this.period}`, tone: 'whistle', hold: 1.6 });
     this.setPhase('periodBreak', this.breakSeconds);
   }
@@ -789,7 +811,10 @@ export class MatchSim {
       if (onTop) {
         a.sinceTurnTry += dt;
         const e = topPlanEffects(this.bout.plans[a.side]);
-        if (a.sinceTurnTry > e.stallGrace * patience) build = e.stallRate;
+        // Riding parallel on his back without the legs in and not trying to turn him (owner, November 11): the
+        // official runs out of patience sooner (PARALLEL_STALL).
+        const parallel = p.kind === 'mat' && p.sub === 'flat' && (p.legRide ?? 0) < 0.8;
+        if (a.sinceTurnTry > e.stallGrace * patience * (parallel ? PARALLEL_STALL.grace : 1)) build = e.stallRate * (parallel ? PARALLEL_STALL.rate : 1);
       } else a.sinceTurnTry = 0;
       if (onBottom) {
         const c = commands[a.side];

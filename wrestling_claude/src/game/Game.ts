@@ -34,6 +34,7 @@ import { Animator } from '../anim/Animator';
 import type { AnimView } from '../anim/Animator';
 import '../anim/library';
 import { wrestlerViews } from './views';
+import { Coaches } from './Coaches';
 import { edgeHintFor, handsHintFor, readPrompts } from './prompts';
 import { isDone, newTournament, pairOf, playerMatch, record as recordTournament, simMatch, simUntilPlayer, toResult as tournamentResult, type Tournament } from '../sim/tournament';
 import { choiceFor, currentBout, newDual, pickList, pickOddEven, pickWrestler, recordBout, simulateBout, toBoutResult, type Dual } from '../sim/dual';
@@ -151,6 +152,8 @@ export class Game implements GameApi {
   private ai: WrestlerAI | null = null;
   private bodies: [Body, Body] | null = null;
   private official: Body | null = null;
+  /** The two corner coaches for the current match (owner, November 11). */
+  private coaches: Coaches | null = null;
   private confetti = new Confetti();
   private buildToken = 0;
 
@@ -241,6 +244,11 @@ export class Game implements GameApi {
     return w.id === OFFICIAL.id ? buildRealOfficial(w, this.quality) : buildRealCharacter(w, band ?? '#111', this.quality);
   }
 
+  private async buildCoach(w: Wrestler): Promise<CharacterRig> {
+    const { buildRealCoach } = await import('../body/realistic/factory');
+    return buildRealCoach(w, this.quality);
+  }
+
   private async buildOfficial(): Promise<void> {
     const char = await this.buildCharacter(OFFICIAL, null);
     this.official = { char, anim: new Animator(char), wrestler: OFFICIAL };
@@ -320,6 +328,7 @@ export class Game implements GameApi {
         this.gym.excite(e.points >= 3 ? 0.6 : 0.3);
         this.excitement = Math.min(1, this.excitement + 0.45);
         this.refSignal = { side: e.side, t: 1.6 };
+        this.coaches?.onScore(e);
         this.store.set({ lastScore: e, scoreLog: [...sim.scoreLog] });
       },
       onRefCue: (side) => { this.refCue = { side, t: 1.5 }; },
@@ -411,6 +420,11 @@ export class Game implements GameApi {
     });
     sim.humanSide = human;
     sim.practice = options.difficulty==='practice';
+    // A coach in each corner (not in practice).
+    if (!practice && !sim.practice) {
+      this.coaches = new Coaches(this.renderer.scene, (w) => this.buildCoach(w));
+      void this.coaches.load(wrestlers);
+    }
     sim.bout.practicePartner = sim.practice ? otherSide(human) : null;
     sim.lengthScale = options.quick ? 0.5 : 1;
     // A dual bout takes its second-period choice from the dual's coin toss.
@@ -686,6 +700,7 @@ export class Game implements GameApi {
   }
 
   chooseTopRestart(cut: boolean): void { this.sim?.chooseTopRestart(cut); }
+  chooseBreakdown(kind: import('../sim/bout').Breakdown): void { this.sim?.chooseBreakdown(kind); }
 
   skipIntros(): void {
     this.sim?.skipIntros();
@@ -954,6 +969,7 @@ export class Game implements GameApi {
     this.cameraRig.update(wall, this.renderer.camera, this.camFocus, azimuth, sim.distance(), actionFraming(pos,sim.phase==='wrestling',r));
 
     this.updateOfficial(adt, wall);
+    this.coaches?.update(adt, sim, this.bodies ? [this.bodies[0].anim, this.bodies[1].anim] : null);
 
     this.scoreboard.update({
       score: sim.score,
@@ -1011,6 +1027,10 @@ export class Game implements GameApi {
     } else if (pos.kind === 'mat' && pos.sub === 'exposed') {
       clip = 'refCount';
       u = pos.expo;
+      // Down by the shoulders to see them, as NCAA referees do on a near fall (a little wider than for the fall).
+      const B = sim.bout.athletes[otherSide(pos.A)];
+      x = B.pos.x - Math.sin(camAz) * 1.1;
+      z = B.pos.z - Math.cos(camAz) * 1.1;
     } else if (pos.kind === 'move' && pos.id === 'fall') {
       clip = 'refSlap';
       u = Math.min(1, pos.t / pos.dur);
@@ -1142,6 +1162,7 @@ export class Game implements GameApi {
       position: read.position,
       prompts: read.prompts,
       topRestartCut: sim.topRestartCut,
+      topRestartBreakdown: sim.topRestartBreakdown,
       meters: read.meters,
       legActions: read.legActions,
       edgeHint: handsHintFor(sim, me) ?? edgeHintFor(sim, me),
@@ -1166,6 +1187,8 @@ export class Game implements GameApi {
   /* ------------------------------------------------------------ teardown -- */
 
   private teardownMatch(): void {
+    this.coaches?.dispose();
+    this.coaches = null;
     this.sim = null;
     this.ai = null;
     this.accumulator = 0;

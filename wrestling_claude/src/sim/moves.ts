@@ -81,6 +81,9 @@ export const MOVES: Record<string, MoveDef> = {
   footSweep: {id:'footSweep',dur:1.5,camera:'tight',award:{to:'A',kind:'takedown',at:0.9,detail:'Foot sweep — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   slideBy: {id:'slideBy',dur:1.25,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Slide by — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   firemansCarry: {id:'firemansCarry',dur:1.8,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Fireman’s carry — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
+  // Owner, November 11 ("Yes, add it"): some carries roll him straight to his back for a takedown and near fall (Austin
+  // DeSanto's inside carry). Same entry; lands in the exposed hold the throws use, tight or loose by power and skill.
+  firemansCarryBack: {id:'firemansCarryBack',dur:1.8,camera:'tight',slowmo:true,impact:{at:0.8,strength:0.75},award:{to:'A',kind:'takedown',at:0.84,detail:'Fireman’s carry — to his back'},next:{kind:'mat',A:'A',frame:{x:0,z:0.5,yaw:PI},sub:'exposed'}},
   anklePick: {id:'anklePick',dur:1.35,camera:'tight',award:{to:'A',kind:'takedown',at:0.78,detail:'Ankle pick'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   kneePick: {id:'kneePick',dur:1.3,camera:'tight',award:{to:'A',kind:'takedown',at:0.76,detail:'Knee pick'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   throwBy: {id:'throwBy',dur:1.2,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Throw-by — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
@@ -94,7 +97,7 @@ export const MOVES: Record<string, MoveDef> = {
   shotLowSingle: { id: 'shotLowSingle', dur: 0.5, camera: 'low', next: {kind: 'legs', A: 'A', frame: {x:0,z:0,yaw:0}, shot:'lowSingle'} },
   finishLowSingle: { id: 'finishLowSingle', dur: 1.55, camera: 'low', award: {to:'A',kind:'takedown',at:0.8,detail:'Low single — ankle shelf'}, impact: {at:0.68,strength:0.6}, next: {kind:'mat',A:'A',frame:{x:-0.3,z:0.88,yaw:PI/2},sub:'ride',base:0.55} },
   shotHighCrotch: {
-    id: 'shotHighCrotch', dur: 0.44, camera: 'low',
+    id: 'shotHighCrotch', dur: 0.44, impact: { at: 0.74, strength: 0.3 }, camera: 'low',
     next: { kind: 'legs', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, shot: 'highCrotch' },
   },
   finishHighCrotch: {
@@ -104,15 +107,19 @@ export const MOVES: Record<string, MoveDef> = {
     next: { kind: 'mat', A: 'A', frame: { x: -0.3, z: 0.88, yaw: PI / 2 }, sub: 'ride', base: 0.55 },
   },
   /* ---------------------------------------------------------- on the feet */
+  // Shots hit the legs with a light impact (a short hit-stop, shake and thud) at the contact key (owner, November 11:
+  // "more explosive and athletic").
   shotDouble: {
     id: 'shotDouble',
     dur: 0.42,
+    impact: { at: 0.74, strength: 0.3 },
     camera: 'low',
     next: { kind: 'legs', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, shot: 'double' },
   },
   shotSingle: {
     id: 'shotSingle',
     dur: 0.42,
+    impact: { at: 0.7, strength: 0.3 },
     camera: 'low',
     next: { kind: 'legs', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, shot: 'single' },
   },
@@ -366,19 +373,20 @@ export const MOVES: Record<string, MoveDef> = {
   },
   returnMat: {
     id: 'returnMat',
-    dur: 1.1,
-    impact: { at: 0.7, strength: 0.7 },
+    // Lifted clean off his feet and driven down (owner, November 10: "bring them down with authority").
+    dur: 1.3,
+    impact: { at: 0.66, strength: 0.9 },
     camera: 'hero',
     next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0.05, yaw: 0 }, sub: 'ride', base: 0.35 },
   },
   standingTrip: {
     id: 'standingTrip', dur: 1.05, camera: 'mat',
-    impact: { at: 0.7, strength: 0.45 },
+    impact: { at: 0.7, strength: 0.65 },
     next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0.05, yaw: 0 }, sub: 'ride', base: 0.35 },
   },
   crotchLift: {
-    id: 'crotchLift', dur: 1.5, camera: 'hero',
-    impact: { at: 0.72, strength: 0.75 },
+    id: 'crotchLift', dur: 1.55, camera: 'hero',
+    impact: { at: 0.72, strength: 0.95 },
     next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0.05, yaw: 0 }, sub: 'ride', base: 0.35 },
   },
   // Granby roll from the bottom: rolled out from under him, both back on their feet.

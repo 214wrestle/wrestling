@@ -1,5 +1,6 @@
 import { registerMove } from '../clips';
 import { BALL, POST, PALM_DOWN, holdAt, stanceAt } from './kit';
+import type { PoseSpec } from '../spec';
 
 /**
  * More on the mat (owner, November 9): the Granby roll and the standing switch from the bottom, the turk off a
@@ -10,12 +11,21 @@ import { BALL, POST, PALM_DOWN, holdAt, stanceAt } from './kit';
 // Granby roll (Wikipedia "Granby roll"; Fanatic Wrestling, Hudson Taylor; FloWrestling "How to hit a Granby"):
 // hips up and head tucked, the near leg cross-steps under him, the other kicks high, and he rolls over the
 // inside shoulder, compact, coming up facing the rider.
+// The rider stays on his knees hugging the waist and is dragged round after him, then both come up (Rebels Wrestling
+// "Granby roll breakdown", FJikvdUMhc0 at 30-90 s: the top man is still on his knees holding the waist while the
+// legs go over). He used to stand straight up and let go a quarter of the way in.
+const GRANBY_KNEES: PoseSpec = { footL: [0.74, BALL, 0.08, -80, 75], footR: [0.8, BALL, -0.26, -80, 75], kneeL: [0.36, -0.3, 0.1], kneeR: [0.42, -0.3, -0.26] };
 registerMove({
   id: 'granbyRoll',
   A: [
     { t: 0, pose: { base: holdAt('ride', 'A', 0.3) } },
-    { t: 0.3, pose: { hips: [0.3, 0.52, -0.02], rot: [-40, 40, 0], spine: [24, 0, 0] } },
-    { t: 0.55, pose: { hips: [0.26, 0.62, -0.2], rot: [-20, 20, 0], spine: [12, 0, 0], head: [-10, 0, 0] } },
+    // Pulled forward over him as his hips come up.
+    { t: 0.22, pose: { ...GRANBY_KNEES, hips: [0.28, 0.5, -0.04], rot: [-36, 46, 0], spine: [32, -6, 2], head: [10, 0, 0] } },
+    // Still on his knees, reaching after the hips as they go over.
+    { t: 0.44, pose: { ...GRANBY_KNEES, hips: [0.22, 0.48, 0.04], rot: [-46, 52, 0], spine: [34, -4, 0], head: [0, 0, 0],
+      handL: [0.12, 0.42, 0.3], handR: [-0.04, 0.46, 0.18] } },
+    // Squaring up on his knees as the roller comes round.
+    { t: 0.64, pose: { ...GRANBY_KNEES, hips: [0.2, 0.5, -0.1], rot: [-20, 34, 0], spine: [22, 0, 0], head: [-10, 0, 0] } },
     { t: 1, pose: { base: stanceAt({ x: 0.05, z: -0.42, yaw: 0 }, 1) } },
   ],
   B: [
@@ -32,7 +42,7 @@ registerMove({
     { t: 1, pose: { base: stanceAt({ x: 0, z: 0.62, yaw: 180 }, 1) } },
   ],
   contacts: [
-    { who: 'A', hand: 'R', on: 'spine', at: [-0.04, 0.03, 0.12], from: 0, to: 0.25, fade: 0.12 },
+    { who: 'A', hand: 'R', on: 'spine', at: [-0.04, 0.03, 0.12], from: 0, to: 0.4, fade: 0.12 },
     { who: 'A', hand: 'L', on: 'forearmL', at: [0, -0.04, -0.035], from: 0, to: 0.15, fade: 0.08 },
   ],
 });
@@ -44,9 +54,13 @@ const SWITCH_END = { x: 0, z: -0.25, yaw: 0 };
 registerMove({
   id: 'standingSwitch',
   // Roles stay as in the standing ride: A was on top, B the man who switches.
+  // The rider is levered over at the waist by the arm between his legs, still on his feet, before he goes down
+  // (Ben Askren, Fanatic Wrestling uHsKYjJ8pd4 at 62-71 s).
   A: [
     { t: 0, pose: { base: holdAt('standing', 'A', 0.5) } },
     { t: 0.4, pose: { hips: [0.1, 0.62, -0.26], rot: [0, 42, 0], spine: [24, 0, 0] } },
+    { t: 0.56, pose: { hips: [0.06, 0.6, -0.2], rot: [0, 58, 0], spine: [32, 0, 0], head: [-20, 0, 0],
+      handL: [0.2, 0.38, 0.18], handR: [-0.18, 0.38, 0.18], wristL: PALM_DOWN, wristR: PALM_DOWN } },
     { t: 0.7, land: true, pose: { base: holdAt('ride', 'B', 0, SWITCH_END), hips: [0, 0.48, -0.25] } },
     { t: 1, pose: { base: holdAt('ride', 'B', 0, SWITCH_END) } },
   ],
@@ -55,8 +69,9 @@ registerMove({
     // Hips out and down to the side, inside arm reaching back between his legs.
     { t: 0.3, pose: { hips: [-0.24, 0.52, -0.08], rot: [-40, 24, 0], spine: [20, -10, 0], head: [-10, -20, 0],
       handR: [-0.06, 0.42, -0.38], footL: [-0.05, BALL, 0.1, -30, 20], footR: [-0.4, BALL, -0.05, -60, 30] } },
-    // Swinging round behind him.
-    { t: 0.55, pose: { hips: [-0.14, 0.44, -0.5], rot: [-150, 55, 0], spine: [22, 0, 0], footR: [-0.3, BALL, -0.7, -150, 40] } },
+    // Up beside and behind him, chest over his back. It dived forward nearly flat, away from the rider.
+    { t: 0.55, pose: { hips: [-0.16, 0.66, -0.48], rot: [-60, 28, 0], spine: [26, 0, 0], head: [-14, 0, 0],
+      footR: [-0.3, BALL, -0.72, -150, 30], footL: [-0.22, BALL, -0.3, -120, 25] } },
     { t: 0.75, land: true, pose: { base: holdAt('ride', 'A', 0, SWITCH_END) } },
     { t: 1, pose: { base: holdAt('ride', 'A', 0, SWITCH_END) } },
   ],

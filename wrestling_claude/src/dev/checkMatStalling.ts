@@ -51,4 +51,27 @@ function onMat(seed:number){
   }
   ok(!sim.bout.athletes[1].stallWarned,'a bottom man who keeps trying to get out is not called');
 }
+// Riding parallel (owner, November 11): broken down flat on his back with no legs in and no turn tries builds top stall
+// time sooner and faster than the same rider in the referee's position; with the legs in it is the plain rate.
+{
+  const topStall=(sub:'flat'|'ride',legRide:number)=>{
+    const {sim}=onMat(31);
+    let first=-1;
+    // The restart breakdown plays first; then hold the position on the mat for 30 s with the top man idle.
+    for(let i=0;i<240&&sim.bout.position.kind!=='mat';i++)sim.tick(DT,[NO_COMMAND,NO_COMMAND]);
+    for(let t=0;t<30;t+=DT){
+      const s=sim.bout.position as any;
+      if(s.kind!=='mat'||sim.phase!=='wrestling')break;
+      s.sub=sub;s.legRide=legRide;s.escape=0;s.control=0.9;if(sub==='flat')s.base=0;
+      sim.tick(DT,[NO_COMMAND,NO_COMMAND]);
+      if(first<0&&sim.bout.athletes[0].stallTimer>0)first=t;
+    }
+    return {timer:sim.bout.athletes[0].stallTimer,first};
+  };
+  const flat=topStall('flat',0),legs=topStall('flat',1),ride=topStall('ride',0);
+  ok(flat.first>0&&ride.first>0&&flat.first<ride.first*0.7,`parallel and idle starts building sooner (flat ${flat.first.toFixed(1)} s, ride ${ride.first.toFixed(1)} s)`);
+  ok(flat.timer>ride.timer*1.3,`parallel and idle builds more stall time (flat ${flat.timer.toFixed(1)}, ride ${ride.timer.toFixed(1)})`);
+  ok(Math.abs(legs.timer-ride.timer)<0.5&&Math.abs(legs.first-ride.first)<0.2,`legs in is not riding parallel (legs ${legs.timer.toFixed(1)}, ride ${ride.timer.toFixed(1)})`);
+  console.log(`Parallel ride: stall builds from ${flat.first.toFixed(1)} s (ride ${ride.first.toFixed(1)} s, legs in ${legs.first.toFixed(1)} s)`);
+}
 console.log('Mat stalling: top returns him within 5-7 s or is called; bottom must work to get out');

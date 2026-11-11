@@ -14,7 +14,7 @@ import { Footwork } from './footwork';
 import { moveClip, sampleHold, sampleMove, sampleFootContacts } from './clips';
 import type { ActiveContact, Role } from './clips';
 import { sampleSolo } from './solo';
-import { applyRideEffort } from './matEffort';
+import { applyChop, applyRideEffort, CHOP, chopCurve } from './matEffort';
 import { applyLegEffort } from './legEffort';
 import { EffortPulse, effortEnvelope } from './effortPulse';
 import type { EffortResult } from './effortPulse';
@@ -72,6 +72,8 @@ export type AnimView =
       /** Actual defensive grip-fighting progress in a held cradle. */
       resistance?: number;
       pockets?: number;
+      /** Bottom man's hand control on the ride (HANDS), 0..1. */
+      hands?: number;
       /** Real root distance at the start of a shot, for warping. */
       dist?: number;
       stamina: number;
@@ -433,6 +435,9 @@ export class Animator {
     }
 
     if(timedRecovery&&!changed)this.halfLife=.035/Math.max(.05,clipRate);
+    // A chop is a strike (CHOP): the pose follows it at once instead of easing it into a pull.
+    if(view.mode==='paired'&&view.hold&&(view.clip==='ride'||view.clip==='flat')&&this.effortPulse.button==='fight'&&this.effortPulse.age<CHOP.duration
+      &&(view.role==='A'?!this.effortPulse.reaction:this.effortPulse.reaction))this.halfLife=Math.min(this.halfLife,.025);
     // Release the peeling hand from its actual forearm contact into the free recovery path.
     if(this.fhlPeelRelease){
       const r=this.fhlPeelRelease;r.age+=dt;
@@ -968,6 +973,8 @@ this.authoredGripWant[hand]=want;
   private stanceParams: StanceParams = { ...DEFAULT_STANCE };
   /** 0..1 while the lead hand is tapping or pulling his head (read by the opponent). */
   headTapW = 0;
+  /** 0..1 while the lead hand paws at his hands in stance (read by the opponent, who swats it). */
+  pawW = 0;
   /** Lead leg as a blend, -1..1, so a stance switch flows over half a second instead of snapping. */
   private leadBlend = 1;
   private stanceAlt: LocalPose = createLocal();
@@ -991,12 +998,14 @@ this.authoredGripWant[hand]=want;
     s.lead = effLead;
     s.lean = Math.max(-1, Math.min(1, v.lean + forward * 0.08));
     const settle = v.relaxed || v.act !== 'stance' ? 0 : 1;
-    const rhythm = this.time * 1.7 * this.character.motion.tempo + this.seed;
+    // Livelier (owner, November 11: "Yes, liven stance", after "more explosive and athletic"): the weight shift and
+    // level pulse run about 40% quicker and a little bigger than the slow sway (rhythm 1.7, side 0.16, level 0.013).
+    const rhythm = this.time * 2.4 * this.character.motion.tempo + this.seed;
     const bounce = this.character.motion.bounce ?? 1;
-    s.side = Math.max(-1, Math.min(1, lateral * 0.35 + Math.sin(rhythm) * 0.16 * settle * bounce));
-    s.level += Math.sin(rhythm * 0.71) * 0.013 * settle * bounce;
-    // A slow rock between the front and back foot while set, never still.
-    s.lean = Math.max(-1, Math.min(1, s.lean + Math.sin(rhythm * 0.43 + 1.1) * 0.18 * settle * bounce));
+    s.side = Math.max(-1, Math.min(1, lateral * 0.35 + Math.sin(rhythm) * 0.2 * settle * bounce));
+    s.level += Math.sin(rhythm * 0.71) * 0.02 * settle * bounce;
+    // A rock between the front and back foot while set, never still.
+    s.lean = Math.max(-1, Math.min(1, s.lean + Math.sin(rhythm * 0.43 + 1.1) * 0.22 * settle * bounce));
     s.phase = this.breath;
     s.fatigue = 1 - v.stamina;
     s.width = v.relaxed ? 0.75 : this.character.motion.stanceWidth;
@@ -1016,7 +1025,13 @@ this.authoredGripWant[hand]=want;
 
     const lp = this.local;
     const u = v.actDur > 0 && Number.isFinite(v.actDur) ? Math.min(1, v.actT / v.actDur) : 0;
-    const bell = Math.sin(u * Math.PI);
+    // Attacking actions (fakes, snaps, reaches, attempts) burst in and recover slower, peaking at 30% of the act
+    // (owner, November 11: "more explosive and athletic"). The symmetric bell eased in as slowly as it eased out.
+    // Smoothstep on each side keeps the start, peak and end at rest, so nothing snaps.
+    const burstK = u < 0.3 ? u / 0.3 : (1 - u) / 0.7;
+    const burstCurve = burstK * burstK * (3 - 2 * burstK);
+    const attacking = v.act === 'snap' || v.act === 'fake' || v.act === 'reach' || v.act === 'attackAttempt';
+    const bell = attacking ? burstCurve : Math.sin(u * Math.PI);
     const leadHand = effLead === 1 ? P.HAND_L : P.HAND_R;
 
     if (v.relaxed) {
@@ -1122,6 +1137,38 @@ this.authoredGripWant[hand]=want;
       lp[P.HAND_R + 1] += Math.sin(t * 6.1 + 4) * amp;
       lp[P.HAND_R + 2] += Math.sin(t * 4.6 + 5) * amp * 1.4;
     }
+    // Livelier stance (owner, November 11): a small knee pump, quick paws at his hands and short level changes, each
+    // a burst in and slower recovery. Paws are answered: the other man's lead hand swats across (see pawW below).
+    this.pawW = 0;
+    if (!v.relaxed && v.act === 'stance') {
+      const bounceAmt = this.character.motion.bounce ?? 1;
+      lp[P.HIPS + 1] += Math.sin(this.time * 11.5 * this.character.motion.tempo + this.seed * 3) * 0.006 * bounceAmt;
+      if (engaged) {
+        const t = this.time * this.character.motion.tempo + this.seed;
+        const hash = (k: number) => { const x = Math.sin(k * 12.9898 + this.seed * 78.233) * 43758.5453; return x - Math.floor(x); };
+        const pulse = (period: number, len: number, chance: number, salt: number) => {
+          const k = Math.floor(t / period), local = t - k * period;
+          if (local >= len || hash(k + salt) >= chance) return 0;
+          const q = local / len, kk = q < 0.3 ? q / 0.3 : (1 - q) / 0.7;
+          return kk * kk * (3 - 2 * kk);
+        };
+        const paw = pulse(1.5, 0.34, 0.5 * this.character.motion.handActivity, 0);
+        this.pawW = paw;
+        lp[leadHand + 2] += 0.13 * paw;
+        lp[leadHand + 1] -= 0.04 * paw;
+        lp[P.SPINE + 1] += 0.08 * paw * (effLead === 1 ? -1 : 1);
+        const dip = pulse(2.3, 0.4, 0.42, 17);
+        lp[P.HIPS + 1] -= 0.045 * dip;
+        lp[P.SPINE] += 0.05 * dip;
+        lp[P.HAND_L + 1] -= 0.035 * dip;
+        lp[P.HAND_R + 1] -= 0.035 * dip;
+      }
+      // His paw at my hands: my lead hand swats it down and across.
+      const swat = opp && engaged ? opp.pawW : 0;
+      lp[leadHand] -= 0.05 * swat * effLead;
+      lp[leadHand + 1] -= 0.03 * swat;
+      lp[leadHand + 2] += 0.04 * swat;
+    }
     // A reach is a head tap or pull, and a fake in range taps too: lead hand to the back of
     // his head, with a small lean and dip to sell it. The sim makes him answer it.
     this.headTapW = !v.relaxed && close < 1.3 && v.hand < 0.62 && (v.act === 'reach' || v.act === 'fake') ? bell : 0;
@@ -1155,6 +1202,12 @@ this.authoredGripWant[hand]=want;
       // 331,169 over 24 AI matches.
       lp[P.SPINE + 2] += 0.35 * tie;
       lp[P.HEAD + 2] += 0.28 * tie;
+      // Closer still (hips under 0.84 m apart, full at the 0.68 m minimum gap): chest up, hips back and the head further to the side, since
+      // leaning in there put the head inside his chest (owner, November 10: fluidity and realism).
+      const chestUp = Math.max(0, Math.min(1, (0.84 - close) / 0.16));
+      lp[P.SPINE] -= 0.24 * chestUp;
+      lp[P.HIPS + 2] -= 0.1 * chestUp;
+      lp[P.SPINE + 2] += 0.24 * chestUp;
     }
 
     scaleLocal(lp, this.scale);
@@ -1324,6 +1377,8 @@ this.authoredGripWant[hand]=want;
 
   /** Base is hit and rebuilt press by press; the body follows smoothly, not in jerks. */
   private rideProgress = 0;
+  /** Smoothed hand control on the ride (bottom man), 0..1. */
+  private handControl = 0;
   private wasRiding = false;
   private easedRideProgress(v: Extract<AnimView, { mode: 'paired' }>): number {
     const riding = v.clip === 'ride';
@@ -1401,6 +1456,18 @@ if(!v.hold && v.role==='A')applyArmBarTurnSteps(lp,v.clip,v.u,v.mirror);
         lp[elbow+axis]+=(elbowTarget[axis]-lp[elbow+axis])*blend;
       }
     }
+    this.handControl += ((v.hold && v.clip==='ride' && v.role==='B' ? v.hands ?? 0 : 0) - this.handControl) * Math.min(1, this.frameDt * 6);
+    if(v.hold && v.clip==='ride' && v.role==='B' && this.handControl > 0.01){
+      // Hand control (owner, November 10: stand-ups and sit-outs work off hand control): the free hand comes off the
+      // mat and takes the rider's wrist at the near hip, the far post carrying his weight.
+      const k=Math.min(1,this.handControl/0.6), blend=k*k*(3-2*k), side=v.mirror?-1:1;
+      const hand=v.mirror?P.HAND_L:P.HAND_R, elbow=v.mirror?P.ELBOW_L:P.ELBOW_R;
+      const handTarget=[side*.02,.34,.02], elbowTarget=[side*-.2,.42,.14];
+      for(let axis=0;axis<3;axis++){
+        lp[hand+axis]+=(handTarget[axis]-lp[hand+axis])*blend;
+        lp[elbow+axis]+=(elbowTarget[axis]-lp[elbow+axis])*blend;
+      }
+    }
     if(v.hold && v.clip==='cradleHold' && v.role==='B'){
       // Push the trapped foot away to lengthen the folded leg while both
       // hands remain on the top wrestler's grip through contact closure.
@@ -1415,7 +1482,9 @@ if(!v.hold && v.role==='A')applyArmBarTurnSteps(lp,v.clip,v.u,v.mirror);
     // Owner, November 10: with him on his back the top man adjusts and drives him deeper. A squeeze that tightens
     // the hold ('won' on a pin) is a bigger, slower pulse than an ordinary squeeze.
     const tighten = this.effortPulse.result === 'won' && ['exposed','cradleHold','spladle'].includes(v.clip) && !isArmBarPin(v.clip);
-    const effortDuration = failedRise ? 0.65 : tighten ? 0.62 : 0.42;
+    // The top man's chop on the ride is its own quick strike (CHOP), seen by both men.
+    const chop = (v.clip === 'ride' || v.clip === 'flat') && this.effortPulse.button === 'fight' && (v.role === 'A' ? !this.effortPulse.reaction : this.effortPulse.reaction);
+    const effortDuration = failedRise ? 0.9 : tighten ? 0.62 : chop ? CHOP.duration : 0.42;
     if (v.hold && this.effortPulse.age < effortDuration) {
       // Local paired motion happens before IK/contact closure: locked hands stay
       // attached while the trunk, head and controlled limbs actually yield.
@@ -1459,6 +1528,16 @@ if(!v.hold && v.role==='A')applyArmBarTurnSteps(lp,v.clip,v.u,v.mirror);
         }
       } else if (applyLegEffort(lp, v.clip, top, reaction, this.effortPulse.button, amount, v.mirror)) {
         // Leg-specific paired response; existing contacts close below.
+      } else if (chop) {
+        const c = chopCurve(this.effortPulse.age);
+        const k = 0.65 + 0.35 * v.stamina;
+        // Already flat, he gives less: the arm is knocked back, the chest is already down.
+        applyChop(lp, top, c.lift * k, c.strike * k * (top || v.clip === 'ride' ? 1 : 0.45), v.mirror);
+        // The striking hand leaves his arm on the lift and lands back on it with the strike.
+        if (top) {
+          const striking = v.mirror ? 'R' : 'L';
+          for (const contact of this.contacts) if (contact.hand === striking) contact.weight *= 1 - 0.9 * c.lift;
+        }
       } else if (v.clip === 'ride') {
         applyRideEffort(lp, top, reaction, this.effortPulse.button, amount, v.mirror, failedRise);
       } else if (v.clip === 'flat') {

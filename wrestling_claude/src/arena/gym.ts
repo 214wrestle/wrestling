@@ -419,6 +419,14 @@ function buildRig(): Group {
   return rig;
 }
 
+/** Seat height of the coaches' corner chairs, metres. */
+export const CHAIR_SEAT = 0.46;
+/** The coaches' corner chairs, red's (side 0) first: position and facing (toward the mat center). */
+export const COACH_CHAIRS = [-1, 1].map((sx) => {
+  const x = sx * 5.5, z = MAT.halfSize + 0.85;
+  return { x, z, yaw: Math.atan2(-x, -z) };
+});
+
 export function createGym(host: School, visitor: School): Gym {
   const group = new Group();
 
@@ -478,6 +486,35 @@ export function createGym(host: School, visitor: School): Gym {
     group.add(bench);
   }
 
+  // The coaches' corner chairs (owner, November 11): one per wrestler at the mat edge on the table side, in front of
+  // the team benches and clear of the corner pads, turned toward the center. Red's corner on the left (-x).
+  const seatMat = new MeshStandardMaterial({ color: '#1b1f27', roughness: 0.75 });
+  const frameMat = new MeshStandardMaterial({ color: '#5d6470', roughness: 0.4, metalness: 0.6 });
+  for (const spot of COACH_CHAIRS) {
+    const chair = new Group();
+    const seat = new Mesh(new BoxGeometry(0.44, 0.045, 0.42), seatMat);
+    seat.position.set(0, CHAIR_SEAT - 0.022, 0);
+    const back = new Mesh(new BoxGeometry(0.44, 0.34, 0.035), seatMat);
+    back.position.set(0, CHAIR_SEAT + 0.3, -0.2);
+    back.rotation.x = -0.12;
+    chair.add(seat, back);
+    for (const lx of [-0.2, 0.2]) {
+      for (const lz of [-0.18, 0.18]) {
+        const leg = new Mesh(new BoxGeometry(0.025, CHAIR_SEAT, 0.025), frameMat);
+        leg.position.set(lx, CHAIR_SEAT / 2, lz);
+        chair.add(leg);
+      }
+      const post = new Mesh(new BoxGeometry(0.025, 0.46, 0.025), frameMat);
+      post.position.set(lx, CHAIR_SEAT + 0.22, -0.21);
+      post.rotation.x = -0.12;
+      chair.add(post);
+    }
+    chair.traverse((o) => { if (o instanceof Mesh) { o.castShadow = true; o.receiveShadow = true; } });
+    chair.position.set(spot.x, 0, spot.z);
+    chair.rotation.y = spot.yaw;
+    group.add(chair);
+  }
+
   // Padded corner markers so the mat does not float on bare floor.
   const padMat = new MeshStandardMaterial({ color: '#1a2230', roughness: 0.9 });
   for (const sx of [-1, 1]) {
@@ -531,6 +568,14 @@ export function createLighting(scene: Scene): void {
     scene.add(spot);
     scene.add(spot.target);
   }
+
+  // The coaches' corners on the table side (COACH_CHAIRS) sit just outside the key cones: one soft wide spot, no
+  // shadows, lights both chairs as an arena's apron is lit.
+  const apron = new SpotLight('#fff1dc', 46, 22, 0.75, 0.7, 1.7);
+  apron.position.set(0, 9, 2.5);
+  apron.target.position.set(0, 0, MAT.halfSize + 0.9);
+  scene.add(apron);
+  scene.add(apron.target);
 
   // Cool rim light from the stands keeps silhouettes off the dark background.
   const rim = new PointLight('#6f8dd0', 16, 30, 2);

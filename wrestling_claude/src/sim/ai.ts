@@ -4,10 +4,23 @@ import type { Bout } from './bout';
 import { BOUT, COLD_READ, EDGE, Rng, edgeDistance, legCounterFor } from './bout';
 import { otherSide } from './types';
 import { MAT } from './rules';
-import { topPlanEffects, topPlanOf } from './strategy';
+import { topPlanEffects, topPlanOf, PARALLEL_STALL } from './strategy';
 import type { Command, Side } from './types';
 
 export type Difficulty = 'practice' | 'walk-on' | 'starter' | 'all-american';
+
+/** Chance the AI shoots right off his reach or snap (once per opening): base + aggression share. */
+export const POUNCE = { base: 0.12, aggression: 0.5 } as const;
+
+/**
+ * Hand fighting in neutral (owner, November 11: "Yes, more hand fighting"; the review found neutral stretches of up to
+ * 48 s with no attack and under one tie won a minute). The AI fights in exchanges: after a hand fight it goes again
+ * `gap` seconds later with chance `chain`, up to `max` in a row, fighting for the wrists instead of one reach and back
+ * to circling. A hand fighter steps into tie range (`closeDist`) with chance handfight x `close` when it picks its
+ * distance, and fights more often in range (`inRange`, `outside`: per-decision chance x handfight). AI only: the rules
+ * for the person are unchanged.
+ */
+export const HAND_FIGHT = { chain: 0.6, gap: [0.3, 0.55], max: 3, close: 0.6, closeDist: 0.92, inRange: 0.55, outside: 0.3 } as const;
 
 interface Profile {
   effort: number;
@@ -81,6 +94,8 @@ export class WrestlerAI {
   /** He was flat a moment ago: back on his base he goes right away (owner, November 10: up and moving). */
   private wasFlat = false;
   private bottomWait = 0;
+  /** Already decided whether to explode off this whistle. */
+  private whistleRead = false;
   private lastPos = '';
   private circleDir = 1;
   private moveX = 0;
@@ -100,6 +115,11 @@ export class WrestlerAI {
   private pocketsFor: unknown = null;
   private closesPockets = true;
   private reshotIn: number | undefined;
+  private pounceTried = false;
+  private pounceIn: number | undefined;
+  private throwTried = false;
+  private chainLeft = 0;
+  private chainT = 0;
   private effortTime = 0;
   private legDefense: 'sprawl' | 'fight' | null = null;
   private legFinishChoice: 'trip' | 'double' | 'drive' | null = null;
@@ -294,7 +314,8 @@ export class WrestlerAI {
       const r = this.rng.next();
       this.circleDir = r < 0.3 ? 0 : r < 0.52 ? -(this.circleDir || 1) : (this.circleDir || (this.rng.next() < 0.5 ? -1 : 1));
       const tired = me.stamina < 0.3;
-      this.wantDist = tired ? 1.5 : 0.85 + this.rng.next() * 0.4;
+      // A hand fighter steps in to tie up (HAND_FIGHT.close) instead of hanging at the edge of range.
+      this.wantDist = tired ? 1.5 : !this.classicPace && this.rng.next() < this.p.handfight * HAND_FIGHT.close ? HAND_FIGHT.closeDist : 0.85 + this.rng.next() * 0.4;
       this.bailOut = !!bout.plans[this.side].protect && this.rng.next() < 0.3;
       this.circlesOff = this.rng.next() < 0.45 + this.p.effort * 0.7;
     }
@@ -386,6 +407,43 @@ export class WrestlerAI {
         if (dist > 0.6 && dist < 1.4 && me.stamina > 0.22 && this.rng.next() < (hisWindow ? 0.3 + this.p.aggression * 0.3 : 0.2 + this.p.aggression * 0.3) * (bout.plans[this.side].protect ? 0.25 : 1)) { cmd.shoot = true; return; }
       }
     } else if (!hisWindow && !myChain) { this.reshotTried = false; this.reshotIn = undefined; }
+    // Pounce (owner, November 11: explosive moves when well timed). His reach or snap is a live opening for a
+    // moment; a good wrestler goes right then, a human beat after seeing it, instead of at his next decision when it
+    // has passed. Once per opening. The shot is then a TIMING burst.
+    const live = !this.classicPace && (them.act === 'reach' || them.act === 'snap') && them.actT < 0.5;
+    if (live && !this.pounceTried) {
+      this.pounceIn ??= this.p.reaction * 0.6 + this.rng.next() * 0.12;
+      this.pounceIn -= dt;
+      if (this.pounceIn <= 0 && me.act === 'stance' && me.cooldown <= 0) {
+        this.pounceTried = true;
+        if (dist > 0.62 && dist < 1.3 && me.stamina > 0.22
+          && this.rng.next() < POUNCE.base + this.p.aggression * POUNCE.aggression * (bout.plans[this.side].protect ? 0.25 : 1)) { cmd.shoot = true; return; }
+      }
+    } else if (!live) { this.pounceTried = false; this.pounceIn = undefined; }
+    // Throw him off his own drive (THROW_PUSH): with the grip for it and him pushing in hard, go right then, once per
+    // push, not at the next decision.
+    const push = this.classicPace ? 0 : bout.pushingIn(them, me);
+    if (push > 0.55 && !this.throwTried && me.act === 'stance' && me.cooldown <= 0 && me.stamina > 0.25) {
+      this.throwTried = true;
+      const lock = me.hand >= 0.62 && me.tie === 'bodyLock';
+      const overhook = them.hand >= 0.62 && (them.tie === 'underhook' || them.tie === 'bodyLock');
+      if (lock && this.rng.next() < 0.35 + this.p.aggression * 0.3) { cmd.technique = 'lateralDrop'; return; }
+      if (overhook && this.rng.next() < 0.12 + this.p.aggression * 0.2) { cmd.technique = 'headlock'; return; }
+    } else if (push < 0.3) this.throwTried = false;
+    // Hand-fight exchanges (HAND_FIGHT): keep fighting the wrists a beat after the last hand fight, not only at the
+    // next decision.
+    if (this.chainLeft > 0) {
+      this.chainT -= dt;
+      if (this.chainT <= 0 && me.act === 'stance' && me.cooldown <= 0) {
+        if (dist < BOUT.tieRange + 0.2 && me.stamina > 0.2) {
+          cmd.fight = true;
+          this.chainLeft--;
+          this.chainT = HAND_FIGHT.gap[0] + this.rng.next() * (HAND_FIGHT.gap[1] - HAND_FIGHT.gap[0]);
+          return;
+        }
+        this.chainLeft = 0;
+      }
+    }
     if (me.act !== 'stance' || me.cooldown > 0 || this.decideT > 0) return;
     // A real neutral exchange is constant: hands, a fake, a look, a shot. Decide about every 1.25 s
     // (was every 2.1 s, which left long stretches of two men circling; owner: "too slow, few attacks").
@@ -447,15 +505,24 @@ export class WrestlerAI {
       cmd.shoot = true;
       return;
     }
-    if (dist < BOUT.tieRange + 0.1 && this.rng.next() < this.p.handfight * (this.classicPace ? 0.25 : 0.4) * (style?.handActivity ?? 1)) {
+    // Fighting for the tie starts an exchange (HAND_FIGHT.chain); tied, the same button is a snap, which does not chain.
+    const startChain = () => {
+      if (!this.classicPace && me.hand < 0.62 && this.rng.next() < HAND_FIGHT.chain) {
+        this.chainLeft = 1 + Math.floor(this.rng.next() * (HAND_FIGHT.max - 1));
+        this.chainT = HAND_FIGHT.gap[0] + this.rng.next() * (HAND_FIGHT.gap[1] - HAND_FIGHT.gap[0]);
+      }
+    };
+    if (dist < BOUT.tieRange + 0.1 && this.rng.next() < this.p.handfight * (this.classicPace ? 0.25 : HAND_FIGHT.inRange) * (style?.handActivity ?? 1)) {
       cmd.fight = true;
       // About a third of the clinch hand fighting is pummeling low for the underhook, not reaching for the head.
       if (!this.classicPace && me.hand < 0.62 && this.rng.next() < 0.35) { this.lowLevel = true; this.levelT = 0.6; cmd.level = true; }
+      startChain();
       return;
     }
     // From a step outside, fight for the hands too: reach, swat, bring the tie.
-    if (!this.classicPace && dist < BOUT.tieRange + 0.4 && this.rng.next() < this.p.handfight * 0.18 * (style?.handActivity ?? 1)) {
+    if (!this.classicPace && dist < BOUT.tieRange + 0.4 && this.rng.next() < this.p.handfight * HAND_FIGHT.outside * (style?.handActivity ?? 1)) {
       cmd.fight = true;
+      startChain();
       return;
     }
     if (this.classicPace) { if (dist > 1.3 && dist < 1.7 && this.rng.next() < 0.06) cmd.shoot = true; return; } // the old fake
@@ -587,7 +654,9 @@ export class WrestlerAI {
       // A turn started at the line ends out of bounds: ride him tight while edgeTactics drags him back in.
       if (edgeDistance(pos.frame.x, pos.frame.z) < 1.3) { cmd.sprawl = true; return; }
       if (pos.sub === 'flat') {
-        const riding = topPlanOf(bout.plans[this.side]) === 'ride' && me.stallTimer < 4 && (bout.plans[this.side].protect || me.sinceTurnTry < topPlanEffects(bout.plans[this.side]).stallGrace - 3);
+        // Flat on his back with no legs in is riding parallel: the official's patience is shorter (PARALLEL_STALL).
+        const flatGrace = topPlanEffects(bout.plans[this.side]).stallGrace * ((pos.legRide ?? 0) >= 0.8 ? 1 : PARALLEL_STALL.grace);
+        const riding = topPlanOf(bout.plans[this.side]) === 'ride' && me.stallTimer < 4 && (bout.plans[this.side].protect || me.sinceTurnTry < flatGrace - 3);
         if (pos.control < 0.35 || riding && this.rng.next() < 0.75) cmd.sprawl = true;
         else cmd.shoot = this.rng.next() < Math.min(0.85, 0.6 * (style?.turnPreference ?? 1));
         if (!cmd.shoot && !cmd.sprawl) cmd.fight = true;
@@ -660,6 +729,16 @@ export class WrestlerAI {
       this.switchIn = this.p.reaction * (0.7 + this.rng.next() * 0.5);
       return;
     }
+    // Owner, November 10: a stand-up is often an explosive move right off the whistle.
+    if ((pos.whistle ?? 0) > 0 && !this.whistleRead) {
+      this.whistleRead = true;
+      if (pos.base > 0.42 && this.rng.next() < 0.35 + 0.25 * this.p.effort) {
+        cmd.shoot = true;
+        this.bottomWait = 0;
+        return;
+      }
+    }
+    if ((pos.whistle ?? 0) <= 0) this.whistleRead = false;
     if (this.switchIn >= 0 || this.decideT > 0) return;
     this.decideT = 0.35 + this.rng.next() * 0.5;
     // Nobody sits on the bottom rebuilding for long. After a few quiet seconds he goes for it
@@ -668,6 +747,12 @@ export class WrestlerAI {
     if (this.wasFlat) { this.wasFlat = false; this.bottomWait = 99; }
     // (Owner, November 10: the bottom man should be up and moving; this was 3 + 1.5 / effort + up to 2 beats.)
     if (this.bottomWait >= 1.5 + 1 / this.p.effort + this.rng.next() * 1.5 && pos.base > 0.42) {
+      // Hands first (owner: stand-ups work off back pressure and hand control), then up.
+      if (pos.commit < 0.3 && (pos.hands ?? 0) < 0.35 && this.rng.next() < 0.75) {
+        cmd.fight = true;
+        this.decideT = 0.18 + this.rng.next() * 0.12;
+        return;
+      }
       this.bottomWait = 0;
       if (pos.commit >= 0.4) cmd.fight = true;
       else cmd.shoot = true;
@@ -676,7 +761,8 @@ export class WrestlerAI {
     // Now and then he sits out instead of standing.
     // (About one in four of those a Granby roll, best right after his drive.)
     const granbyMan = bout.wrestlers[this.side].signature?.bottom === 'granbyRoll';
-    if (pos.base > 0.5 && this.rng.next() < (granbyMan ? 0.12 : 0.08)) { cmd.sitOut = true; cmd.level = granbyMan || pos.commit > 0.3 || this.rng.next() < 0.25; this.bottomWait = 0; return; }
+    // (Owner, November 10: more stand-ups and sit-outs; this was 0.12 / 0.08.)
+    if (pos.base > 0.5 && this.rng.next() < (granbyMan ? 0.18 : 0.14)) { cmd.sitOut = true; cmd.level = granbyMan || pos.commit > 0.3 || this.rng.next() < 0.25; this.bottomWait = 0; return; }
     // Build the base first; stand when he has loosened up.
     if (pos.base < 0.6) cmd.sprawl = true;
     else if (this.rng.next() < 0.35 + (1 - pos.control) * 0.5) { cmd.shoot = true; this.bottomWait = 0; }

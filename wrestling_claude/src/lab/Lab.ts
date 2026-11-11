@@ -475,6 +475,8 @@ export function startLab(host: HTMLElement): void {
           [B, 'B', A],
         ] as const) {
           anim.instant = dynamicDt === undefined;
+          // &effortAge=0.17 shows that moment of the press (still frames otherwise only show its first frames).
+          if (effort && params.get('effortAge')) (anim as unknown as { effortPulse: { age: number } }).effortPulse.age = Number(params.get('effortAge'));
           anim.update(
             dynamicDt ?? 1 / 60,
             {
@@ -488,6 +490,7 @@ export function startLab(host: HTMLElement): void {
               progress: time,
               intensity: Math.max(0, Math.min(1, Number(params.get('intensity') ?? 0))),
               pockets: Math.max(0,Math.min(1,Number(params.get('pockets')??0))),
+              hands: Math.max(0,Math.min(1,Number(params.get('hands')??0))),
               resistance: Math.max(0,Math.min(1,Number(params.get('resistance')??0))),
               dist,
               stamina: 1,

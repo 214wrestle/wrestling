@@ -91,6 +91,18 @@ export const LIKENESS: Record<string, Likeness> = {
     ],
     notes: 'Broad, full-cheeked face; wide strong jaw; rounded chin with a slight cleft; thick straight dark brows; dark brown almond eyes; medium-wide nose with a rounded tip; ears stand out a little, no cauliflower. Light olive skin, near-black hair short on the sides and brushed up on top. Lean and muscular. Not modelled yet: Aztec-calendar tattoo on the left thigh, script tattoo on the arm, black sleeve on the right knee. Height is an estimate.',
   },
+  // Owner, November 10: "Diakomihalis is a white greek dude"; with no portrait or profile his colouring was drawn at
+  // random and came out deep brown. Colours only (light olive skin, near-black straight hair, dark brown eyes);
+  // face and build stay generic until a portrait is fitted.
+  'Yianni Diakomihalis': {
+    years: [2018, 2023],
+    skin: '#e0b494',
+    hairColor: '#17110d',
+    eye: '#3b2416',
+    hairStraight: 1,
+    sources: [{ label: 'Cornell All-American page', url: 'https://cornellbigred.com/aa.aspx?hid=686', kind: 'bio' }],
+    notes: 'Greek-American, light olive skin, dark straight hair, brown eyes (owner). Colours only; no portrait fitted yet.',
+  },
 };
 
 /** A hand-fitted likeness, over the researched basics (college years, listed height). */

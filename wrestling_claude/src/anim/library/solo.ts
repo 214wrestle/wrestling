@@ -196,22 +196,29 @@ registerSolo({
   ],
 });
 
-// Near-fall count: the arm sweeps down once a second.
+// Near-fall count: the arm sweeps down once a second. Down on one knee beside the shoulders with the head low, looking
+// across them (2025 NCAA pins, DPS Breakdowns g9xqkEf3Xrc at 25 s and 45 s: the referee is at mat level by the heads;
+// it was a half squat at 0.6 m).
+const refCountBase: PoseSpec = {
+  ...refWatch,
+  hips: [0, 0.44, -0.12],
+  rot: [0, 30, 0],
+  spine: [34, 0, 0],
+  head: [-42, 0, 0],
+  look: 1,
+  footL: [0.2, BALL, 0.26, 10, 0],
+  footR: [-0.18, BALL, -0.5, -10, 80],
+  kneeL: [0.24, 0.55, 0.7],
+  kneeR: [-0.2, -0.3, 0.2],
+  handR: [-0.12, 0.42, 0.3],
+  elbowR: [-0.4, 0.5, 0.1],
+};
 registerSolo({
   id: 'refCount',
   loop: true,
   keys: [
-    {
-      t: 0,
-      pose: {
-        ...refWatch,
-        hips: [0, 0.6, -0.05],
-        spine: [30, 0, 0],
-        handL: [0.4, 1.3, 0.25],
-        elbowL: [0.8, 1.2, -0.2],
-      },
-    },
-    { t: 0.5, pose: { handL: [0.3, 0.55, 0.45], elbowL: [0.7, 0.8, 0.2] } },
+    { t: 0, pose: { ...refCountBase, handL: [0.4, 1.05, 0.25], elbowL: [0.7, 0.95, -0.15] } },
+    { t: 0.5, pose: { handL: [0.32, 0.22, 0.5], elbowL: [0.6, 0.5, 0.2] } },
   ],
 });
 
@@ -244,6 +251,106 @@ registerSolo({
     { t: 0.55, pose: { handL: [0.32, 0.65, 0.48] } },
     { t: 0.7, land: true, pose: { handL: [0.3, POST, 0.55] } },
     { t: 1, stop: true, pose: { handL: [0.3, POST, 0.55] } },
+  ],
+});
+
+/* ---------------------------------------------------------------- coaches */
+
+// Corner coaches (owner, November 11: "a coach in the corner ... who has reactions to good and bad results for their
+// wrestler"). Origin at the centre of his chair's seat (CHAIR_SEAT 0.46 m), facing the mat. Seated poses keep the hips
+// over the seat; standing ones step out in front of the chair.
+
+// Seated, leaning in with forearms on his thighs and hands together, eyes on his man.
+const coachSit: PoseSpec = {
+  ...tall,
+  hips: [0, 0.56, -0.03],
+  rot: [0, 12, 0],
+  spine: [24, 0, 0],
+  head: [-30, 0, 0],
+  look: 1,
+  footL: [0.17, BALL, 0.44, 8, 0],
+  footR: [-0.17, BALL, 0.42, -8, 0],
+  kneeL: [0.3, 0.7, 1.0],
+  kneeR: [-0.3, 0.7, 1.0],
+  handL: [0.07, 0.66, 0.36],
+  handR: [-0.07, 0.66, 0.36],
+  elbowL: [0.6, 0.1, 0.2],
+  elbowR: [-0.6, 0.1, 0.2],
+  wristL: [0, 0, 0],
+  wristR: [0, 0, 0],
+};
+registerSolo({
+  id: 'coachSit',
+  loop: true,
+  keys: [
+    { t: 0, pose: coachSit },
+    { t: 0.5, pose: { spine: [28, 0, 0], handL: [0.08, 0.64, 0.38], handR: [-0.06, 0.65, 0.37] } },
+  ],
+});
+
+// Still seated, coaching: right hand cupped to the mouth, left arm out pointing at the mat, pumping.
+registerSolo({
+  id: 'coachYell',
+  loop: true,
+  keys: [
+    { t: 0, pose: { ...coachSit, spine: [30, 0, 0], head: [-34, 0, 0], handR: [-0.06, 1.16, 0.34], elbowR: [-0.7, 0.9, -0.1],
+      handL: [0.3, 0.98, 0.66], elbowL: [0.7, 0.8, 0.0], wristL: PALM_DOWN } },
+    { t: 0.5, pose: { spine: [26, 0, 0], handL: [0.28, 0.86, 0.62] } },
+  ],
+});
+
+// Up out of the chair, bent over the edge of the mat urging him on (a near fall, or his man in danger): both hands out
+// and pushing down, palms down.
+const coachStand: PoseSpec = {
+  ...tall,
+  hips: [0, 0.9, 0.36],
+  spine: [26, 0, 0],
+  head: [-34, 0, 0],
+  look: 1,
+  footL: [0.18, BALL, 0.42, 10, 0],
+  footR: [-0.18, BALL, 0.36, -10, 0],
+  kneeL: [0.3, 0.5, 1.0],
+  kneeR: [-0.3, 0.5, 1.0],
+};
+registerSolo({
+  id: 'coachUrge',
+  loop: true,
+  keys: [
+    { t: 0, pose: { ...coachStand, handL: [0.2, 1.05, 0.82], handR: [-0.2, 1.05, 0.82], elbowL: [0.6, 0.9, 0.2], elbowR: [-0.6, 0.9, 0.2],
+      wristL: PALM_DOWN, wristR: PALM_DOWN } },
+    { t: 0.5, pose: { spine: [30, 0, 0], handL: [0.2, 0.86, 0.78], handR: [-0.2, 0.86, 0.78] } },
+  ],
+});
+
+// Points for his man: up out of the chair with both fists pumping.
+registerSolo({
+  id: 'coachCheer',
+  loop: true,
+  keys: [
+    { t: 0, pose: { ...coachStand, hips: [0, 0.94, 0.34], spine: [-6, 0, 0], head: [-14, 0, 0],
+      handL: [0.3, 1.9, 0.46], handR: [-0.3, 1.9, 0.46], elbowL: [0.8, 1.6, 0.1], elbowR: [-0.8, 1.6, 0.1] } },
+    { t: 0.5, pose: { hips: [0, 0.9, 0.34], spine: [4, 0, 0], handL: [0.3, 1.5, 0.5], handR: [-0.3, 1.5, 0.5],
+      elbowL: [0.8, 1.2, 0.2], elbowR: [-0.8, 1.2, 0.2] } },
+  ],
+});
+
+// Points against: up, hands on top of his head, leaning back.
+registerSolo({
+  id: 'coachDismay',
+  loop: true,
+  keys: [
+    { t: 0, pose: { ...coachStand, hips: [0, 0.95, 0.3], spine: [-8, 0, 0], head: [-16, 0, 0],
+      handL: [0.09, 1.72, 0.3], handR: [-0.09, 1.72, 0.3], elbowL: [0.9, 1.7, 0.1], elbowR: [-0.9, 1.7, 0.1] } },
+    { t: 0.5, pose: { spine: [-3, 6, 0], head: [-10, 8, 0] } },
+  ],
+});
+
+// Lost: back in the chair, slumped, elbows on his knees and head down.
+registerSolo({
+  id: 'coachLoss',
+  keys: [
+    { t: 0, pose: { ...coachSit, spine: [38, 0, 0], head: [30, 0, 0], handL: [0.13, 0.6, 0.42], handR: [-0.13, 0.6, 0.42],
+      wristL: PALM_DOWN, wristR: PALM_DOWN } },
   ],
 });
 

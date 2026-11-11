@@ -15,7 +15,7 @@ for(const technique of ['duckUnder','superDuck','slideBy','firemansCarry','footS
   b.tick(1/60,[cmd,{...NO_COMMAND}]);
   ok(b.position.kind==='move','valid setup must commit to paired attack');
   if(b.position.kind==='move'){
-   won+=Number(b.position.id===technique);
+   won+=Number(b.position.id===technique||b.position.id===technique+'Back');
    countered+=Number(b.position.id==='tieAttackCounter');
   }
   ok(b.athletes[0].stamina<gas,'special attack costs stamina');
@@ -57,3 +57,26 @@ for(const technique of ['duckUnder','superDuck','slideBy','firemansCarry','footS
  ok(b.athletes[0].act==='stance','attempt recovers to stance');
 }
 console.log('Unsecured attacks visibly attempt their own technique and recover');
+
+// Fireman's carry to the back (owner, November 11): some won carries roll him to his back for a takedown and near fall.
+{
+ let plain=0,back=0,landed=0;
+ for(let seed=1;seed<=200;seed++){
+  const b=new Bout([PROTOTYPE_ROSTER[0],PROTOTYPE_ROSTER[1]],{},seed);
+  b.setNeutral({x:0,z:0},0,0.9);
+  for(let i=0;i<25;i++)b.tick(1/60,[{...NO_COMMAND},{...NO_COMMAND}]);
+  b.athletes[0].hand=0.6;
+  b.tick(1/60,[{...NO_COMMAND,technique:'firemansCarry'},{...NO_COMMAND}]);
+  if(b.position.kind!=='move')continue;
+  if(b.position.id==='firemansCarry')plain++;
+  if(b.position.id==='firemansCarryBack'){
+   back++;
+   for(let i=0;i<130&&b.position.kind==='move';i++)b.tick(1/60,[{...NO_COMMAND},{...NO_COMMAND}]);
+   const p:any=b.position;
+   if(p.kind==='mat'&&p.sub==='exposed'&&b.athletes[0].stats.takedowns===1)landed++;
+  }
+ }
+ ok(plain>0&&back>0,`carries must sometimes go to the back and sometimes not (plain ${plain}, back ${back})`);
+ ok(landed===back,`every carry to the back lands him exposed with the takedown (${landed} of ${back})`);
+ console.log(`Fireman's carry: ${back} of ${plain+back} won carries went to the back, all exposed with the takedown`);
+}
