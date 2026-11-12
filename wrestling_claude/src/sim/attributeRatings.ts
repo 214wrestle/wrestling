@@ -113,8 +113,9 @@ export const STYLE_EFFECT = {
   /** Shots (owner, November 12: "Shots and defense"): faster penetration (shorter shot), cleaner entry (shot quality),
    *  drive on the legs, finishing a leg scramble, and how often the AI shoots, per step. */
   shotSpeed: 0.04, shotQuality: 0.03, shotDrive: 0.05, shotFinish: 0.03, shotAI: 0.08,
-  /** Defense: reading the shot (AI read and reflex sprawl), stuffing it when the sprawl lands, crossface and sprawl on
-   *  the legs, and off the other man's leg scramble and attacks, per step. */
+  /** Defense: reading the shot (the AI's read and its reflex sprawl; not the person's own reflex, owner November 12),
+   *  stuffing it when the sprawl lands, crossface and sprawl on the legs, and off the other man's leg scramble and
+   *  attacks, per step. */
   defRead: 0.04, defStuff: 0.04, defSprawl: 0.06, defFinish: 0.03,
   /** Scrambling (owner, November 12: "Scrambling and explosiveness"): breaking up a finish when he scrambles, how far a
    *  scramble moves the position, his leg counters (sit-through, scramble roll) and coming out of a leg scramble, per

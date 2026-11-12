@@ -482,6 +482,12 @@ export const FATIGUE = {
  */
 interface StyleSteps { pace: number; brawl: number; throws: number; phys: number; ride: number; turn: number; pin: number; bottom: number; shots: number; def: number; scram: number; expl: number; end: number; ath: number; clutch: number; heart: number; scorer: number }
 
+/** How fast pin pressure builds, held and on each squeeze (owner, November 12: "Yes, fall rate" — falls had dropped
+ *  about 5% at Varsity and 9% at All-American after clutch, heart and the AI's realistic choice of bottom). Falls are
+ *  steep in it: of 1,200 even matches, 1.0 gives 284 / 339 (Varsity / All-American), 1.03 gives 305 / 364, 1.08
+ *  gives 342 / 404, 1.25 gives 437 / 513. */
+export const PIN_PRESSURE = { rate: 1.03 } as const;
+
 export const TIE_UP = { range: 1.05, odds: 0.25, answer: 0.5, lock: 0.72, back: 0.66, backOdds: 0.85, hold: 0.95, drag: 0.9, pullLean: 0.2, lockHard: 0.2, holdFade: 0.008 } as const;
 /** Neutral taps (owner playtest, November 11): a fake, a head tap, a snap or a pummel is a breath, not a sprint. Were
  *  0.015, 0.012, 0.035 and 0.02. */
@@ -1158,7 +1164,9 @@ export class Bout {
     const def = this.wrestlers[side].attributes.defense;
     // Tired, he reads it later and less often (FATIGUE.read).
     const fresh = 1 - FATIGUE.read * (1 - this.athletes[side].stamina);
-    if (!this.rng.chance(Math.min(0.95, (0.25 + def * 0.4 + STYLE_EFFECT.defRead * this.styleSteps[side].def + (cold ? COLD_READ : 0)) * share * fresh))) return -1;
+    // A defensive grade sharpens the AI's read, not the person's own reflex (owner, November 12): his reactions are his.
+    const read = side === this.assistedSide ? 0 : STYLE_EFFECT.defRead * this.styleSteps[side].def;
+    if (!this.rng.chance(Math.min(0.95, (0.25 + def * 0.4 + read + (cold ? COLD_READ : 0)) * share * fresh))) return -1;
     // A cold shot is seen coming: the hips go back earlier.
     return dur * (0.65 - def * 0.25) * (cold ? 0.75 : 1);
   }
@@ -2623,12 +2631,12 @@ export class Bout {
     // Tightening also preserves the grip. Defensive hand work earns room to
     // lift the shoulders; it must contend with an actively maintained hold.
     if (ct.shoot || ct.fight) s.fight = Math.max(0, s.fight - dt * 0.12 * (0.7 + (wt.pinning ?? wt.mat) * 0.6) * squeezeGas);
-    if (!shouldersUp && (locked || ct.shoot || ct.fight)) s.pin += dt * (1 - 0.6 * flash) * (locked ? 0.16 : 0.22) * (0.7 + wt.strength * 0.6) * pinSkill * squeezeGas * 0.85 * (1 + 0.25 * this.edge(T.side));
+    if (!shouldersUp && (locked || ct.shoot || ct.fight)) s.pin += dt * (1 - 0.6 * flash) * (locked ? 0.16 : 0.22) * (0.7 + wt.strength * 0.6) * pinSkill * squeezeGas * 0.85 * (1 + 0.25 * this.edge(T.side)) * PIN_PRESSURE.rate;
     // Both squeeze buttons report their own result. Concurrent presses are one effort.
     const squeezeShoot = this.take(T, 'shoot');
     const squeezeFight = this.take(T, 'fight');
     if (squeezeShoot || squeezeFight) {
-      if (!shouldersUp) s.pin += 0.06 * pinSkill * squeezeGas;
+      if (!shouldersUp) s.pin += 0.06 * pinSkill * squeezeGas * PIN_PRESSURE.rate;
       this.spend(T, 0.02);
       // Owner, November 10: with him on his back the top man adjusts to tighten the hold and drives him deeper.
       // On a flash each squeeze takes a little of his roll-out away, so working it can hold a tilt for a 3 or a 4;

@@ -2308,8 +2308,8 @@
         },
         {
           "weight": "197",
-          "name": "Isaac Trumble",
-          "source": "197 — Isaac Trumble"
+          "name": "Michael Macchiavello",
+          "source": "197 — Michael Macchiavello"
         },
         {
           "weight": "HWT",
@@ -2317,7 +2317,7 @@
           "source": "HWT — Nick Gwiazdowski"
         }
       ],
-      "notesAndChoices": "Coach's Choice:\nKai Orine — 133\nDaniel Bullard — 174\n\nSpecial:\nDarrion Caldwell retains his signature headlock/spladle gameplay and\n2009 Metcalf NCAA-final Easter egg.",
+      "notesAndChoices": "Coach's Choice:\nKai Orine — 133\nDaniel Bullard — 174\nIsaac Trumble — HWT\n\nSpecial:\nDarrion Caldwell retains his signature headlock/spladle gameplay and\n2009 Metcalf NCAA-final Easter egg.\nOwner revision November 12, 2026: Isaac Trumble (2026 NCAA champion at heavyweight) moved to a heavyweight Coach’s Choice behind Nick Gwiazdowski; Michael Macchiavello (2018 NCAA champion at 197) is the 197 starter.",
       "id": "nc-state",
       "choices": [
         {
@@ -2329,6 +2329,11 @@
           "name": "Daniel Bullard",
           "weight": "174",
           "source": "Daniel Bullard — 174"
+        },
+        {
+          "name": "Isaac Trumble",
+          "weight": "HWT",
+          "source": "Isaac Trumble — HWT"
         }
       ]
     },

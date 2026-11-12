@@ -233,6 +233,15 @@ const aiMinutes = (w: Wrestler, seeds = 24) => {
   const plain = tds(base, opp), shot = tds(full(base, 'shots'), opp), wall = tds(base, full(opp, 'defense'));
   ok(shot > plain + 10, `a shots-5 man scores more takedowns (${shot} vs ${plain} of 200)`);
   ok(wall < plain - 10, `against a defense-5 man he scores fewer (${wall} vs ${plain} of 200)`);
+  // The person's own reflex sprawl reads the same whatever his defense grade (owner, November 12); the AI's read does not.
+  const reflexes = (w: Wrestler, assisted: boolean) => {
+    const b = new Bout([w, opp], {}, 19); (b as any).assistedSide = assisted ? 0 : 1; w.shotDefense = assisted ? undefined : 1;
+    let n = 0; for (let i = 0; i < 2000; i++) if ((b as any).reflexFor(0, 0.5) >= 0) n++;
+    return n;
+  };
+  const d5 = { ...withGrades(base, { defense: 5 }) }, d3 = { ...base };
+  ok(reflexes(d5, true) === reflexes(d3, true), 'the person\'s reflex sprawl ignores his defense grade');
+  ok(reflexes({ ...d5 }, false) > reflexes({ ...d3 }, false) + 60, 'the AI\'s reflex reads better with a defense grade');
   console.log(`Takedowns in 30 s from neutral, 200 starts: ungraded ${plain}, shooter (5) ${shot}, into a defender (5) ${wall}`);
 }
 

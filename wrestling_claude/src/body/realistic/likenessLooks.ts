@@ -308,6 +308,7 @@ export const LIKENESS_LOOKS: Record<string, { skin?: string; hairColor?: string;
   "Shane Griffith": {"skin":"#eac4a6","hairColor":"#7a5a3a","hairStraight":0.6,"eye":"#4d6a86"},
   "Aden Valencia": {"skin":"#c69270","hairColor":"#0f0b09","hairStraight":1,"eye":"#3b2416"},
   "Josh Humphreys": {"skin":"#eac4a6","hairColor":"#3d2a1d","hairStraight":0.6,"eye":"#3b2416"},
+  "Michael Macchiavello": {"skin":"#c69270","hairColor":"#17110d","hairStraight":0.6,"eye":"#3b2416"},
   "Steve St. John": {"skin":"#e0b494"},
   "Rick Sanders": {"skin":"#e0b494"},
   "Robert Mathers": {"skin":"#e0b494"},
