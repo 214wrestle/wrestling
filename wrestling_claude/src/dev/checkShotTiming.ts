@@ -118,9 +118,10 @@ for (const id of ['snapDown','goBehind','chinWhip','tilt','sitOutEscape'] as con
       b.setNeutral({x:0,z:0},0,0.9);
       const [a,o]=b.athletes as any;
       if(kind==='lateralDrop'){a.hand=0.8;a.tie='bodyLock';}else{o.hand=0.8;o.tie='underhook';}
-      // He drives straight at the thrower at `speed` m/s.
+      // He drives straight at the thrower at `speed` m/s; tied up, what counts is his push (the stick hard toward him,
+      // THROW_PUSH.tiedDrive), not standing close.
       const dx=a.pos.x-o.pos.x,dz=a.pos.z-o.pos.z,d=Math.hypot(dx,dz);
-      o.vel={x:dx/d*speed,z:dz/d*speed};
+      o.vel={x:dx/d*speed,z:dz/d*speed};o.drive=speed;
       (b as any).tryUpperThrow(a,kind,NO_COMMAND);
       const p=b.position as any;
       if(p.kind==='move'&&(p.id==='lateralDrop'||p.id==='headlockThrow')){won++;if((p.burst??0)>0.5)burst++;}

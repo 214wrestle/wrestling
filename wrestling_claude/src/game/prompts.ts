@@ -1,7 +1,7 @@
 import {ARM_BAR_LABELS,CRADLE_LABELS,flatTurnFor,isArmBar,type TopTurnChoice} from '../sim/armBars';
 import { LEG_CLEAR_THRESHOLD } from '../sim/legRideQuality';
 import { MOVES } from '../sim/moves';
-import { BOUT, EDGE, edgeDistance, HANDS, legCounterFor, LEG_COUNTER_LABELS } from '../sim/bout';
+import { BOUT, EDGE, edgeDistance, HANDS, legCounterFor, TIE_UP, LEG_COUNTER_LABELS } from '../sim/bout';
 import { MAT } from '../sim/rules';
 import type { MatchSim } from '../sim/MatchSim';
 import { otherSide } from '../sim/types';
@@ -114,18 +114,21 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
         prompts: {
           shoot: P(shootLabel, inRange && you.stamina <= BOUT.shotStamina ? 'off' : reshot || bit || pickOn && (them.snapped ?? 0) > 0 || setUp ? 'hot' : 'idle',
             reshot ? 'He is off balance — go!' : bit ? 'He bit — go!' : you.hand >= 0.62 && dist <= BOUT.tieRange + 0.15 || you.hand >= 0.35 && dist <= 1.05 ? 'Lower: Fireman’s carry' : dist >= 1.2 ? 'Lower: Low single' : undefined),
+          // Tied up (owner playtest, November 11): the button is the attack from the tie you hold, and the throw
+          // shows on it; Lower pummels for position. Close in and untied, it ties up.
           fight: tapped ? P(you.hand >= 0.3 ? 'Tie the wrist' : 'Swat', 'hot', 'Sideways: circle off')
-            : P(bodyLock ? 'Lateral drop' : underhook ? 'Throw-by' : hisHooks ? 'Pummel' : snapOn ? 'Snap down' : 'Hand fight', bodyLock || snapHot ? 'hot' : dist > BOUT.tieRange + 0.2 && !(dist < 1.4) ? 'off' : 'idle',
+            : P(bodyLock ? 'Lateral drop' : underhook ? 'Throw-by' : hisHooks ? 'Headlock' : snapOn ? 'Snap down' : dist <= TIE_UP.range ? 'Tie up' : 'Hand fight',
+              bodyLock || snapHot || hisHooks && bout.pushingIn(them, you) > 0.55 ? 'hot' : dist > BOUT.tieRange + 0.2 && !(dist < 1.4) ? 'off' : 'idle',
             bodyLock ? undefined
               : underhook ? 'Lower: pummel for a body lock'
-              : hisHooks ? 'Sideways: Headlock (risky)'
-              : snapOn ? 'Sideways: Duck under · Back: Foot sweep'
+              : hisHooks ? 'Throw (risky) · Lower: pummel inside'
+              : snapOn ? 'Lower: pummel for the underhook · Sideways: Duck under · Back: Foot sweep'
               : them.hand >= 0.62 && them.tie !== 'underhook' ? 'Sideways: Duck under'
               : you.hand >= 0.35 ? 'Sideways: Slide-by'
               : dist > 1.05 && dist < 1.4 ? 'Sideways: Super duck' : undefined),
           sprawl: P('Sprawl', 'idle'),
         },
-        meters: [{ label: bodyLock ? 'Body lock' : underhook ? 'Underhook' : tied ? 'Collar tie' : 'Hand fight', value: 0.5 + (you.hand - them.hand) * 0.5, tone: 'you', mark: 0.81 }],
+        meters: [{ label: bodyLock ? 'Body lock' : underhook ? 'Underhook' : hisHooks ? 'His underhook' : tied && them.hand >= 0.62 ? 'Tied up' : tied ? 'Collar tie' : 'Hand fight', value: 0.5 + (you.hand - them.hand) * 0.5, tone: 'you', mark: 0.81 }],
       };
     }
     case 'shot': {

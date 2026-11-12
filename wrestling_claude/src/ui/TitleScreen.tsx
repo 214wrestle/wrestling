@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import type { Difficulty } from '../sim/ai';
 import { MEET, ROSTER, LEGENDS_TEAMS, LEGENDS_WEIGHTS, byId } from '../sim/roster';
 import type { Wrestler } from '../sim/types';
+import { ABILITY_KEYS, ABILITY_LABELS } from '../sim/attributeRatings';
 import { cornerPick, marquee, pickList } from '../sim/dual';
 import { tournamentField } from '../sim/tournament';
 import type { GameApi, UiState } from '../game/store';
@@ -18,7 +19,7 @@ const DIFFICULTIES: Array<{ id: Difficulty; label: string; blurb: string }> = [
   { id: 'all-american', label: 'All-American', blurb: 'More active, but still forgiving—even with a lower-rated wrestler.' },
 ];
 
-const ATTRS: Array<[Exclude<keyof Wrestler['attributes'], 'legRiding'>, string]> = [
+const ATTRS: Array<[Exclude<keyof Wrestler['attributes'], 'legRiding' | 'throws' | 'riding' | 'turning' | 'pinning' | 'bottom' | 'shots' | 'scrambling'>, string]> = [
   ['quickness', 'Quickness'],
   ['strength', 'Strength'],
   ['conditioning', 'Conditioning'],
@@ -333,6 +334,33 @@ export function TitleScreen({ state, api }: { state: UiState; api: GameApi }) {
             );
           })}
         </div>
+        {you.abilities && them.abilities && (
+          <details className="roster-notes tape__abilities">
+            <summary>Attribute ratings</summary>
+            <table>
+              <tbody>
+                {ABILITY_KEYS.map((k) => {
+                  const a = you.abilities![k], b = them.abilities![k];
+                  return (
+                    <tr key={k}>
+                      <td className={a > b ? 'tape__better' : ''}>{a}</td>
+                      <th scope="row">{ABILITY_LABELS[k]}</th>
+                      <td className={b > a ? 'tape__better' : ''}>{b}</td>
+                    </tr>
+                  );
+                })}
+                {(['pace', 'brawler'] as const).map((k) => (
+                  <tr key={k} className="tape__style-grade">
+                    <td>{you.styleGrades?.[k] ? `${you.styleGrades[k]}/5` : '—'}</td>
+                    <th scope="row">{k === 'pace' ? 'Pace (style)' : 'Brawler (style)'}</th>
+                    <td>{them.styleGrades?.[k] ? `${them.styleGrades[k]}/5` : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p>Built from each wrestler’s college results and researched strengths; an unresearched category stays at his career level.</p>
+          </details>
+        )}
         <p className="field__note">Ratings are provisional. Estimates and developmental ratings are identified in wrestler bios; appearances remain prototypes.</p>
         {[you, them].filter(w => w.legends?.bioNote).map(w => <p className="field__note" key={w.id}>{w.firstName} {w.lastName}: {w.legends!.bioNote}</p>)}
         {morenoMatchupNote(you, them) && <p className="field__note">{morenoMatchupNote(you, them)}</p>}

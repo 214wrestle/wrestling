@@ -24,6 +24,7 @@ for (const team of LEGENDS_TEAMS) {
   }
 }
 check(byId(DEFAULT_MATCHUP[0]).weightClass === byId(DEFAULT_MATCHUP[1]).weightClass, 'matched default weight');
+check(byId(DEFAULT_MATCHUP[0]).lastName === 'Gable' && byId(DEFAULT_MATCHUP[1]).lastName === 'Owings', 'the title screen opens on Gable vs Owings (owner, November 12)');
 check(!ROSTER.some(w => w.lastName === 'Samson'), 'Hud Samson absent');
 check(byId('penn-state-190-starter-quentin-wright').legends?.bioNote?.includes('184 and 197') === true, 'Wright career note');
 check(ROSTER.filter(w => w.firstName === 'Dylan' && w.lastName === 'Ness').every(w => w.weightClass === 157), 'Ness locked weights');
@@ -86,7 +87,7 @@ for (const w of ROSTER) {
  const resolution = PROVISIONAL_RATINGS[`${w.firstName} ${w.lastName}`];
  if (resolution) {
   check(!w.ncaaCareer, `Provisional history falsely marked verified: ${w.id}`);
-  check(w.rating === resolution.rating && !!w.legends?.bioNote?.includes(resolution.note), `Missing provisional rating disclosure: ${w.id}`);
+  check(w.careerRating === resolution.rating && !!w.legends?.bioNote?.includes(resolution.note), `Missing provisional rating disclosure: ${w.id}`);
  }
 }
 
@@ -97,7 +98,7 @@ check(ROSTER.some(w => w.firstName === 'Mason' && w.lastName === 'Lenhard' && w.
 
 for (const [name,rating] of Object.entries({'Michael Mocco':75,'Dreshaun Ross':84,'Ashton Honnold':65,'Israel "Izzy" Moreno':53,'Bo Bassett':91,'Coby Merrill':78})) {
  const entries = ROSTER.filter(w => `${w.firstName} ${w.lastName}` === name);
- check(entries.length === 1 && entries[0].rating === rating && !entries[0].ncaaCareer, `Owner developmental rating and unique slot: ${name}`);
+ check(entries.length === 1 && entries[0].careerRating === rating && !entries[0].ncaaCareer, `Owner developmental rating and unique slot: ${name}`);
 }
 check(byId('iowa-state-285-choice-coby-merrill').legends?.role === 'choice', 'Coby Merrill ISU heavyweight choice');
 

@@ -3,6 +3,7 @@ import { isScrambleSpecialist, heavyweightActivity, isFootSweepSpecialist, lateA
 import type { Bout } from './bout';
 import { BOUT, COLD_READ, EDGE, Rng, edgeDistance, legCounterFor } from './bout';
 import { otherSide } from './types';
+import { STYLE_EFFECT, gradeStep, styleStep } from './attributeRatings';
 import { MAT } from './rules';
 import { topPlanEffects, topPlanOf, PARALLEL_STALL } from './strategy';
 import type { Command, Side } from './types';
@@ -20,7 +21,7 @@ export const POUNCE = { base: 0.12, aggression: 0.5 } as const;
  * distance, and fights more often in range (`inRange`, `outside`: per-decision chance x handfight). AI only: the rules
  * for the person are unchanged.
  */
-export const HAND_FIGHT = { chain: 0.6, gap: [0.3, 0.55], max: 3, close: 0.6, closeDist: 0.92, inRange: 0.55, outside: 0.3 } as const;
+export const HAND_FIGHT = { tieUp: 0.2, pummel: 0.14, lockPummel: 0.12, coldDrop: 0.1, coldHeadlock: 0.025, chain: 0.6, gap: [0.3, 0.55], max: 3, close: 0.6, closeDist: 0.92, inRange: 0.55, outside: 0.3 } as const;
 
 interface Profile {
   effort: number;
@@ -144,7 +145,9 @@ export class WrestlerAI {
     const quick = this.planStyle === 'defensive' ? 0.8 : 1;
     // A cold shot (no setup) is far easier to read, and is read sooner.
     const cold = this.lastBout?.position.kind === 'shot' && !!this.lastBout.position.cold;
-    if (what === 'shot' && this.rng.next() < this.p.sprawlSkill + read + (cold ? COLD_READ : 0)) {
+    // A defensive man (defense grade) reads it more often (STYLE_EFFECT.defRead per step).
+    const defRead = this.lastBout ? STYLE_EFFECT.defRead * gradeStep(this.lastBout.wrestlers[this.side], 'defense') : 0;
+    if (what === 'shot' && this.rng.next() < this.p.sprawlSkill + read + defRead + (cold ? COLD_READ : 0)) {
       // Read off the level change, not the contact: the hips go back while he is still coming in.
       this.sprawlIn = this.p.reaction * 0.55 * quick * (cold ? 0.7 : 1) * (0.75 + this.rng.next() * 0.55);
     }
@@ -152,6 +155,11 @@ export class WrestlerAI {
     if (what === 'opening' && this.rng.next() < 0.05 + this.p.aggression * 0.15) {
       this.goIn = this.p.reaction * (0.4 + this.rng.next() * 0.4);
     }
+  }
+
+  /** A thrower looks for the throw more (STYLE_EFFECT.throwAI per throws grade step; never below a third). */
+  private throwKeen(bout: Bout): number {
+    return Math.max(0.33, 1 + STYLE_EFFECT.throwAI * gradeStep(bout.wrestlers[this.side], 'throws'));
   }
 
   update(dt: number, bout: Bout, wrestling: boolean, context?: {timeLeft:number; finalPeriod:boolean; deficit:number}): Command {
@@ -244,7 +252,9 @@ export class WrestlerAI {
       cmd.catchLeg = legIn && this.legInT > 1.8 - bout.wrestlers[this.side].attributes.mat * 1.2;
     } else this.legInT = 0;
     const name = `${bout.wrestlers[this.side].firstName} ${bout.wrestlers[this.side].lastName}`;
-    if ((pos.kind === 'legs' || pos.kind === 'fhl' || pos.kind === 'mat') && isScrambleSpecialist(name) && this.rng.chance(dt * 0.3)) cmd.scramble = true;
+    // Scramble specialists (and researched scramblers, STYLE_EFFECT.scrambleAI a second per step above 3) scramble.
+    const scramRate = (isScrambleSpecialist(name) ? 0.3 : 0) + STYLE_EFFECT.scrambleAI * Math.max(0, gradeStep(bout.wrestlers[this.side], 'scrambling'));
+    if ((pos.kind === 'legs' || pos.kind === 'fhl' || pos.kind === 'mat') && scramRate > 0 && this.rng.chance(dt * scramRate)) cmd.scramble = true;
     return this.edges(cmd);
   }
 
@@ -427,15 +437,15 @@ export class WrestlerAI {
       this.throwTried = true;
       const lock = me.hand >= 0.62 && me.tie === 'bodyLock';
       const overhook = them.hand >= 0.62 && (them.tie === 'underhook' || them.tie === 'bodyLock');
-      if (lock && this.rng.next() < 0.35 + this.p.aggression * 0.3) { cmd.technique = 'lateralDrop'; return; }
-      if (overhook && this.rng.next() < 0.12 + this.p.aggression * 0.2) { cmd.technique = 'headlock'; return; }
+      if (lock && this.rng.next() < (0.35 + this.p.aggression * 0.3) * this.throwKeen(bout)) { cmd.technique = 'lateralDrop'; return; }
+      if (overhook && this.rng.next() < (0.12 + this.p.aggression * 0.2) * this.throwKeen(bout)) { cmd.technique = 'headlock'; return; }
     } else if (push < 0.3) this.throwTried = false;
     // Hand-fight exchanges (HAND_FIGHT): keep fighting the wrists a beat after the last hand fight, not only at the
     // next decision.
     if (this.chainLeft > 0) {
       this.chainT -= dt;
       if (this.chainT <= 0 && me.act === 'stance' && me.cooldown <= 0) {
-        if (dist < BOUT.tieRange + 0.2 && me.stamina > 0.2) {
+        if (dist < BOUT.tieRange + 0.2 && me.stamina > 0.2 && !(me.hand >= 0.62 && (me.tie === 'underhook' || me.tie === 'bodyLock'))) {
           cmd.fight = true;
           this.chainLeft--;
           this.chainT = HAND_FIGHT.gap[0] + this.rng.next() * (HAND_FIGHT.gap[1] - HAND_FIGHT.gap[0]);
@@ -486,14 +496,16 @@ export class WrestlerAI {
     // swim back inside, or now and then the headlock over it (risky: a miss gives up the back).
     const clinch = dist < BOUT.tieRange + 0.15;
     const hisHooks = them.hand >= 0.62 && (them.tie === 'underhook' || them.tie === 'bodyLock');
-    if (clinch && me.hand >= 0.62 && me.tie === 'bodyLock' && !tired && this.rng.next() < 0.3 + this.p.aggression * 0.3) {
+    // With ties common (TIE_UP) the AI throws mostly off his drive (the block above); into a man standing his ground it
+    // is a rarer gamble, and the body lock is worked for, not taken at every decision.
+    if (clinch && me.hand >= 0.62 && me.tie === 'bodyLock' && !tired && this.rng.next() < HAND_FIGHT.coldDrop * (0.6 + this.p.aggression) * this.throwKeen(bout)) {
       cmd.technique = 'lateralDrop'; return;
     }
-    if (clinch && me.hand >= 0.62 && me.tie === 'underhook' && !tired && this.rng.next() < 0.3 * (plan.focus === 'ties' ? 1.4 : 1)) {
+    if (clinch && me.hand >= 0.62 && me.tie === 'underhook' && !tired && this.rng.next() < HAND_FIGHT.lockPummel * (plan.focus === 'ties' ? 1.4 : 1) * this.throwKeen(bout)) {
       this.lowLevel = true; this.levelT = 0.6; cmd.level = true; cmd.fight = true; return;
     }
     if (clinch && hisHooks && !(me.hand >= 0.62 && me.tie === 'underhook')) {
-      if (!tired && this.rng.next() < 0.03 + this.p.aggression * 0.04) { cmd.technique = 'headlock'; return; }
+      if (!tired && this.rng.next() < HAND_FIGHT.coldHeadlock * (0.5 + this.p.aggression * 0.7) * this.throwKeen(bout)) { cmd.technique = 'headlock'; return; }
       if (this.rng.next() < 0.45 + this.p.handfight * 0.3) { cmd.fight = true; return; }
     }
     if (me.hand >= 0.62 && me.tie !== 'bodyLock' && (them.lean > 0.15 || them.level > 0.55) && this.rng.next() < (plan.focus === 'snap' ? 0.75 : 0.55)) {
@@ -505,6 +517,10 @@ export class WrestlerAI {
       cmd.shoot = true;
       return;
     }
+    // Tied up head to head (owner playtest, November 11): pummel low for the underhook, the fight for inside position.
+    if (clinch && me.hand >= 0.62 && me.tie === 'collar' && !tired && this.rng.next() < HAND_FIGHT.pummel) {
+      this.lowLevel = true; this.levelT = 0.6; cmd.level = true; cmd.fight = true; return;
+    }
     // Fighting for the tie starts an exchange (HAND_FIGHT.chain); tied, the same button is a snap, which does not chain.
     const startChain = () => {
       if (!this.classicPace && me.hand < 0.62 && this.rng.next() < HAND_FIGHT.chain) {
@@ -512,15 +528,20 @@ export class WrestlerAI {
         this.chainT = HAND_FIGHT.gap[0] + this.rng.next() * (HAND_FIGHT.gap[1] - HAND_FIGHT.gap[0]);
       }
     };
-    if (dist < BOUT.tieRange + 0.1 && this.rng.next() < this.p.handfight * (this.classicPace ? 0.25 : HAND_FIGHT.inRange) * (style?.handActivity ?? 1)) {
+    // Holding an underhook or a body lock the same button throws; plain hand fighting must not fire it by accident
+    // (owner playtest, November 11: ties are common now). He keeps the grip and throws only by choice (above).
+    const holdingHooks = me.hand >= 0.62 && (me.tie === 'underhook' || me.tie === 'bodyLock');
+    if (!holdingHooks && dist < BOUT.tieRange + 0.1 && this.rng.next() < this.p.handfight * (this.classicPace ? 0.25 : HAND_FIGHT.inRange) * (style?.handActivity ?? 1)) {
       cmd.fight = true;
+      // Some of his presses in close step in and tie up (TIE_UP), the rest are hand fighting as before.
+      if (me.hand < 0.62 && this.rng.next() < HAND_FIGHT.tieUp * (1 + STYLE_EFFECT.brawlTie * styleStep(bout.wrestlers[this.side], 'brawler'))) cmd.tieUp = true;
       // About a third of the clinch hand fighting is pummeling low for the underhook, not reaching for the head.
       if (!this.classicPace && me.hand < 0.62 && this.rng.next() < 0.35) { this.lowLevel = true; this.levelT = 0.6; cmd.level = true; }
       startChain();
       return;
     }
     // From a step outside, fight for the hands too: reach, swat, bring the tie.
-    if (!this.classicPace && dist < BOUT.tieRange + 0.4 && this.rng.next() < this.p.handfight * HAND_FIGHT.outside * (style?.handActivity ?? 1)) {
+    if (!this.classicPace && !holdingHooks && dist < BOUT.tieRange + 0.4 && this.rng.next() < this.p.handfight * HAND_FIGHT.outside * (style?.handActivity ?? 1)) {
       cmd.fight = true;
       startChain();
       return;
@@ -572,7 +593,7 @@ export class WrestlerAI {
       if (counter) {
         const me = bout.wrestlers[this.side];
         const chance = me.signature?.legCounter === counter ? 0.35
-          : counter === 'scrambleRoll' ? (isScrambleSpecialist(`${me.firstName} ${me.lastName}`) ? 0.35 : 0.08)
+          : counter === 'scrambleRoll' ? (isScrambleSpecialist(`${me.firstName} ${me.lastName}`) ? 0.35 : 0.08 + 0.06 * Math.max(0, gradeStep(me, 'scrambling')))
           : counter === 'sitThrough' ? 0.25 : 0.16;
         if (this.rng.next() < chance) { cmd.shoot = true; return; }
       }

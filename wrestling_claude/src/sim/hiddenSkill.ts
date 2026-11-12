@@ -30,6 +30,13 @@ export function withHiddenSkill(w: Wrestler): Wrestler {
       mat: Math.max(a.mat, v),
       defense: Math.max(a.defense, v),
       ...(a.legRiding !== undefined ? { legRiding: Math.max(a.legRiding, v) } : {}),
+      ...(a.throws !== undefined ? { throws: Math.max(a.throws, v) } : {}),
+      ...(a.shots !== undefined ? { shots: Math.max(a.shots, v) } : {}),
+      ...(a.scrambling !== undefined ? { scrambling: Math.max(a.scrambling, v) } : {}),
+      ...(a.riding !== undefined ? { riding: Math.max(a.riding, v) } : {}),
+      ...(a.pinning !== undefined ? { pinning: Math.max(a.pinning, v) } : {}),
+      ...(a.bottom !== undefined ? { bottom: Math.max(a.bottom, v) } : {}),
+      ...(a.turning !== undefined ? { turning: Math.max(a.turning, v) } : {}),
     },
   };
 }

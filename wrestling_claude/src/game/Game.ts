@@ -845,6 +845,7 @@ export class Game implements GameApi {
       scramble: pad.scramble || ctx.scramble,
       sitOut: pad.sitOut,
       fight: ctx.fight ?? pad.fight,
+      tieUp: ctx.tieUp,
       sprawl: pad.sprawl,
       level: ctx.level ?? pad.level,
     };

@@ -1,3 +1,5 @@
+import { STYLE_EFFECT } from './attributeRatings';
+import type { Wrestler } from './types';
 /** Career awards are independent of NCAA placements (including cancelled 2020). */
 const pastHodge = 'https://ohiostatebuckeyes.com/news/2015/3/30/stieber-wins-2015-dan-hodge-trophy';
 export const HODGE_AWARDS: Record<string, { years: number[]; source: string }> = {
@@ -106,13 +108,24 @@ export const OWNER_ELITE_PINNERS: Readonly<Record<string, number>> = {
   'Jared Frayer': 45, 'Mason Parris': 45,
 };
 
+/** An elite turner or pinner on top: turning graded 5, or one of the owner's elite pinners (the AI picks top only
+ *  for these; owner playtest, November 12). */
+export const eliteOnTop = (w: Pick<Wrestler, 'firstName' | 'lastName' | 'grades'>): boolean =>
+  (w.grades?.turning ?? 0) >= 5 || `${w.firstName} ${w.lastName}` in OWNER_ELITE_PINNERS;
+
 /** Rates avoid rewarding extra eligibility; owner-designated elites use the existing cap.
  * This is pin-pressure tuning, not a historical probability or an overall-rating boost.
  */
-export function pinningMultiplier(name: string): number {
+export function pinningMultiplier(name: string, gradeStep?: number): number {
   const history = PIN_HISTORY[name];
   const rate = history?.falls !== undefined && history.bouts ? history.falls / history.bouts : 0;
   const sourced = 1 + rate * 0.5 + (history?.gorriaranYears?.length ? 0.1 : 0);
-  const elite = Object.hasOwn(OWNER_ELITE_PINNERS, name) ? 1.4 : 1;
-  return Math.min(1.4, Math.max(sourced, elite));
+  if (Object.hasOwn(OWNER_ELITE_PINNERS, name)) return 1.4;
+  // Researched pinning grade (attributeRatings.ts STYLE_EFFECT.pinGrade): a non-pinner squeezes less; a pinner
+  // never drops below what his sourced fall rate gives him.
+  if (gradeStep !== undefined && gradeStep !== 0) {
+    const graded = 1 + STYLE_EFFECT.pinGrade * gradeStep;
+    return Math.min(1.4, gradeStep > 0 ? Math.max(sourced, graded) : graded);
+  }
+  return Math.min(1.4, sourced);
 }

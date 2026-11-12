@@ -20,7 +20,10 @@ import { Bout, Rng, type Breakdown } from './bout';
 import type { BoutEvents } from './bout';
 import {CRADLE_GRIP_RELEASE,type MoveDef} from './moves';
 import { otherSide } from './types';
-import { adaptPlan, planEffects, topPlanEffects, topPlanOf, type MatchPlan, PARALLEL_STALL } from './strategy';
+import { adaptPlan, planEffects, scorerPlan, topPlanEffects, topPlanOf, type MatchPlan, PARALLEL_STALL } from './strategy';
+import { scorerStep } from './techFalls';
+import { eliteOnTop } from './careerAwards';
+import { STYLE_EFFECT } from './attributeRatings';
 import type {
   Announcement,
   Command,
@@ -258,6 +261,7 @@ export class MatchSim {
         if (this.phaseT >= this.phaseDur) this.requestPeriodChoice();
         break;
       case 'setPosition':
+        this.bout.rest(dt);
         if (this.bout.position.kind === 'mat' && commands[this.bout.position.A].level) this.preWhistleCut = true;
         if (this.phaseT >= this.phaseDur) this.goWrestle();
         break;
@@ -265,10 +269,13 @@ export class MatchSim {
         this.tickWrestling(dt, commands);
         break;
       case 'whistle':
+        // A breath at every stoppage and on the walk back (FATIGUE.rest).
+        this.bout.rest(dt);
         this.tickReturn(dt);
         if (this.phaseT >= this.phaseDur) this.resetToPosition(this.restart.pos, this.restart.top);
         break;
       case 'periodBreak':
+        this.bout.rest(dt);
         if (this.phaseT >= this.phaseDur) this.advancePeriod();
         break;
       case 'celebration':
@@ -362,7 +369,8 @@ export class MatchSim {
     {
       const ai = otherSide(this.humanSide);
       const was = this.bout.plans[ai];
-      let next = adaptPlan(was, this.score[ai] - this.score[otherSide(ai)], this.period >= 2);
+      const margin = this.score[ai] - this.score[otherSide(ai)];
+      let next = scorerPlan(adaptPlan(was, margin, this.period >= 2), margin, this.scorer(ai));
       if (this.protectingLead) next = { ...next, style: 'defensive', top: 'ride', protect: true };
       this.bout.plans[ai] = next;
       if (next.style !== was.style) {
@@ -516,13 +524,16 @@ export class MatchSim {
     this.requestPeriodChoice();
   }
 
+  /** The AI's choice (owner playtest, November 12: the AI picked top a lot, "which is rare in reality, unless someone
+   *  is a highly elite turner/pinner on top. Most almost always pick bottom, though some pick neutral if they are
+   *  facing an elite wrestler from the top position"). Top only for an elite turner or pinner (turning graded 5, or
+   *  one of the owner's elite pinners); neutral against an elite top man unless he is a strong bottom man himself
+   *  (bottom graded 4-5); otherwise bottom. */
   private aiChoosePosition(side: Side): StartPosition {
-    const lead = this.score[side] - this.score[otherSide(side)];
-    const mat = this.wrestlers[side].attributes.mat;
-    if (lead > 0 && mat > 0.55) return 'top';
-    if (lead < -2) return 'neutral';
-    if (mat > 0.75) return 'top';
-    return this.wrestlers[side].attributes.quickness > 0.8 ? 'neutral' : 'bottom';
+    const me = this.wrestlers[side], them = this.wrestlers[otherSide(side)];
+    if (eliteOnTop(me)) return 'top';
+    if ((eliteOnTop(them) || (them.grades?.riding ?? 0) >= 5) && (me.grades?.bottom ?? 0) < 4) return 'neutral';
+    return 'bottom';
   }
 
   /* ------------------------------------------------------------ wrestling */
@@ -536,6 +547,10 @@ export class MatchSim {
       const t = top ?? (p.kind === 'move' ? p.A : 0);
       this.ridingTime += dt * (t === 0 ? 1 : -1);
     }
+    // Stamina (owner playtest, November 11): a lead makes the work cheaper; overtime drops the cushion near empty.
+    this.bout.scoreLead = [this.score[0] - this.score[1], this.score[1] - this.score[0]];
+    this.bout.overtime = this.period >= 4;
+    this.bout.late = this.period >= 3;
     this.bout.tick(dt, commands);
     if (this.phase !== 'wrestling') return;
     const after=this.bout.position;
@@ -901,7 +916,8 @@ export class MatchSim {
   private protectLead(): void {
     const ai = otherSide(this.humanSide);
     const lead = this.score[ai] - this.score[this.humanSide];
-    if (!this.protectingLead && lead >= 7) {
+    // A bonus-point scorer keeps going for the tech fall (STYLE_EFFECT.scorerProtect a step; a grinder protects sooner).
+    if (!this.protectingLead && lead >= Math.max(5, 7 + STYLE_EFFECT.scorerProtect * this.scorer(ai))) {
       this.protectingLead = true;
       this.bout.plans[ai] = { ...this.bout.plans[ai], style: 'defensive', top: 'ride', protect: true };
       this.announce({ text: `${this.wrestlers[ai].lastName}'s corner: protect the lead`, tone: 'info', hold: 2 });
@@ -909,6 +925,12 @@ export class MatchSim {
       this.protectingLead = false;
       this.bout.plans[ai] = { ...adaptPlan(this.bout.plans[ai], lead, this.period >= 3), protect: false };
     }
+  }
+
+  /** His bonus-point scorer step from career tech falls (techFalls.ts). */
+  private scorer(side: Side): number {
+    const w = this.wrestlers[side];
+    return scorerStep(`${w.firstName} ${w.lastName}`);
   }
 
   private award(side: Side, kind: ScoreKind, detail?: string): void {

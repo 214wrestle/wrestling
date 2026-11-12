@@ -1,6 +1,8 @@
 import { PROVISIONAL_RATINGS } from './provisionalRatings';
 import { applyGablePressure, stanceStyleFor } from './athleteProfiles';
 import { applyResearchedStyle } from './athleteStyles';
+import { ATTRIBUTE_GRADES, RESEARCHED_SUMMARY } from './attributeGrades';
+import { STYLE_KEYS, abilityRatings, applyStyleGrades, matchAttributes, overallFromAbilities } from './attributeRatings';
 import { CAREER_RECORDS, COLLEGE_RECORDS, overallRating, scoreKnownCareer } from './ratings';
 import { DEFAULT_MOTION, HIGH_PACE_NAMES, applyOwnerPace, ATHLETE_MOTION_OVERRIDES, ATHLETE_PROFILES } from './athleteProfiles';
 import type { School, Wrestler } from './types';
@@ -147,6 +149,29 @@ export const PROTOTYPE_ROSTER: Wrestler[] = [
 ];
 
 /** Locked names and slots; appearance and equal ratings are prototype placeholders. */
+/** Owner-locked overalls that the categories do not move (only these two are 99; checkRoster). */
+const LOCKED_OVERALL: Record<string, number> = { 'Dan Gable': 99, 'Cael Sanderson': 99 };
+
+/**
+ * Overall from attributes (owner, November 12: "Build from attributes"): the career rating seeds every category,
+ * researched grades move the categories, the overall is their weighted average, and the five match attributes come
+ * from the categories. Owner overrides applied after this (Alger, Ware, Bassett, Iowa pressure, top specialists)
+ * still raise the match attributes on top.
+ */
+function applyAbilityRatings(w: Wrestler): void {
+  if (w.rating === undefined) return;
+  const name = `${w.firstName} ${w.lastName}`;
+  const grades = ATTRIBUTE_GRADES[name] ?? {};
+  w.careerRating = w.rating;
+  if (Object.keys(grades).length) w.grades = { ...grades };
+  w.abilities = abilityRatings(w.rating, grades);
+  w.rating = LOCKED_OVERALL[name] ?? overallFromAbilities(w.abilities);
+  w.attributes = { ...w.attributes, ...matchAttributes(w.abilities) };
+  const style = Object.fromEntries(STYLE_KEYS.filter((k) => grades[k] !== undefined).map((k) => [k, grades[k]!]));
+  if (Object.keys(style).length) w.styleGrades = style;
+  if (RESEARCHED_SUMMARY[name] && w.legends && /^(Locked Legends starter|Coach’s Choice)$/.test(w.style)) w.style = RESEARCHED_SUMMARY[name];
+}
+
 export const LEGENDS_TEAMS = locked.teams;
 export const LEGENDS_WEIGHTS = [118, 125, 133, 141, 149, 157, 165, 174, 184, 190, 197, 285];
 const slug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -197,6 +222,7 @@ for (const w of ROSTER) {
     w.rating = 99;
     w.attributes = {quickness: 0.99, strength: 0.99, conditioning: 0.99, mat: 0.99, defense: 0.99};
   }
+  applyAbilityRatings(w);
   const profile = ATHLETE_PROFILES[`${w.firstName} ${w.lastName}`];
   if (!profile) continue;
   Object.assign(w, profile.look);
@@ -246,7 +272,9 @@ export const byId = (id: string): Wrestler => {
   return found;
 };
 
-export const DEFAULT_MATCHUP: [string, string] = ['penn-state-157-starter-david-taylor', 'iowa-157-starter-jim-zalesky'];
+/** The match the title screen opens on (owner, November 12): Gable vs Owings, the 1970 NCAA final at 142 that ended
+ *  Gable's 181-match winning streak. */
+export const DEFAULT_MATCHUP: [string, string] = ['iowa-state-141-starter-dan-gable', 'college-wrestling-icons-141-starter-larry-owings'];
 
 export interface MeetContext {
   event: string;
@@ -297,7 +325,7 @@ export const OFFICIAL: Wrestler = {
 for (const w of ROSTER) {
   const motion = ATHLETE_MOTION_OVERRIDES[`${w.firstName} ${w.lastName}`];
   if (motion) {w.motion = motion; w.style = w.lastName === 'Alger' ? 'Relentless grinder — elite hand fighting, forward pressure and exceptional gas tank' : w.lastName === 'Ware' ? 'Patient defensive specialist — difficult to score on, selective explosive attacks; inactivity risks stalling' : 'Left-handed high-crotch specialist';}
-  if (w.firstName === 'Teyon' && w.lastName === 'Ware') {w.attributes.defense = Math.max(w.attributes.defense,0.95); w.attributes.quickness = Math.max(w.attributes.quickness,0.94);}
+  if (w.firstName === 'Teyon' && w.lastName === 'Ware') {w.attributes.defense = Math.max(w.attributes.defense,0.95); w.attributes.quickness = Math.max(w.attributes.quickness,0.94); w.attributes.shots = Math.max(w.attributes.shots ?? 0,0.94);}
   if (w.firstName === 'Royce' && w.lastName === 'Alger') w.attributes.conditioning = 0.98;
 }
 
@@ -351,4 +379,6 @@ for (const w of ROSTER) {
  w.lead = style.lead; w.stanceLook = style.look;
  // Researched lead foot, stance and attacks, where film or recaps show them.
  applyResearchedStyle(w);
+ // Researched pace and brawler grades shape his tendencies on top (attributeRatings.ts STYLE_EFFECT).
+ applyStyleGrades(w);
 }

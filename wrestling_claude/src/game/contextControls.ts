@@ -2,6 +2,7 @@ import type { PadState } from '../engine/Input';
 import type { Bout } from '../sim/bout';
 import type { Command, Side } from '../sim/types';
 import { otherSide } from '../sim/types';
+import { TIE_UP } from '../sim/bout';
 
 /**
  * Simple controls: the stick plus Shoot, Hand fight, Sprawl and Level (and Sit out).
@@ -11,6 +12,9 @@ import { otherSide } from '../sim/types';
  *   Hand fight + sideways  his or your collar tie: duck under · wrist control: slide-by ·
  *                          out of reach with no control: super duck · underhook: throw-by
  *   Hand fight + back      collar tie: foot sweep
+ *   Hand fight, tied up    the attack from the tie you hold: snap down, throw-by, lateral drop, or the headlock
+ *                          over his underhook (owner playtest, November 11: he wanted the throw there)
+ *   Hand fight + Level     tied up: pummel (collar → underhook → body lock; his underhook → swim back inside)
  *   Shoot + Level          wrist control or a tie: fireman's carry · from outside: low single
  *   (Shoot from a tie is already a knee or ankle pick, Hand fight a snap or throw-by.)
  * In on the legs:          hold Hand fight to lift the leg · Shoot drives ·
@@ -46,7 +50,7 @@ export class ContextControls {
     const out: Partial<Command> = {};
 
     // Decide on the press, keep it for the hold.
-    if (pad.fight && !this.prev.fight) this.latched.fight = this.fightChoice(pos, me, o, dist, sideways, back);
+    if (pad.fight && !this.prev.fight) this.latched.fight = this.fightChoice(pos, me, o, dist, sideways, back, pad.level);
     if (!pad.fight) this.latched.fight = undefined;
     // Leg finishes follow the stick live; everything else is chosen on the press.
     if (pad.shoot && (!this.prev.shoot || pos.kind === 'legs')) this.latched.shoot = this.shootChoice(pos, side, me, dist, sideways, pad.level);
@@ -83,14 +87,14 @@ export class ContextControls {
   }
 
 
-  private fightChoice(pos: Bout['position'], me: Bout['athletes'][number], o: Bout['athletes'][number], dist: number, sideways: boolean, back: boolean): Partial<Command> | undefined {
+  private fightChoice(pos: Bout['position'], me: Bout['athletes'][number], o: Bout['athletes'][number], dist: number, sideways: boolean, back: boolean, level = false): Partial<Command> | undefined {
     if (pos.kind === 'move') return { scramble: true };
     if (pos.kind !== 'neutral') return undefined;
     const collar = me.hand >= 0.62 && me.tie !== 'underhook' && me.tie !== 'bodyLock';
     const hisCollar = o.hand >= 0.62 && o.tie !== 'underhook' && o.tie !== 'bodyLock';
     const hisHooks = o.hand >= 0.62 && (o.tie === 'underhook' || o.tie === 'bodyLock');
-    // His underhook on you, stepping across: head and arm, hip in, throw (a risky headlock).
-    if (sideways && hisHooks && !(me.hand >= 0.62 && me.tie === 'underhook')) return { technique: 'headlock', fight: false };
+    // His underhook on you: head and arm, hip in, throw (a risky headlock). Lower pummels back inside instead.
+    if (hisHooks && !(me.hand >= 0.62 && me.tie === 'underhook') && dist <= 1.15 && !level && !back) return { technique: 'headlock', fight: false };
     if (sideways) {
       if (me.hand >= 0.62 && me.tie === 'underhook') return undefined; // the sim throws him by
       if (collar || hisCollar) return { technique: 'duckUnder', fight: false };
@@ -98,6 +102,8 @@ export class ContextControls {
       if (dist > 1.05 && dist < 1.4) return { technique: 'superDuck', fight: false };
     }
     if (back && collar) return { technique: 'footSweep', fight: false };
+    // Close in and untied, the button reads Tie up (prompts): step in and lock up (TIE_UP).
+    if (me.hand < 0.62 && !hisHooks && dist <= TIE_UP.range) return { tieUp: true };
     return undefined;
   }
 

@@ -72,7 +72,10 @@
     "check:whistle-work": "esbuild src/dev/checkWhistleWork.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-whistle-work.mjs --log-level=warning && node node_modules/.cache/check-whistle-work.mjs",
     "check:coaches": "esbuild src/dev/checkCoaches.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-coaches.mjs --log-level=warning && node node_modules/.cache/check-coaches.mjs",
     "check:school-kits": "esbuild src/dev/checkSchoolKits.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-school-kits.mjs --log-level=warning && node node_modules/.cache/check-school-kits.mjs",
-    "check:shot-timing": "esbuild src/dev/checkShotTiming.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-shot-timing.mjs --log-level=warning && node node_modules/.cache/check-shot-timing.mjs"
+    "check:shot-timing": "esbuild src/dev/checkShotTiming.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-shot-timing.mjs --log-level=warning && node node_modules/.cache/check-shot-timing.mjs",
+    "check:tie-up": "esbuild src/dev/checkTieUp.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-tie-up.mjs --log-level=warning && node node_modules/.cache/check-tie-up.mjs",
+    "check:attribute-ratings": "esbuild src/dev/checkAttributeRatings.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-attribute-ratings.mjs --log-level=warning && node node_modules/.cache/check-attribute-ratings.mjs",
+    "check:style-grades": "esbuild src/dev/checkStyleGrades.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-style-grades.mjs --log-level=warning && node node_modules/.cache/check-style-grades.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",

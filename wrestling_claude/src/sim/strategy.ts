@@ -104,6 +104,13 @@ export function planEffects(plan: MatchPlan = DEFAULT_PLAN): PlanEffects {
   return e;
 }
 
+/** A bonus-point scorer's corner (scorer step from career tech falls, techFalls.ts): ahead, he keeps wrestling instead of
+ *  going defensive, and on top he cuts the man loose to take him down again rather than riding out a lead. */
+export function scorerPlan(plan: MatchPlan, margin: number, step: number): MatchPlan {
+  if (step <= 0 || margin < 5) return plan;
+  return { ...plan, style: plan.style === 'defensive' ? 'balanced' : plan.style, ...(margin >= 6 ? { top: 'cut' as TopPlan } : {}) };
+}
+
 /** How an AI corner adjusts between periods: chase when behind, protect a big lead. */
 export function adaptPlan(current: MatchPlan, margin: number, finalPeriod = false): MatchPlan {
   const style: PlanStyle = margin <= -3 ? 'aggressive' : margin >= 5 ? 'defensive' : 'balanced';

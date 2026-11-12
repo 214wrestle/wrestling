@@ -52,7 +52,9 @@ for(let seed=1;seed<=80;seed++){
     if(td)takedowns++;
   }
 }
-ok(drops>=20&&drops<=60,`the lateral drop lands some of the time (${drops}/80)`);
+// Cold (he is not driving in) it is a gamble (owner playtest, November 11: ties are common now, THROW_PUSH.dropBase);
+// off his drive it flies (checkShotTiming).
+ok(drops>=12&&drops<=50,`the lateral drop lands some of the time (${drops}/80)`);
 ok(exposed===drops&&takedowns===drops,`every lateral drop scores the takedown and lands him exposed (${takedowns}, ${exposed} of ${drops})`);
 
 // His underhook on you: hand fight swims your arm back inside; sideways is the headlock, which can give up your back.

@@ -110,6 +110,9 @@ const _v2 = new Vector3();
 
 const LEG_BATTLE_CLIPS = new Set(['legsSingle', 'legsDouble', 'legsHighCrotch', 'legsLowSingle']);
 
+/** Share of the leg's length eased in while running back (Solver.legSoftReach), times how much the walk is a run. */
+export const WALK_SOFT_REACH = 0.06;
+
 export class Animator {
   readonly solver: Solver;
   private spring = new PostureSpring();
@@ -271,7 +274,9 @@ export class Animator {
     const kneeRate=this.proneKneeContinuity?4:this.seatedKneeContinuity?5:freeBend?Infinity:6;
     // Leg rides, seated leg defense and the flat drafts hold their knees on the mat: keep the ground correction whole.
     const groundRate=this.proneKneeContinuity||this.seatedKneeContinuity||seatedSequence||proneCatch||flatSupportDraft?Infinity:kneeRate;
-    this.solver.beginKneeFrame(dt*jointClock,kneeRate,flatSupportDraft?(view.mode==='paired'&&view.clip==='armBarSupportedSeatedExitDraft'?.06:.07):.04,groundRate);
+    // Running back: a soft reach so the trailing leg never locks straight and pops (Solver.legSoftReach). Scaled by how
+    // much the walk has become a run, so an ordinary walk keeps its planted feet exactly on the mat.
+    this.solver.beginKneeFrame(dt*jointClock,kneeRate,flatSupportDraft?(view.mode==='paired'&&view.clip==='armBarSupportedSeatedExitDraft'?.06:.07):.04,groundRate,view.mode==='walk'&&!this.instant?WALK_SOFT_REACH*this.walkRun:0);
     if(view.mode==='paired'&&/^(armBar|wristBar|barHalf|doubleBar)/.test(view.clip))this.barElbowContinuity=true;
     else if(view.mode!=='paired'||!['flat','flatPressureDraft'].includes(view.clip))this.barElbowContinuity=false;
     // Coming off the back, the arm settles for a moment before flat's own hand work.

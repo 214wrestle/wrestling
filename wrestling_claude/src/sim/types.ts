@@ -46,6 +46,14 @@ export interface Wrestler {
   survival?: number;
   id: string;
   rating?: number;
+  /** His rating from college results alone (ratings.ts / provisional); `rating` is built from `abilities` around it. */
+  careerRating?: number;
+  /** Category ratings, 40–99 (attributeRatings.ts). */
+  abilities?: import('./attributeRatings').AbilityRatings;
+  /** Every researched grade, 1–5 (attributeGrades.ts); absent keys had no evidence. */
+  grades?: Partial<Record<import('./attributeRatings').GradeKey, number>>;
+  /** Researched style grades, 1–5 (pace: how fast he pushes; brawler: how rough). Absent when unresearched. */
+  styleGrades?: Partial<Record<import('./attributeRatings').StyleKey, number>>;
   /** Match only, never shown: the level a bout uses for his rating edge when it differs from the shown rating
    *  (hiddenSkill.ts). */
   performanceRating?: number;
@@ -82,14 +90,28 @@ export interface Wrestler {
   /** 0..1 attributes. */
   /** All attributes are relative to opponents in this weight class, not absolute body output. */
   attributes: {
-    /** Shot speed, scramble and hand-fight quickness. */
+    /** Hand-fight and foot speed (shots and scrambles have their own ratings). */
     quickness: number;
     /** Finishing power, lifts and breakdowns. */
     strength: number;
     /** Stamina pool and recovery. */
     conditioning: number;
+    /** Shot speed, entry and finish on the legs (attributeRatings.ts); falls back to quickness. */
+    shots?: number;
+    /** Scrambles, leg counters and coming out of a leg scramble (attributeRatings.ts); falls back to quickness. */
+    scrambling?: number;
     /** Top and bottom technique. */
     mat: number;
+    /** Pin pressure and tightening a hold (attributeRatings.ts); falls back to mat. */
+    pinning?: number;
+    /** Bottom work: base, stand-ups, switches, clearing legs (attributeRatings.ts); falls back to mat. */
+    bottom?: number;
+    /** Top control: breakdowns and holding him down (attributeRatings.ts); falls back to mat. */
+    riding?: number;
+    /** Turns: tilts, turks, half nelsons (attributeRatings.ts); falls back to mat. */
+    turning?: number;
+    /** Throws and upper-body attacks (attributeRatings.ts); falls back to strength. */
+    throws?: number;
     /** Optional reviewed leg-riding technique, 0–1; falls back to mat. */
     legRiding?: number;
     /** Reaction and sprawl. */
@@ -178,6 +200,9 @@ export interface Command {
   lowSingle?: boolean;
   scramble?: boolean;
   sitOut?: boolean;
+  /** Close in, the hand-fight press steps in and ties up (TIE_UP; owner playtest, November 11). The player's button does
+   *  this whenever it reads Tie up; the AI picks it on some of its presses. */
+  tieUp?: boolean;
   /** AI only: a level-change fake from any distance (a player fakes by shooting out of range). */
   fake?: boolean;
   /** Intended movement on the mat, world space, length <= 1. */

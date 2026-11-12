@@ -102,10 +102,17 @@ export class Solver {
   private kneeGroundHeight = .04;
   /** Radians the keep-the-knee-off-the-mat correction may turn the bend this frame (per thigh). */
   private kneeGroundBudget = new Map<Bone, number>();
+  /**
+   * Soft reach for the legs (glitch sweep, November 11): the last `legSoftReach` of the leg's length is eased in, so a
+   * leg pulled straight bends smoothly as the foot comes back in. Without it the knee locks straight at full reach and
+   * pops out 10+ cm in one frame as soon as the foot lifts (running back to the centre: 12-15 m/s shin pops).
+   */
+  private legSoftReach = 0;
   /** Opt-in bend-plane continuity for experimental entanglement transitions.
    * Both the pose solve and subsequent foot-contact solve share one budget. */
-  beginKneeFrame(dt: number, radiansPerSecond = Infinity, minimumJointHeight = .04, groundRadiansPerSecond = radiansPerSecond): void {
+  beginKneeFrame(dt: number, radiansPerSecond = Infinity, minimumJointHeight = .04, groundRadiansPerSecond = radiansPerSecond, softReach = 0): void {
     this.kneeGroundHeight = minimumJointHeight;
+    this.legSoftReach = softReach;
     for(const side of ['L','R'] as const){
       this.kneeTurnBudget.set(this.rig.bones[`thigh${side}`],dt*radiansPerSecond);
       // The ground correction turns the bend no faster than the ordinary knee rate. Unlimited, it whipped the bend
@@ -340,6 +347,10 @@ export class Solver {
       dist = 1e-6;
     } else {
       dir.divideScalar(dist);
+    }
+    if (isLeg && this.legSoftReach > 0) {
+      const max = (c.l1 + c.l2) * 0.9995, soft = max * (1 - this.legSoftReach);
+      if (dist > soft) dist = soft + (max - soft) * (1 - Math.exp(-(dist - soft) / (max - soft)));
     }
     dist = clamp(dist, Math.abs(c.l1 - c.l2) + 1e-3, (c.l1 + c.l2) * 0.9995);
 
