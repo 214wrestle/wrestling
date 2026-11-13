@@ -16,7 +16,7 @@ import {
   TIEBREAKER_RIDING_EDGE,
 } from './rules';
 import type { WinType } from './rules';
-import { Bout, Rng, type Breakdown } from './bout';
+import { Bout, LOCKED_HANDS, Rng, type Breakdown } from './bout';
 import type { BoutEvents } from './bout';
 import {CRADLE_GRIP_RELEASE,type MoveDef} from './moves';
 import { otherSide } from './types';
@@ -173,7 +173,12 @@ export class MatchSim {
     const ev: BoutEvents = {
       score: (side, kind, detail) => {
         if(kind==='nearFall2'||kind==='nearFall3'||kind==='nearFall4') this.pendingNearFall={side,kind};
-        else {this.releaseNearFall(); if(!this.result)this.award(side,kind,detail);}
+        else {
+          this.releaseNearFall();
+          // Locked hands wrestled through and he gets out anyway: the point and the escape or reversal (owner, November 12).
+          if ((kind === 'escape' || kind === 'reversal') && this.pendingLock && this.pendingLock.side !== side) this.releaseLock();
+          if(!this.result)this.award(side,kind,detail);
+        }
       },
       announce: (text, tone, detail) => this.announce({ text, tone, detail, hold: 1.1 }),
       impact: (s, at, slowmo) => listeners.onImpact?.(s, at, slowmo),
@@ -187,7 +192,7 @@ export class MatchSim {
         listeners.onMove?.(def, A);
       },
       whistle: (reason) => this.whistle(reason),
-      call: (kind, side) => this.refCall(kind, side),
+      call: (kind, side, through) => (through ? this.lockThrough(side) : this.refCall(kind, side)),
       fall: (winner) => this.finish(winner, 'fall'),
       tell: (to, what) => listeners.onTell?.(to, what),
       feedback: (side, button, result, label) => listeners.onFeedback?.(side, button, result, label),
@@ -543,7 +548,8 @@ export class MatchSim {
     const top = this.bout.top;
     const p = this.bout.position;
     const riding = top !== null || (p.kind === 'move' && this.isMatMove(p.id));
-    if (riding && p.kind !== 'neutral') {
+    // No riding time for the top man while a locked-hands call is pending (owner, November 12).
+    if (riding && p.kind !== 'neutral' && !this.pendingLock) {
       const t = top ?? (p.kind === 'move' ? p.A : 0);
       this.ridingTime += dt * (t === 0 ? 1 : -1);
     }
@@ -559,6 +565,12 @@ export class MatchSim {
       || after.kind==='move'&&(after.id==='fall'||after.id==='fightOff' && (after.t/after.dur < (after.turnStyle==='cradle'?CRADLE_GRIP_RELEASE:isArmBar(after.turnStyle)?ARM_BAR_GRIP_RELEASE:1)));
     if(!holdingNearFall)this.releaseNearFall();
     if(this.result)return;
+    // Locked hands wrestled through: once the action is over without his escape or reversal, stop it for the point.
+    if (this.pendingLock) {
+      this.pendingLock.t += dt;
+      const settled = this.bout.position.kind !== 'move' && this.pendingLock.t >= LOCKED_HANDS.grace;
+      if (settled || this.pendingLock.t >= LOCKED_HANDS.max) { this.refCall('lockedHands', this.pendingLock.side); return; }
+    }
     if (this.bout.position.kind === 'neutral') this.updateStalling(dt, commands);
     else this.updateTopStalling(dt, commands);
     // A Cut plan lets him up once the takedown is secure (two for the takedown, one back for the escape).
@@ -577,6 +589,7 @@ export class MatchSim {
 
   private endPeriod(): void {
     this.releaseNearFall();
+    this.releaseLock();
     if(this.result)return;
     this.listeners.onWhistle?.('period');
     this.bout.setFree();
@@ -597,18 +610,16 @@ export class MatchSim {
     this.setPhase('periodBreak', this.breakSeconds);
   }
 
-  private whistle(reason: 'out' | 'stalemate' | 'stall'): void {
+  private whistle(reason: 'out' | 'stalemate'): void {
     this.releaseNearFall();
+    this.releaseLock();
     if(this.result)return;
     if (this.phase !== 'wrestling') return;
     this.listeners.onWhistle?.(reason);
     const p = this.bout.position;
     let pos: StartPosition = 'neutral';
     let top: Side = this.restart.top;
-    if (reason === 'stall') {
-      // Stalling on top with the bottom man standing: they restart on their feet.
-      pos = 'neutral';
-    } else if (p.kind === 'mat') {
+    if (p.kind === 'mat') {
       top = p.A;
       pos = 'top';
     } else if (p.kind === 'move' && this.isMatMove(p.id)) {
@@ -649,7 +660,7 @@ export class MatchSim {
         }
       }
     }
-    if (reason !== 'stall') this.announce({ text: reason === 'out' ? 'Out of bounds' : 'Stalemate', tone: 'whistle', hold: 1.1 });
+    this.announce({ text: reason === 'out' ? 'Out of bounds' : 'Stalemate', tone: 'whistle', hold: 1.1 });
     if (fled !== null) this.callStalling(fled, 'Backed off the mat');
     else if (edgeCall) this.callStalling(edgeCall[0], edgeCall[1]);
     this.walkBack();
@@ -672,14 +683,23 @@ export class MatchSim {
    */
   private refCall(kind: 'lockedHands' | 'dangerous' | 'slam', side: Side): void {
     this.releaseNearFall();
+    // A pending wrestle-through call is settled here: its point, this stoppage.
+    const wasPending = kind === 'lockedHands' && this.pendingLock !== null;
+    this.pendingLock = null;
+    this.bout.handsLocked = false;
     if (this.result || this.phase !== 'wrestling') return;
     const p = this.bout.position;
     const top = p.kind === 'mat' || p.kind === 'move' ? p.A : side;
     this.listeners.onWhistle?.(kind);
+    // Owner, November 12: "I got called for locked hands as the bottom man". The call was on the top man, but the
+    // banner read "Penalty — <bottom man> · Locked hands" under the man who got the point. Name the man called.
+    const on = `${side === 0 ? 'red' : 'green'} (${this.wrestlers[side].lastName})`;
     this.announce(kind === 'lockedHands'
-      ? { text: 'Locked hands', tone: 'whistle', detail: 'Hands locked around him while he was down: a point', hold: 1.6 }
+      ? { text: `Locked hands ${side === 0 ? 'red' : 'green'}`, tone: 'whistle', detail: wasPending
+        ? `Action over: a point to ${this.wrestlers[otherSide(side)].lastName}, same position`
+        : `On top, ${on} locked his hands and held him down: a point to ${this.wrestlers[otherSide(side)].lastName}`, hold: 2 }
       : kind === 'slam'
-      ? { text: 'Illegal slam', tone: 'whistle', detail: 'A lifted man must come back to the mat safely: a point', hold: 1.6 }
+      ? { text: `Illegal slam ${side === 0 ? 'red' : 'green'}`, tone: 'whistle', detail: `${this.wrestlers[side].lastName} must bring a lifted man back safely: a point to ${this.wrestlers[otherSide(side)].lastName}`, hold: 2 }
       : { text: 'Potentially dangerous', tone: 'whistle', detail: 'Stopped for safety · no penalty', hold: 1.6 });
     if (kind === 'lockedHands') this.award(otherSide(side), 'penalty', 'Locked hands');
     if (kind === 'slam') this.award(otherSide(side), 'penalty', 'Illegal slam');
@@ -689,6 +709,27 @@ export class MatchSim {
     const onFeet = p.kind === 'neutral' || p.kind === 'shot' || p.kind === 'legs' || p.kind === 'fhl';
     this.restart = onFeet ? { pos: 'neutral', top: this.restart.top } : { pos: 'top', top };
     this.walkBack();
+  }
+
+  /**
+   * Locked hands they wrestle through (LOCKED_HANDS in bout.ts; owner, November 12): the referee signals it and
+   * play goes on. His escape or reversal settles it with both scores (the score event); otherwise, once the action is
+   * over, the referee stops it for the point and a restart in the position held (tickWrestling). No riding time for
+   * the top man meanwhile.
+   */
+  private pendingLock: { side: Side; t: number } | null = null;
+  private lockThrough(side: Side): void {
+    if (this.pendingLock || this.result || this.phase !== 'wrestling') return;
+    this.pendingLock = { side, t: 0 };
+    this.listeners.onRefCue?.(side, 'stall');
+    this.announce({ text: `Locked hands ${side === 0 ? 'red' : 'green'}`, tone: 'warn', detail: `Wrestle on · a point to ${this.wrestlers[otherSide(side)].lastName} when the action is over`, hold: 1.8 });
+  }
+  /** The pending locked-hands point, paid without a stoppage of its own (his escape, or another whistle). */
+  private releaseLock(): void {
+    const l = this.pendingLock;
+    this.pendingLock = null;
+    this.bout.handsLocked = false;
+    if (l && !this.result) this.award(otherSide(l.side), 'penalty', 'Locked hands');
   }
 
   /** After a whistle: up off the mat, then walk to the restart mark, then face the opponent. */
@@ -792,7 +833,10 @@ export class MatchSim {
    * Stalling on the mat (owner, November 9). Each referee reads it his own way (patience and rate):
    * - Top, riding without trying to turn him: stall time builds after a grace (Ride plans sooner).
    * - Top, the bottom man up on his feet and not returned to the mat within 5-7 s (5 strict, 6 by the
-   *   book, 7 lenient): stalling on top, and they restart on their feet.
+   *   book, 7 lenient): stalling on top. Owner, November 12: "It can be called during action and should not stop
+   *   the match/action. They wrestle through the stall call", the point too ("Action shouldn't stop when the
+   *   stalling point is awarded either"). It was a whistle and a neutral restart; now play goes on in the position
+   *   held, and the count starts again (another 5-7 s up without a return is the next call).
    * - Bottom, not working to get out (no stand-up, switch or sit-out) or lying flat not working up:
    *   stall time builds, sooner when flat.
    * A warning first; after it, a passive man builds toward the point at 0.4x.
@@ -814,8 +858,7 @@ export class MatchSim {
       if (this.standingT > limit) {
         this.standingT = 0;
         this.callStalling(p.A, 'Did not return him to the mat');
-        this.whistle('stall');
-        return;
+        if (this.result) return;
       }
     } else this.standingT = 0;
     const riding = p.kind === 'mat' && (p.sub === 'ride' || p.sub === 'flat');
@@ -981,6 +1024,8 @@ export class MatchSim {
   private finish(winner: Side, type: WinType): void {
     if (this.result) return;
     this.pendingNearFall=null;
+    this.pendingLock=null;
+    this.bout.handsLocked=false;
     const margin = Math.abs(this.score[0] - this.score[1]);
     this.result = {
       winner,

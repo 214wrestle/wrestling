@@ -160,13 +160,16 @@ function ScoreBanner({ state }: { state: UiState }) {
   if (!e || !visible || !state.wrestlers) return null;
   const w = state.wrestlers[e.side];
   const [title, detail] = e.label.split(' — ');
+  // A penalty or stalling point is a call on the other man: say who was called and who gets the point (owner,
+  // November 12: the locked-hands point under his own name read as a call on him).
+  const called = e.kind === 'penalty' || e.kind === 'stalling' ? state.wrestlers[e.side === 0 ? 1 : 0] : null;
   return (
     <div className={`score score--${e.side === 0 ? 'l' : 'r'}`} key={e.id} style={{ ['--school' as string]: w.school.primary, ['--ink' as string]: w.school.secondary }}>
       <span className="score__pts">+{e.points}</span>
       <span className="score__text">
-        <strong>{title}</strong>
+        <strong>{called ? `${e.kind === 'stalling' ? 'Stalling' : detail ?? title} on ${called.lastName}` : title}</strong>
         <em>
-          {e.kind === 'stalling' ? `1 point to ${e.side === 0 ? 'red' : 'green'}` : <>{w.lastName}{detail ? ` · ${detail}` : ''}</>}
+          {called ? `1 point to ${w.lastName}` : <>{w.lastName}{detail ? ` · ${detail}` : ''}</>}
         </em>
       </span>
     </div>

@@ -28,14 +28,17 @@ function standUp(seed:number,grab:boolean){
   (sim.bout as any).startMove('standUp',0,{...p.frame},false);
   const pts=sim.score[1];
   let hint='';
-  for(let i=0;i<70&&sim.phase==='wrestling';i++){hint||=handsHintFor(sim,0)??'';sim.tick(DT,[cmd({sprawl:grab&&i%6<3}),NO_COMMAND]);}
-  return {sim,called:calls.includes('lockedHands'),pts:sim.score[1]-pts,hint};
+  // Grabs through the stand-up only; then the action plays out (a call wrestled through is paid when it is over).
+  const penalty=()=>sim.scoreLog.some(e=>e.kind==='penalty');
+  for(let i=0;i<330&&sim.phase==='wrestling'&&!penalty();i++){hint||=handsHintFor(sim,0)??'';sim.tick(DT,[cmd({sprawl:grab&&i<50&&i%6<3}),NO_COMMAND]);}
+  return {sim,called:penalty(),stopped:calls.includes('lockedHands'),pts:sim.score[1]-pts,hint};
 }
 
-// Grabbing while he is still on a knee is locked hands: a point to him, a restart with the same man on top.
+// Grabbing while he is still on a knee is locked hands: a point to him, a restart with the same man on top (held
+// down, or wrestled through and stopped when the action is over).
 {
   const r=standUp(3,true);
-  ok(r.called,'grabbing during his stand-up is called');
+  ok(r.called&&r.stopped,'grabbing during his stand-up is called');
   ok(r.pts===1,'a point to the bottom man');
   ok((r.sim as any).restart.pos==='top'&&(r.sim as any).restart.top===0,'restart top and bottom, same man on top');
   ok(/still on a knee/.test(r.hint),'the hint warns the rider');
@@ -46,6 +49,69 @@ function standUp(seed:number,grab:boolean){
   ok(called<=10,`without a grab, locked hands is rare (${called} of 100 stand-ups)`);
   let grabbed=0;for(let seed=1;seed<=40;seed++)if(standUp(seed,true).called)grabbed++;
   ok(grabbed>=30,`grabbing a man on a knee is usually called (${grabbed} of 40)`);
+}
+// Owner, November 12: "Only the top man can be called for locked hands." The bottom man mashing every button through
+// his own stand-up is never called, and the call (announcement and score banner) names the top man.
+{
+  let bottomCalled=0,named=0;
+  for(let seed=1;seed<=40;seed++){
+    const {sim,calls}=live(seed);
+    const anns:string[]=[];(sim as any).listeners.onAnnounce=(a:any)=>anns.push(`${a.text} ${a.detail??''}`);
+    const p=sim.bout.position as Extract<Position,{kind:'mat'}>;
+    (sim.bout as any).startMove('standUp',0,{...p.frame},false);
+    for(let i=0;i<330&&sim.phase==='wrestling';i++){const on=i%6<3;sim.tick(DT,[cmd({sprawl:seed%2===0&&i<50&&on}),cmd({sprawl:on,fight:on,shoot:!on})]);}
+    void calls;
+    for(const e of sim.scoreLog.filter(x=>x.kind==='penalty')){
+      if(e.side===1&&anns.some(a=>/^Locked hands red/.test(a)))named++;
+      else bottomCalled++;
+    }
+  }
+  ok(bottomCalled===0,`the bottom man is never called for locked hands (${bottomCalled})`);
+  ok(named>0,`the call names the top man and the point goes to the bottom man (${named} calls)`);
+}
+// Owner, November 12: locked hands is mostly the top man locking up as he is about to give up an escape or reversal,
+// and they wrestle through it. The rider grabbing through the bottom man's switch: either the lock holds him (play
+// stops, a point, restart top and bottom, same man on top) or he wrestles through (the reversal and the point, no
+// stoppage). Riding time does not run for the top man while the call is pending.
+{
+  let held=0,through=0,other=0,rideRan=0;
+  for(let seed=1;seed<=40;seed++){
+    const {sim,calls}=live(seed);
+    const p=sim.bout.position as Extract<Position,{kind:'mat'}>;
+    (sim.bout as any).startMove('switch',0,{...p.frame},false);
+    const s0=[...sim.score];
+    let callT=-1;
+    for(let i=0;i<90&&sim.phase==='wrestling';i++){
+      const rt=(sim as any).ridingTime,pending=!!(sim as any).pendingLock;
+      sim.tick(DT,[cmd({sprawl:i<30&&i%6<3}),NO_COMMAND]);
+      if((sim as any).pendingLock&&callT<0)callT=i;
+      if(pending&&(sim as any).ridingTime!==rt)rideRan++;
+    }
+    const pen=sim.scoreLog.filter(e=>e.kind==='penalty'),rev=sim.scoreLog.filter(e=>e.kind==='reversal');
+    if(!pen.length)continue;
+    const r=(sim as any).restart;
+    if(calls.includes('lockedHands')&&!rev.length&&pen[0].side===1&&r.pos==='top'&&r.top===0)held++;
+    else if(!calls.includes('lockedHands')&&rev.length===1&&rev[0].side===1&&pen[0].side===1&&callT>=0&&sim.score[1]-s0[1]===3&&sim.phase==='wrestling')through++;
+    else other++;
+  }
+  ok(held>=3,`the lock holds him: stopped, a point, same man on top (${held} of 40)`);
+  ok(through>=3,`wrestled through: the reversal and the point, play goes on (${through} of 40)`);
+  ok(other===0,`no other outcome (${other})`);
+  ok(rideRan===0,`no riding time for the top man while the call is pending (${rideRan} frames)`);
+  console.log(`Locked hands on a switch: ${held} held and stopped, ${through} wrestled through for the reversal and the point`);
+}
+// Wrestled through on a stand-up that does not get out: play goes on, then the point and a top-and-bottom restart.
+{
+  let pendingSeen=0,ok2=0;
+  for(let seed=1;seed<=60;seed++){
+    const r=standUp(seed,true);
+    const through=r.sim.scoreLog.some(e=>e.kind==='penalty')&&!r.sim.scoreLog.some(e=>e.kind==='escape');
+    if(!through||!r.stopped)continue;
+    pendingSeen++;
+    const rs=(r.sim as any).restart;
+    if(r.pts===1&&rs.pos==='top'&&rs.top===0)ok2++;
+  }
+  ok(pendingSeen>0&&ok2===pendingSeen,`a call that does not end in his escape is stopped for the point, same man on top (${ok2}/${pendingSeen})`);
 }
 // Once he is up on his feet, locking around the waist is legal: no call while he is standing.
 {

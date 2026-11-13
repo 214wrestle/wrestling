@@ -266,7 +266,8 @@ export interface BoutEvents {
   whistle?: (reason: 'out' | 'stalemate') => void;
   /** The referee stops it for a call (NCAA): `side` locked his hands (a point to the other man), or a hold went
    *  potentially dangerous (no penalty). Either way they restart in the position held. */
-  call?: (kind: 'lockedHands' | 'dangerous' | 'slam', side: Side) => void;
+  /** `through`: a locked-hands call they wrestle through (LOCKED_HANDS); otherwise the referee stops it now. */
+  call?: (kind: 'lockedHands' | 'dangerous' | 'slam', side: Side, through?: boolean) => void;
   fall?: (winner: Side) => void;
   /** Something the defender should react to, for the HUD and the AI. */
   tell?: (to: Side, what: 'shot' | 'fake' | 'opening' | 'snap' | 'switch' | 'standup') => void;
@@ -371,8 +372,23 @@ export const setFlashRoll = (v: number, tighten = FLASH_TIGHTEN) => { FLASH_ROLL
  * coming up, or as a mat return lands and just after (`release` seconds). A rider also slips now and then on his
  * own: `slip` per stand-up or return, less with mat skill, more when tired.
  */
-export const LOCKED_HANDS = { grab: 0.45, slip: 0.05, release: 0.4 } as const;
+/*
+ * Owner, November 12: "Locked hands typically gets called when the top man is about to give up a reversal or escape
+ * and he locks to prevent the bottom man from scoring. They also should wrestle through the locked hands a lot of
+ * times until the action finishes." So it is also a risk while the bottom man's switch, sit-out or Granby is under
+ * way (LOCK_ESCAPES; not once he is on his feet, where locking is legal): Ride tight then is locking up to stop it,
+ * and a rider does it on his own now and then (`desperate` per escape, like `slip`). Each call is one of two:
+ * - the lock holds him (`hold`, more the better the rider is on the mat than him): play stops, a point to him,
+ *   restart in the position held;
+ * - he wrestles through it: play goes on, and if he escapes or reverses he gets that and the point; if the action
+ *   ends without it (`grace` seconds settled on the mat, at most `max`) the referee stops it for the point and the
+ *   same restart. No riding time for the top man while the call is pending (MatchSim).
+ */
+export const LOCKED_HANDS = { grab: 0.45, slip: 0.05, release: 0.4, desperate: 0.07, hold: 0.4, grace: 1, max: 4 } as const;
 const MAT_RETURNS: ReadonlySet<string> = new Set(['returnMat', 'standingTrip', 'crotchLift']);
+/** The bottom man's escapes and reversals off the mat (not on his feet), where locking up to stop one is a call. */
+const LOCK_ESCAPES: ReadonlySet<string> = new Set(['switch', 'sitOutEscape', 'granbyRoll']);
+export const isLockEscape = (id: string): boolean => LOCK_ESCAPES.has(id);
 /**
  * Mat returns (owner's list, "mat return depth"). How he lands depends on the return and how well it was done:
  * clean (quality over `clean`) and he is flat, a breakdown; ordinary and he is on his base; scrappy (under
@@ -625,6 +641,8 @@ export class Bout {
   pressLimitedSide: Side | null = null;
   /** Seconds after a mat return lands in which the rider's hands must come apart (locked hands, NCAA 5.8.2). */
   private lockWatch = 0;
+  /** A locked-hands call they are wrestling through (set here, cleared by MatchSim when it is settled). */
+  handsLocked = false;
   /** The mat return in the air: how it will land, and whether the bottom man went to turn in as he lands. */
   private returning: { base: number; slam: boolean; turnIn: boolean; escape: number; move: Position } | null = null;
   /** Hand control he had as his stand-up started; he comes up further along with it (HANDS.carry). */
@@ -2153,6 +2171,7 @@ export class Bout {
     const p = this.position;
     if (p.kind === 'move' && p.id === 'standUp' && p.t / p.dur < 0.7) return p.A;
     if (p.kind === 'move' && MAT_RETURNS.has(p.id) && p.t / p.dur > 0.72) return p.A;
+    if (p.kind === 'move' && LOCK_ESCAPES.has(p.id) && !p.awarded && p.t / p.dur < (MOVES[p.id].award?.at ?? 1)) return p.A;
     if (p.kind === 'mat' && p.sub === 'ride' && this.lockWatch > 0) return p.A;
     return null;
   }
@@ -2177,21 +2196,29 @@ export class Bout {
   private handsCall(dt: number, cmds: [Command, Command]): boolean {
     this.lockWatch = Math.max(0, this.lockWatch - dt);
     const top = this.handsAtRisk();
-    if (top === null || this.practicePartner !== null || !this.ev.call) return false;
+    if (top === null || this.handsLocked || this.practicePartner !== null || !this.ev.call) return false;
     const p = this.position;
     let locked = false;
     // Grabbing the waist now (Ride tight) is locking up on a man who is not on his feet.
     if (cmds[top].sprawl && !this.prev[top].sprawl && this.rng.chance(LOCKED_HANDS.grab)) locked = true;
-    // His own slip: once per stand-up or return.
+    // His own slip: once per stand-up or return; locking up in desperation as he is about to give up the escape.
     if (!locked && p.kind === 'move' && this.handsRolled !== p) {
       this.handsRolled = p;
       const w = this.wrestlers[top].attributes;
-      locked = this.rng.chance(LOCKED_HANDS.slip * (1.3 - w.mat) * (1.4 - 0.6 * this.athletes[top].stamina));
+      const per = LOCK_ESCAPES.has(p.id) ? LOCKED_HANDS.desperate : LOCKED_HANDS.slip;
+      locked = this.rng.chance(per * (1.3 - w.mat) * (1.4 - 0.6 * this.athletes[top].stamina));
     }
     if (!locked) return false;
     this.lockWatch = 0;
-    this.ev.call?.('lockedHands', top);
-    return true;
+    // The lock holds him down (play stops) or he wrestles through it (LOCKED_HANDS).
+    const edge = this.wrestlers[top].attributes.mat - this.wrestlers[otherSide(top)].attributes.mat;
+    if (this.rng.chance(clamp(LOCKED_HANDS.hold + 0.4 * edge, 0.15, 0.7))) {
+      this.ev.call?.('lockedHands', top);
+      return true;
+    }
+    this.handsLocked = true;
+    this.ev.call?.('lockedHands', top, true);
+    return false;
   }
 
   /** Voluntary release: one escape, never a takedown or a free neutral reset. */

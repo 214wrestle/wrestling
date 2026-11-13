@@ -96,7 +96,10 @@ export function ResultCard({ state, api }: { state: UiState; api: GameApi }) {
               <li key={e.id} style={{ ['--school' as string]: w[e.side].school.primary }}>
                 <span className="result__logpts">+{e.points}</span>
                 <span className="result__logtext">
-                  <strong>{e.label}</strong>
+                  {/* A penalty or stalling point is a call on the other man (owner, November 12). */}
+                  <strong>{e.kind === 'penalty' || e.kind === 'stalling'
+                    ? `${e.kind === 'stalling' ? 'Stalling' : e.label.split(' — ')[1] ?? 'Penalty'} on ${w[e.side === 0 ? 1 : 0].lastName}`
+                    : e.label}</strong>
                   <em>
                     {w[e.side].lastName} · {periodLabel(e.period)} {formatClock(e.clock)}
                   </em>

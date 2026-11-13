@@ -45,7 +45,7 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
     rows: [
       { key: 'K', move: 'Break down', note: 'Chop the arm and drive; each one lowers his base. It commits you, so he can switch.' },
       { key: 'J', move: 'Turn him', note: 'Tilt or half nelson once his base is low or he is flat; with your legs in it is a turk. Pick a bar or a cradle in Top attack. Hold the squeeze for the fall. A tilt or a loose throw is a quick 2 as he bellies out; squeezing tightens it for more.' },
-      { key: 'L', move: 'Ride / return', note: 'Tighten the ride. If he stands up, L lifts him and returns him, J trips him, K is a crotch lift: a clean return puts him flat; tired, a big lift can be a slam (a point to him). Lock your hands only once he is on his feet: grabbing while he is still on a knee, or as a return lands, is locked hands (a point to him).' },
+      { key: 'L', move: 'Ride / return', note: 'Tighten the ride. If he stands up, L lifts him and returns him, J trips him, K is a crotch lift: a clean return puts him flat; tired, a big lift can be a slam (a point to him). Lock your hands only once he is on his feet: grabbing while he is still on a knee, as a return lands, or to stop his switch, sit-out or Granby is locked hands (a point to him). If the lock holds him down the referee stops it; if he wrestles through and gets out, he gets the escape or reversal and the point.' },
       { key: 'Shift', move: 'Cut / legs in', note: 'Tap to cut him loose (he gets 1). Hold to throw in the legs.' },
     ],
   },

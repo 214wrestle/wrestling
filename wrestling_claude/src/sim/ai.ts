@@ -12,6 +12,8 @@ export type Difficulty = 'practice' | 'walk-on' | 'starter' | 'all-american';
 
 /** Chance the AI shoots right off his reach or snap (once per opening): base + aggression share. */
 export const POUNCE = { base: 0.12, aggression: 0.5 } as const;
+/** Seconds a warned rider keeps a standing man up before he cuts him instead of being hit for stalling on top. */
+export const STALL_CUT = 4;
 
 /**
  * Hand fighting in neutral (owner, November 11: "Yes, more hand fighting"; the review found neutral stretches of up to
@@ -665,6 +667,9 @@ export class WrestlerAI {
       // A rider works patiently; the chop is a choice, not a reflex.
       this.decideT = (pos.sub === 'ride' ? 0.55 + this.rng.next() * 0.7 : 0.3 + this.rng.next() * 0.45) * (style?.topPatience ?? 1);
       if (pos.sub === 'standing') {
+        // Stalling on top is called while they wrestle on (owner, November 12): a rider already warned who still
+        // has him up after STALL_CUT seconds cuts him (an escape) rather than give up a stalling point.
+        if (me.stallWarned && pos.t > STALL_CUT) { cmd.level = true; return; }
         // Give bottom time to peel hands before another return attempt.
         this.decideT = (0.9 + this.rng.next() * 0.6) / this.p.effort;
         cmd.sprawl = pos.escape > 0.25 || this.rng.next() < 0.5;

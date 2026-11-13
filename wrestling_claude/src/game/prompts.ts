@@ -1,7 +1,7 @@
 import {ARM_BAR_LABELS,CRADLE_LABELS,flatTurnFor,isArmBar,type TopTurnChoice} from '../sim/armBars';
 import { LEG_CLEAR_THRESHOLD } from '../sim/legRideQuality';
 import { MOVES } from '../sim/moves';
-import { BOUT, EDGE, edgeDistance, HANDS, legCounterFor, TIE_UP, LEG_COUNTER_LABELS } from '../sim/bout';
+import { BOUT, EDGE, edgeDistance, HANDS, legCounterFor, TIE_UP, LEG_COUNTER_LABELS, isLockEscape } from '../sim/bout';
 import { MAT } from '../sim/rules';
 import type { MatchSim } from '../sim/MatchSim';
 import { otherSide } from '../sim/types';
@@ -69,6 +69,8 @@ export function handsHintFor(sim: MatchSim, me: Side): string | undefined {
   const p = sim.bout.position;
   return p.kind === 'move' && p.id === 'standUp'
     ? 'Hands: he is still on a knee · grabbing now is locked hands'
+    : p.kind === 'move' && isLockEscape(p.id)
+    ? 'Hands: locking up to stop his escape is locked hands'
     : 'Hands: let go as he lands · locked hands is a point';
 }
 

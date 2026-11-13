@@ -2,7 +2,7 @@
 // (by referee), and the bottom man must work to get out; lying flat without working up is called sooner.
 import {MatchSim} from '../sim/MatchSim';
 import {PROTOTYPE_ROSTER} from '../sim/roster';
-import {NO_COMMAND} from '../sim/types';
+import {NO_COMMAND,otherSide} from '../sim/types';
 import type {Command} from '../sim/types';
 const ok=(x:boolean,m:string)=>{if(!x)throw Error(m)};
 const DT=1/60;
@@ -17,18 +17,30 @@ function onMat(seed:number){
   return {sim,stalls};
 }
 
-// Top holds him standing and never returns him: called within the referee's 5-7 s, and they restart on their feet.
+// Top holds him standing and never returns him: called within the referee's 5-7 s. Owner, November 12: "It can be
+// called during action and should not stop the match/action. They wrestle through the stall call" (and the point:
+// "Action shouldn't stop when the stalling point is awarded either"). No whistle, the same man still on top, and
+// another limit later the point, still wrestling.
 {
-  let called=0;
+  let called=0,through=0,pointed=0;
   for(const seed of [3,4,5,6,7,8]){
-    const {sim}=onMat(seed);
-    const s=sim.bout.position as any;s.sub='standing';s.escape=0;s.control=0.9;
+    const {sim,stalls}=onMat(seed);
+    const top=(sim.bout.position as any).A;
+    const hold=()=>{const s=sim.bout.position as any;if(s.kind==="mat"&&s.sub==="standing"){s.escape=0;s.control=0.9;s.frame.x=0;s.frame.z=0;}};
+    {const s=sim.bout.position as any;s.sub='standing';}
     const limit=sim.referee.id==='strict'?5:sim.referee.id==='lenient'?7:6;
     let t=0;
-    for(;t<limit+1.5&&sim.phase==='wrestling'&&(sim.bout.position as any).sub==='standing';t+=DT)sim.tick(DT,[NO_COMMAND,NO_COMMAND]);
-    if(sim.phase==='whistle'&&sim.bout.athletes[0].stallWarned&&t>=limit-0.1)called++;
+    for(;t<limit+1.5&&sim.phase==='wrestling'&&!sim.bout.athletes[top].stallWarned;t+=DT){hold();sim.tick(DT,[NO_COMMAND,NO_COMMAND]);}
+    const p=sim.bout.position as any;
+    if(sim.bout.athletes[top].stallWarned&&t>=limit-0.1)called++;
+    if(sim.phase==='wrestling'&&p.kind==='mat'&&p.A===top&&p.sub==='standing')through++;
+    for(let u=0;u<limit+1.5&&sim.phase==='wrestling'&&!stalls.length;u+=DT){hold();sim.tick(DT,[NO_COMMAND,NO_COMMAND]);}
+    const q=sim.bout.position as any;
+    if(stalls.includes(otherSide(top))&&sim.phase==='wrestling'&&q.kind==='mat'&&q.A===top)pointed++;
   }
-  ok(called===6,`a top man who holds him standing past the referee's limit is called, restart on the feet (${called}/6)`);
+  ok(called===6,`a top man who holds him standing past the referee's limit is called (${called}/6)`);
+  ok(through===6,`no whistle for the call: still wrestling, same man on top, bottom man still up (${through}/6)`);
+  ok(pointed===6,`the next call is the point, and they still wrestle on in the position held (${pointed}/6)`);
 }
 // Bottom does nothing while the top man keeps trying turns (so only the bottom man is stalling).
 {
