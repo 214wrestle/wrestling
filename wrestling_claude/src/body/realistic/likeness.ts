@@ -91,6 +91,19 @@ export const LIKENESS: Record<string, Likeness> = {
     ],
     notes: 'Broad, full-cheeked face; wide strong jaw; rounded chin with a slight cleft; thick straight dark brows; dark brown almond eyes; medium-wide nose with a rounded tip; ears stand out a little, no cauliflower. Light olive skin, near-black hair short on the sides and brushed up on top. Lean and muscular. Not modelled yet: Aztec-calendar tattoo on the left thigh, script tattoo on the arm, black sleeve on the right knee. Height is an estimate.',
   },
+  // Owner, November 14: "Chris Taylor was nearly 400 lbs so you can make him much bigger (and realistically rounder)
+  // than even other HWT's". Every other heavyweight is drawn at a build of about 0.84 (torso 1.19 wide, 1.26 deep); he
+  // is the heaviest build there is, much wider and deeper through the trunk, thick limbs and neck, soft rather than
+  // defined, with a round belly (FrameParams.belly). Height stays his listed 1.96 m (likenessBasics).
+  'Chris Taylor': {
+    mass: 1,
+    frame: { neck: 1.3, traps: 1.3, torsoW: 1.42, torsoD: 1.6, limb: 1.2, delt: 1.12, hips: 1.3, head: 1.03, definition: 0, belly: 1 },
+    sources: [
+      { label: 'National Wrestling Hall of Fame biography', url: 'https://api.nwhof.org/hall_of_fame/bio/2523', kind: 'bio' },
+      { label: 'Notes on Iowa: Cyclone heavyweight Chris Taylor (1973)', url: 'https://www.notesoniowa.com/post/cyclone-heavyweight-chris-taylor-iowa-time-machine-march-10-1973', kind: 'photo' },
+    ],
+    notes: 'Build per the owner: nearly 400 lb, much bigger and rounder than any other heavyweight. Face, colouring and height from the photo fit and the listed height.',
+  },
   // Owner, November 10: "Diakomihalis is a white greek dude"; with no portrait or profile his colouring was drawn at
   // random and came out deep brown. Colours only (light olive skin, near-black straight hair, dark brown eyes);
   // face and build stay generic until a portrait is fitted.

@@ -491,6 +491,10 @@ export function startLab(host: HTMLElement): void {
               intensity: Math.max(0, Math.min(1, Number(params.get('intensity') ?? 0))),
               pockets: Math.max(0,Math.min(1,Number(params.get('pockets')??0))),
               hands: Math.max(0,Math.min(1,Number(params.get('hands')??0))),
+              // &pod=1&hipsOut=1&back=1: the bottom man's tripod or quad pod, hips cleared, back pressure (BOTTOM_CHAIN).
+              pod: Math.max(0,Math.min(1,Number(params.get('pod')??0))),
+              hipsOut: Math.max(0,Math.min(1,Number(params.get('hipsOut')??0))),
+              back: Math.max(0,Math.min(1,Number(params.get('back')??0))),
               resistance: Math.max(0,Math.min(1,Number(params.get('resistance')??0))),
               dist,
               stamina: 1,

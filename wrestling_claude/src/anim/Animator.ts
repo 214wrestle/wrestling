@@ -74,6 +74,11 @@ export type AnimView =
       pockets?: number;
       /** Bottom man's hand control on the ride (HANDS), 0..1. */
       hands?: number;
+      /** On the ride (BOTTOM_CHAIN): the bottom man up in a tripod or quad pod, his hips worked out from under the rider,
+       *  and his back driven into him, each 0..1. Both men read them. */
+      pod?: number;
+      hipsOut?: number;
+      back?: number;
       /** Real root distance at the start of a shot, for warping. */
       dist?: number;
       stamina: number;
@@ -1384,6 +1389,10 @@ this.authoredGripWant[hand]=want;
   private rideProgress = 0;
   /** Smoothed hand control on the ride (bottom man), 0..1. */
   private handControl = 0;
+  /** Smoothed pod, hips worked out and back pressure on the ride (BOTTOM_CHAIN), 0..1. */
+  private podK = 0;
+  private hipsK = 0;
+  private backK = 0;
   private wasRiding = false;
   private easedRideProgress(v: Extract<AnimView, { mode: 'paired' }>): number {
     const riding = v.clip === 'ride';
@@ -1461,13 +1470,47 @@ if(!v.hold && v.role==='A')applyArmBarTurnSteps(lp,v.clip,v.u,v.mirror);
         lp[elbow+axis]+=(elbowTarget[axis]-lp[elbow+axis])*blend;
       }
     }
+    // Moving on the bottom (BOTTOM_CHAIN; owner, November 14: "move a little more freely ... More sit outs, stand ups,
+    // tripods, quad pods"; "Hand control, clearing hips, and back pressure are all a part of that"). Up in a pod his
+    // knees come off the mat: feet up under him on the balls, hips high and back over them, hands still posted (one on
+    // the rider's wrist in a tripod, from the hand control below). Clearing his hips swings them out away from the rider
+    // with a twist through the trunk; back pressure sits him back into the rider, chest up. The rider rises and follows.
+    const riding = v.hold && v.clip === 'ride';
+    const ease = (target: number, cur: number, rate: number) => this.instant ? target : cur + (target - cur) * Math.min(1, this.frameDt * rate);
+    this.podK = ease(riding ? v.pod ?? 0 : 0, this.podK, 6);
+    this.hipsK = ease(riding ? v.hipsOut ?? 0 : 0, this.hipsK, 4);
+    this.backK = ease(riding ? v.back ?? 0 : 0, this.backK, 6);
+    let podLift = 0;
+    if (riding) {
+      const s3 = (x: number) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
+      const pk = s3(this.podK), hk = s3(this.hipsK), bk = s3(this.backK) * (1 - pk);
+      // The rider is on the bottom man's left (+X), on his right when mirrored; clearing goes away from him.
+      const away = v.mirror ? 1 : -1;
+      podLift = 0.2 * pk;
+      if (v.role === 'B') {
+        lp[P.HIPS + 1] += podLift - 0.02 * bk;
+        lp[P.HIPS + 2] += -0.07 * pk - 0.05 * bk;
+        lp[P.HIPS] += away * 0.1 * hk;
+        for (const f of [P.FOOT_L, P.FOOT_R]) {
+          lp[f + 2] += (-0.2 - lp[f + 2]) * pk;
+          lp[f + FOOT.HEEL] += (0.65 - lp[f + FOOT.HEEL]) * pk;
+          lp[f] += away * 0.06 * hk;
+        }
+        lp[P.SPINE] += 0.18 * pk - 0.14 * bk;
+        lp[P.SPINE + 1] += away * 0.2 * hk;
+        lp[P.HEAD] -= 0.12 * bk;
+      } else if (v.role === 'A') {
+        lp[P.HIPS + 1] += 0.45 * podLift;
+        lp[P.HIPS] += away * 0.05 * hk;
+      }
+    }
     this.handControl += ((v.hold && v.clip==='ride' && v.role==='B' ? v.hands ?? 0 : 0) - this.handControl) * Math.min(1, this.frameDt * 6);
     if(v.hold && v.clip==='ride' && v.role==='B' && this.handControl > 0.01){
       // Hand control (owner, November 10: stand-ups and sit-outs work off hand control): the free hand comes off the
       // mat and takes the rider's wrist at the near hip, the far post carrying his weight.
       const k=Math.min(1,this.handControl/0.6), blend=k*k*(3-2*k), side=v.mirror?-1:1;
       const hand=v.mirror?P.HAND_L:P.HAND_R, elbow=v.mirror?P.ELBOW_L:P.ELBOW_R;
-      const handTarget=[side*.02,.34,.02], elbowTarget=[side*-.2,.42,.14];
+      const handTarget=[side*.02,.34+podLift*.8,.02], elbowTarget=[side*-.2,.42+podLift*.8,.14];
       for(let axis=0;axis<3;axis++){
         lp[hand+axis]+=(handTarget[axis]-lp[hand+axis])*blend;
         lp[elbow+axis]+=(elbowTarget[axis]-lp[elbow+axis])*blend;

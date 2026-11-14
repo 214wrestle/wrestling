@@ -340,6 +340,13 @@ export const MOVES: Record<string, MoveDef> = {
     camera: 'mat',
     next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, sub: 'exposed' },
   },
+  // The top man rolls him back to his belly off a tilt once he has his counts, and rides on to tilt him again (TILT_HOLD).
+  tiltRollBack: {
+    id: 'tiltRollBack',
+    dur: 0.9,
+    camera: 'mat',
+    next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, sub: 'ride', base: 0.25 },
+  },
   fightOff: {
     id: 'fightOff',
     dur: 0.85,

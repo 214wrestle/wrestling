@@ -41,7 +41,7 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
   },
   {
     title: 'On top',
-    lead: 'At the whistle pick a plan: Turn him (back points), Ride (riding time, harder to escape) or Cut (let him up for one). Ride without trying a turn and the referee calls stalling.',
+    lead: 'Your game plan sets how you ride: Turn him (back points) or Ride (riding time, harder to escape). Ride without trying a turn and the referee calls stalling. A tilt is held for the count, then you roll him back to his belly and go again.',
     rows: [
       { key: 'K', move: 'Break down', note: 'Chop the arm and drive; each one lowers his base. It commits you, so he can switch.' },
       { key: 'J', move: 'Turn him', note: 'Tilt or half nelson once his base is low or he is flat; with your legs in it is a turk. Pick a bar or a cradle in Top attack. Hold the squeeze for the fall. A tilt or a loose throw is a quick 2 as he bellies out; squeezing tightens it for more.' },

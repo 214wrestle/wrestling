@@ -107,7 +107,7 @@ export const ATTRIBUTE_GRADES: Record<string, Partial<Record<GradeKey, 1 | 2 | 3
   "Brandon Eggum": { athleticism: 4, physicality: 4 },
   "Tim Hartung": { pinning: 4, pace: 3, clutch: 4, brawler: 3 },
   "Damion Hahn": { pace: 4, clutch: 5, heart: 5 },
-  "Gable Steveson": { clutch: 4, athleticism: 4 },
+  "Gable Steveson": { clutch: 4, athleticism: 5, explosiveness: 5 },
   "Dylan Ness": { scrambling: 5, explosiveness: 4 },
   "Evan Johnson": { pinning: 4 },
   "Cole Konrad": { pinning: 4, clutch: 4 },

@@ -73,7 +73,10 @@ const IOWA = 'outputs/nov08-likeness/research-iowa.json';
 const ISU = 'outputs/nov08-likeness/research-iowa-state.json';
 const OWNER_SCRAMBLE = 'Owner-selected scramble specialist (athleteProfiles.isScrambleSpecialist)';
 export const SIGNATURES: Record<string, Signature & { sources: string[] }> = {
-  'Spencer Lee': { label: 'Snap to the front headlock and go behind', fhl: 'goBehind', sources: [IOWA] },
+  // Owner, November 14: "Spencer Lee is also great at arm bar tilts for nearfall points and falls".
+  'Spencer Lee': { label: 'Snap and go behind; arm-bar tilts on top', fhl: 'goBehind', turn: 'armBar', tilt: true, sources: [IOWA,
+    'https://bloodyelbow.com/2021/03/26/no-acls-required-how-spencer-lee-cruised-third-ncaa-wrestling-title',
+    'https://www.ncaa.com/news/wrestling-men/article/2019-07-01/how-spencer-lee-beat-jack-mueller-2019-ncaa-wrestling-finals'] },
   'Cael Sanderson': { label: 'Snap downs into go-behinds', fhl: 'goBehind', sources: [ISU] },
   'David Carr': { label: 'Snap to go-behind; cradles', fhl: 'goBehind', turn: 'cradle', sources: [ISU] },
   'Vincenzo Joseph': { label: 'Go-behinds', fhl: 'goBehind', sources: [PSU] },

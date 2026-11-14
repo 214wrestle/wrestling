@@ -1091,6 +1091,31 @@ registerMove({
   ],
 });
 
+// Off a tilt held for the count (owner, November 14: "hold the bottom wrestler in NF position until they get their
+// counts and then roll them back to their belly, release the hold and try it again"): the top man brings him back
+// over onto his side and down to his knees and elbows, and settles back into the ride on his broken base.
+registerMove({
+  id: 'tiltRollBack',
+  A: [
+    { t: 0, pose: { base: holdAt('exposed', 'A', 0) } },
+    // Up off his chest, pulling the near arm to bring him back over.
+    { t: 0.4, pose: { hips: [0.36, 0.42, 0.08], rot: [-55, 62, 0], spine: [22, -8, 0], head: [10, 0, 0] } },
+    { t: 1, pose: { base: holdAt('ride', 'A', 0.75) } },
+  ],
+  B: [
+    { t: 0, pose: { base: holdAt('exposed', 'B', 0) } },
+    // On his side, coming back over.
+    { t: 0.4, pose: { hips: [0, 0.28, 0.0], rot: [0, 88, 0, 95], spine: [-10, 0, 0] } },
+    { t: 0.75, pose: { hips: [0, 0.36, 0.0], rot: [0, 86, 0, 15], spine: [10, 0, 0] } },
+    { t: 1, pose: { base: holdAt('ride', 'B', 0.75) } },
+  ],
+  contacts: [
+    { who: 'A', hand: 'L', on: 'neck', at: [0, 0.04, -0.07], from: 0, to: 0.25 },
+    { who: 'A', hand: 'L', on: 'forearmL', at: [0, -0.04, -0.035], from: 0.6, to: 1 },
+    { who: 'A', hand: 'R', on: 'spine', at: [-0.04, 0.03, 0.12], from: 0.55, to: 1 },
+  ],
+});
+
 // He bridges and turns back to his belly.
 registerMove({
   id: 'fightOff',

@@ -133,6 +133,8 @@ export interface Signature {
   bottom?: 'granbyRoll' | 'standingSwitch';
   /** Turn from the flat. */
   turn?: 'cradle' | 'crossfaceCradle' | 'armBar' | 'wristBar' | 'barHalf' | 'doubleBar';
+  /** Tilts off the arm bar from the ride, and the bar holds him over (ARM_BAR_TILT; Spencer Lee). */
+  tilt?: boolean;
 }
 
 /* ------------------------------------------------------------- scoring ---- */
@@ -205,6 +207,8 @@ export interface Command {
   tieUp?: boolean;
   /** AI only: a level-change fake from any distance (a player fakes by shooting out of range). */
   fake?: boolean;
+  /** AI only: on the bottom, up to a quad pod off his base (a player gets there off a stopped stand-up; BOTTOM_CHAIN). */
+  pod?: boolean;
   /** Intended movement on the mat, world space, length <= 1. */
   moveX: number;
   moveZ: number;

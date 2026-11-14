@@ -105,6 +105,8 @@ export interface FrameParams {
   head: number;
   /** Reduce muscle blending for an athlete-specific defined build. */
   definition?: number;
+  /** A big man's soft, round belly and thick flanks, 0..1 (Chris Taylor); his abs no longer show. */
+  belly?: number;
 }
 
 export interface BodyParams {
@@ -270,6 +272,7 @@ function torso(f: FrameParams): Spec[] {
   const W = f.torsoW;
   const D = f.torsoD;
   const H = f.hips;
+  const B = Math.max(0, Math.min(1, f.belly ?? 0));
   return [
     // Pelvis.
     ell('hips', [0, 0.955, -0.012], [0.13 * H, 0.112, 0.1 * D], 0.04, T, { w: { hips: 1 } }),
@@ -301,13 +304,20 @@ function torso(f: FrameParams): Spec[] {
       w1: { spine: 0.45, chest: 0.55 },
       muscle: true,
     }),
-    // Six separate ab segments on top, so grooves run between them.
-    ...[1.205, 1.152, 1.098].flatMap((y) =>
+    // Six separate ab segments on top, so grooves run between them (not under a big belly).
+    ...(B < 0.4 ? [1.205, 1.152, 1.098].flatMap((y) =>
       pair(ell('spine', [0.026, y, 0.03 * D + 0.041], [0.024, 0.025, 0.016], 0.012, T, {
         w: { spine: 1 },
         muscle: true,
       })),
-    ),
+    ) : []),
+    // A big man's belly (owner, November 14: Chris Taylor "was nearly 400 lbs so you can make him much bigger (and
+    // realistically rounder) than even other HWT's"): a round, soft mass low on the front of the trunk, just over the
+    // pelvis, and thick flanks above the hips.
+    ...(B > 0 ? [
+      ell('spine', [0, 1.07, 0.02 + 0.04 * B], [0.13 * W, 0.12 + 0.03 * B, 0.09 + 0.06 * B], 0.06, T, { w: { spine: 0.6, hips: 0.4 } }),
+      ...pair(ell('spine', [0.1 * W, 1.06, -0.02], [0.04 + 0.03 * B, 0.09, 0.07 + 0.03 * B], 0.05, T, { w: { spine: 0.7, hips: 0.3 } })),
+    ] : []),
     // Ribcage.
     ell('chest', [0, 1.262, -0.016], [0.148 * W, 0.15, 0.1 * D], 0.05, T, {
       w0: { spine: 0.65, chest: 0.35 },

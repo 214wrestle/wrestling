@@ -1,6 +1,6 @@
 import {isArmBar,isCradleTurn,flatTurnFor,type ArmBar} from './armBars';
 import {legRideSkill,legRideQuality,LEG_CLEAR_THRESHOLD} from './legRideQuality';
-import { weightPhysics, absoluteStrength } from './weightPhysics';
+import { weightPhysics, absoluteStrength, moveWeight } from './weightPhysics';
 import { isScrambleSpecialist, isFootSweepSpecialist, HIGH_PACE_NAMES } from './athleteProfiles';
 import { scorerStep } from './techFalls';
 import { STYLE_EFFECT, gradeStep, styleStep } from './attributeRatings';
@@ -196,6 +196,8 @@ export type Position =
       expo: number;
       /** 1 when he only flashed over (a tilt, or thrown feet to back): he bellies back out on his own. */
       flash?: number;
+      /** On his back off a tilt (TILT_HOLD): held for the counts, seldom a pin, then rolled back to his belly. */
+      tilted?: boolean;
       /** Just landed from a mat return: how it resolves on the first tick (see RETURN). */
       landing?: 'flat' | 'turnIn' | 'slam';
       /** A head-and-arm hold (a tight cement mixer): the neck can be cranked, so potentially dangerous. */
@@ -214,6 +216,10 @@ export type Position =
       back?: number;
       /** Seconds left of the explosive window off the whistle from the referee's position (HANDS). */
       whistle?: number;
+      /** Bottom man up on his feet and hands, knees off the mat: a tripod or quad pod, 0..1, fading (BOTTOM_CHAIN). */
+      pod?: number;
+      /** Bottom man's hips worked out from under the rider, 0..1, fading (BOTTOM_CHAIN). */
+      hips?: number;
       /** The top man's breakdown off this whistle (OPENER), and seconds until it lands. */
       opener?: Breakdown;
       openerT?: number;
@@ -346,6 +352,28 @@ export const TIMING = { fast: 0.86, setUp: 0.6, cold: 1.08, impact: [0.3, 0.6], 
  */
 export const FLASH_EXPOSURES: ReadonlySet<string> = new Set(['tilt', 'sitOutTurn']);
 /**
+ * Tilts (owner, November 14): "often a top wrestler will hold the bottom wrestler in NF position until they get their
+ * counts and then roll them back to their belly, release the hold and try it again. It is difficult to pin someone
+ * using a tilt." Owner, November 10: the 2-pointers come from tilts (caught a couple of swipes, then he bellies out). On a
+ * tilt he rolls out `roll` times as fast as on any other flash, a squeeze tightens it at `tighten` of the usual rate and
+ * never takes the flash below `floor` (it stays a tilt, not a locked hold), and the pin builds at `pin` of the usual
+ * rate. Once he has the 4 count (and `after` seconds more), or at least the 2 with the man coming out (`fight`), the top
+ * man rolls him back to his belly (tiltRollBack): they go on in the ride, the bottom man on a working `base` (so it takes
+ * a breakdown to tilt him again), the rider with `control` and `cool` seconds to reset his grips before his next turn.
+ * Before this, 28 of 45 AI tilts ended in a fall (tightened all the way to a locked hold). A first version (held to the
+ * 4 most of the time, then re-tilted at once) doubled the near-fall points a match.
+ */
+export const TILT_HOLD = { pin: 0.45, roll: 1.5, tighten: 0.5, floor: 0.25, after: 0.3, fight: 0.7, base: 0.4, control: 0.65, cool: 1.2 } as const;
+/**
+ * The arm-bar tilt (owner, November 14: "Spencer Lee is also great at arm bar tilts for nearfall points and falls"; on
+ * his 2021 title run, Bloody Elbow: the near wrist trapped to his back, the elbow hooked and held with the chest, shoulder
+ * pressure rolls him into the tilt, a tight waist on the hips; getting the grip is the hard part, not the tilt). A
+ * signature tilt man (Signature.tilt) gets his tilt from the ride with SIGNATURE_EDGE, and over, the bar holds him: a
+ * flash of only `loose` (an ordinary tilt is a full flash, a quick 2), so more of his go the 3 and the 4. Like any tilt it
+ * is seldom a fall (TILT_HOLD); his falls come from the arm bar turned off the flat, his signature turn.
+ */
+export const ARM_BAR_TILT = { loose: 0.5 } as const;
+/**
  * Throws to his back (owner, November 10): a tight throw lands him locked up, a real chance at a 3, a 4 or a fall;
  * only a loose one is a flash he bellies out of for 2. How often it is tight goes with the thrower's power and skill.
  */
@@ -437,6 +465,26 @@ export const BIG_BOTTOM: Readonly<Record<number, number>> = { 184: 0.22, 190: 0.
  */
 export const HANDS = { gain: 0.4, fade: 0.25, chopBreak: 0.4, switchWindow: 0.3, backFade: 1.0,
   standUp: 0.2, backStand: 0.12, whistle: 0.9, whistleStand: 0.22, sitOut: 0.12, backSit: 0.1, carry: 0.1 } as const;
+/**
+ * Chain wrestling on the bottom (owner, November 14): "The wrestler on the bottom should be able to move a little more
+ * freely unless he is belly flat on the mat. More sit outs, stand ups, tripods, quad pods, etc. They don't always have
+ * to be successful, but bottom wrestling is a lot about chain wrestling and immediately trying the next move if one
+ * doesn't work. Hand control, clearing hips, and back pressure are all a part of that."
+ * - A stopped stand-up from a working base leaves him up on his feet with a hand down (a tripod; both hands down, a quad
+ *   pod) instead of back on his knees: it costs `standLoss` of base (was 0.12). The pod (0..1) fades at `podFade` a
+ *   second (faster the tighter the ride), and a chop knocks him back to his knees. From it a stand-up gets `podStand`,
+ *   a sit-out or Granby `podSit`. The AI also goes up to a quad pod on purpose (Command.pod).
+ * - The next different move within `window` seconds of a stopped one gets `chain`: the rider is still answering the
+ *   last one. The same move again does not.
+ * - On his base the stick works his hips out from under the rider (`hips`, 0..1: `hipsGain` a second, fading at
+ *   `hipsFade`) and moves the pair along (`crawl` m/s at a full base). It adds `hipsStand`, `hipsSit` and `hipsSwitch`.
+ *   Flat on his belly he cannot.
+ * - A stopped switch or Granby costs `switchLoss` / `granbyLoss` of base (were 0.22 / 0.25).
+ */
+// Release build: held back until the owner has seen the rework (all of it off; a stopped stand-up costs 0.12 as before).
+export const BOTTOM_CHAIN = { window: 1.5, chain: 0, standLoss: 0.12, podFade: 0.5, podStand: 0, podSit: 0,
+  hipsGain: 0, hipsFade: 0.6, hipsStand: 0, hipsSit: 0, hipsSwitch: 0, crawl: 0, switchLoss: 0.22, granbyLoss: 0.25 } as const;
+export type BottomTry = 'standUp' | 'sitOut' | 'granby' | 'switch';
 /**
  * The top man's breakdown at the whistle from the referee's position (owner, November 10: "give the top man 3-4
  * breakdown options prior to the whistle on the restart"). Chosen before the whistle; it lands `delay` after it unless
@@ -647,6 +695,16 @@ export class Bout {
   private returning: { base: number; slam: boolean; turnIn: boolean; escape: number; move: Position } | null = null;
   /** Hand control he had as his stand-up started; he comes up further along with it (HANDS.carry). */
   private risingHands = 0;
+  /** Per side, his last stopped move on the bottom, seconds since it was stopped, and a count of stops (BOTTOM_CHAIN).
+   *  Negative `t` while the rider is still pulling him back down from a sit-out. */
+  readonly bottomChain: [{ last: BottomTry | null; t: number; n: number }, { last: BottomTry | null; t: number; n: number }] =
+    [{ last: null, t: 99, n: 0 }, { last: null, t: 99, n: 0 }];
+  private stopped(side: Side, last: BottomTry, t = 0): void { const c = this.bottomChain[side]; c.last = last; c.t = t; c.n++; }
+  /** BOTTOM_CHAIN.chain when he goes to a different move inside the window after a stopped one. */
+  private chainEdge(side: Side, kind: BottomTry): number {
+    const c = this.bottomChain[side];
+    return c.last && c.last !== kind && c.t >= 0 && c.t < BOTTOM_CHAIN.window ? BOTTOM_CHAIN.chain : 0;
+  }
   /** The stand-up or return already given its one roll for a rider's own slip. */
   private handsRolled: Position | null = null;
   /** The side a person controls. His wrestler sprawls by reflex on a real shot and keeps
@@ -825,6 +883,7 @@ export class Bout {
     for (const a of this.athletes) {
       let c = cmds[a.side];
       const p = this.prev[a.side];
+      this.bottomChain[a.side].t += dt;
       this.scramblePending[a.side] = c.scramble && !p.scramble ? 2.5 : Math.max(0, this.scramblePending[a.side] - dt);
       this.granbyPending[a.side] = c.sitOut && !p.sitOut && c.level ? 0.3 : Math.max(0, this.granbyPending[a.side] - dt);
       this.sitOutPending[a.side] = c.sitOut && !p.sitOut && !c.level ? 0.3 : Math.max(0, this.sitOutPending[a.side] - dt);
@@ -1572,7 +1631,7 @@ export class Bout {
     const live = stumbling || o.act === 'reach' || o.act === 'snap' || o.act === 'stagger' || o.act === 'sprawlRecover';
     const timing = live ? 1 : setUp ? TIMING.setUp : 0;
     const speed = live ? TIMING.fast : setUp ? 1 - (1 - TIMING.fast) * TIMING.setUp : TIMING.cold;
-    const dur = speed * (1 / weightPhysics(this.wrestlers[a.side].weightClass).mobility) * (0.3 + 0.28 * Math.max(0, dist - 0.65)) * (1.12 - (wa.shots ?? wa.quickness) * 0.25) * (1 - STYLE_EFFECT.shotSpeed * this.styleSteps[a.side].shots - STYLE_EFFECT.explShot * this.styleSteps[a.side].expl) * (1 + (1 - a.stamina) * 0.3);
+    const dur = speed * (1 / weightPhysics(moveWeight(this.wrestlers[a.side])).mobility) * (0.3 + 0.28 * Math.max(0, dist - 0.65)) * (1.12 - (wa.shots ?? wa.quickness) * 0.25) * (1 - STYLE_EFFECT.shotSpeed * this.styleSteps[a.side].shots - STYLE_EFFECT.explShot * this.styleSteps[a.side].expl) * (1 + (1 - a.stamina) * 0.3);
     const frame = this.pairFrame(a.side);
     for (const x of this.athletes) {
       x.act = 'paired';
@@ -1626,7 +1685,7 @@ export class Bout {
       const mobile = a.act === 'stance' || a.act === 'reach' || a.act === 'fake' || a.act === 'snap' || a.act === 'swat' || a.act === 'tieArm' || a.act === 'headUp';
       const levelK = 0.55 + 0.45 * clamp01((a.level - 0.12) / 0.33);
       const gas = 0.65 + 0.35 * a.stamina;
-      const speed = BOUT.maxSpeed * weightPhysics(this.wrestlers[a.side].weightClass).mobility * levelK * gas * (a.act === 'stance' ? 1 : 0.5) * (0.9 + w.quickness * 0.2) * (1 + STYLE_EFFECT.athMove * this.styleSteps[a.side].ath);
+      const speed = BOUT.maxSpeed * weightPhysics(moveWeight(this.wrestlers[a.side])).mobility * levelK * gas * (a.act === 'stance' ? 1 : 0.5) * (0.9 + w.quickness * 0.2) * (1 + STYLE_EFFECT.athMove * this.styleSteps[a.side].ath);
       const len = Math.hypot(c.moveX, c.moveZ);
       let mx = len > 1 ? c.moveX / len : c.moveX;
       let mz = len > 1 ? c.moveZ / len : c.moveZ;
@@ -2310,6 +2369,30 @@ export class Bout {
       s.back = Math.max(0, (s.back ?? 0) - dt * HANDS.backFade);
       s.whistle = Math.max(0, (s.whistle ?? 0) - dt);
       s.ankleT = Math.max(0, (s.ankleT ?? 0) - dt);
+      // Moving on the bottom (BOTTOM_CHAIN): on his base the stick works his hips out from under the rider and moves
+      // the pair; up in a tripod or quad pod he stays there only until the rider brings him back down.
+      {
+        const cb = cmds[Bm.side];
+        const legsIn = (s.legRide ?? 0) >= 0.8;
+        const m = Math.min(1, Math.hypot(cb.moveX, cb.moveZ));
+        if (m > 0.3 && !legsIn && Bm.side !== this.practicePartner && BOTTOM_CHAIN.crawl > 0) {
+          s.hips = Math.min(1, (s.hips ?? 0) + dt * BOTTOM_CHAIN.hipsGain * m * (0.5 + 0.5 * Bm.stamina) * (1.2 - 0.6 * s.control));
+          s.control = Math.max(0, s.control - dt * 0.04 * m);
+          this.spend(Bm, dt * 0.015 * m);
+          const r = Math.hypot(s.frame.x, s.frame.z);
+          if (r < MAT.circleRadius - EDGE.zone) {
+            const v = BOTTOM_CHAIN.crawl * s.base * (1 - 0.5 * s.control) * (0.5 + 0.5 * Bm.stamina);
+            s.frame.x += cb.moveX * v * dt;
+            s.frame.z += cb.moveZ * v * dt;
+          }
+        } else s.hips = Math.max(0, (s.hips ?? 0) - dt * BOTTOM_CHAIN.hipsFade);
+        if (BOTTOM_CHAIN.podStand > 0 && cb.pod && !this.prev[Bm.side].pod && !legsIn && s.base > 0.6 && (s.pod ?? 0) < 0.3) {
+          s.pod = 1;
+          this.spend(Bm, 0.02);
+          this.ev.feedback?.(Bm.side, 'sprawl', 'ok', 'Quad pod');
+        }
+        s.pod = Math.max(0, (s.pod ?? 0) - dt * BOTTOM_CHAIN.podFade * (0.6 + s.control));
+      }
       // The breakdown he chose before the whistle lands (OPENER).
       if (s.opener && s.openerT !== undefined) {
         s.openerT -= dt;
@@ -2349,6 +2432,8 @@ export class Bout {
         s.base -= hit;
         s.commit = 0.5;
         s.hands = Math.max(0, (s.hands ?? 0) - HANDS.chopBreak);
+        // A chop knocks him off his feet, back to his knees (BOTTOM_CHAIN).
+        s.pod = 0;
         this.spend(T, 0.035);
         this.ev.feedback?.(T.side, 'fight', 'ok');
         if (s.base <= 0) {
@@ -2362,7 +2447,7 @@ export class Bout {
         const legsIn = (s.legRide ?? 0) >= 0.8;
         if ((s.base < 0.35 || legsIn && s.base < BOUT.turkBase) && s.turnCool <= 0) {
           const resist = this.wrestlers[Bm.side].turnResist ?? 0;
-          const p = clamp(0.35 + (wt.turning ?? wt.mat) * 0.3 + STYLE_EFFECT.turnOdds * this.styleSteps[T.side].turn - wb.defense * 0.25 - (legsIn ? Math.max(0, s.base - 0.5) * 0.6 : s.base) + 0.15 * this.edge(T.side) - resist + tp.turn + (legsIn ? this.signatureEdge(T.side, 'legRider', true) : 0), Math.max(0.02, 0.08 - resist * 0.12), 0.85);
+          const p = clamp(0.35 + (wt.turning ?? wt.mat) * 0.3 + STYLE_EFFECT.turnOdds * this.styleSteps[T.side].turn - wb.defense * 0.25 - (legsIn ? Math.max(0, s.base - 0.5) * 0.6 : s.base) + 0.15 * this.edge(T.side) - resist + tp.turn + (legsIn ? this.signatureEdge(T.side, 'legRider', true) : this.signatureEdge(T.side, 'tilt', true)), Math.max(0.02, 0.08 - resist * 0.12), 0.85);
           this.spend(T, 0.05);
           if (this.rng.chance(p * PACE.turn)) {
             this.ev.feedback?.(T.side, 'shoot', 'won');
@@ -2393,22 +2478,31 @@ export class Bout {
       if (this.granbyPending[Bm.side] > 0 && s.base > 0.3) {
         this.granbyPending[Bm.side] = 0;
         this.spend(Bm, 0.07);
-        const p = clamp(0.24 + wb.quickness * 0.3 - s.control * 0.35 + s.commit * 0.5 + (1 - T.stamina) * 0.15 + this.signatureEdge(Bm.side, 'bottom', 'granbyRoll'), 0.06, 0.6) * PACE.sitOut;
+        const p = clamp(0.24 + wb.quickness * 0.3 - s.control * 0.35 + s.commit * 0.5 + (1 - T.stamina) * 0.15 + this.signatureEdge(Bm.side, 'bottom', 'granbyRoll')
+          + this.chainEdge(Bm.side, 'granby') + BOTTOM_CHAIN.podSit * (s.pod ?? 0), 0.06, 0.6) * PACE.sitOut;
         if (T.side === this.practicePartner || this.rng.chance(p)) {
           this.ev.feedback?.(Bm.side, 'shoot', 'won', 'Granby roll');
           this.startMove('granbyRoll', s.A, s.frame, false);
           return;
         }
-        s.base = Math.max(0, s.base - 0.25);
+        this.stopped(Bm.side, 'granby');
+        s.pod = 0;
+        s.base = Math.max(0, s.base - BOTTOM_CHAIN.granbyLoss);
         s.control = Math.min(1, s.control + 0.1);
         this.ev.feedback?.(Bm.side, 'shoot', 'lost', 'Granby roll');
       }
       if (this.sitOutPending[Bm.side] > 0 && s.base > 0.3) {
         this.sitOutPending[Bm.side] = 0;
         this.spend(Bm, 0.06);
-        const escape = clamp(0.2 + wb.quickness * 0.25 - s.control * 0.4 - STYLE_EFFECT.rideHold * this.styleSteps[T.side].ride + STYLE_EFFECT.bottomOdds * this.styleSteps[Bm.side].bottom + (s.base - 0.5) * 0.5 + (1 - T.stamina) * 0.2 + tp.escape + HANDS.sitOut * (s.hands ?? 0) + HANDS.backSit * (s.back ?? 0) + this.openerEdge(s, 'sitOut'), 0.05, 0.62) * PACE.sitOut * bigBottom(this.wrestlers[Bm.side].weightClass);
-        const turn = clamp(0.12 + (wt.turning ?? wt.mat) * 0.25 + STYLE_EFFECT.turnOdds * this.styleSteps[T.side].turn - wb.defense * 0.25 - (this.wrestlers[Bm.side].turnResist ?? 0), 0.03, 0.5);
+        const escape = clamp(0.2 + wb.quickness * 0.25 - s.control * 0.4 - STYLE_EFFECT.rideHold * this.styleSteps[T.side].ride + STYLE_EFFECT.bottomOdds * this.styleSteps[Bm.side].bottom + (s.base - 0.5) * 0.5 + (1 - T.stamina) * 0.2 + tp.escape + HANDS.sitOut * (s.hands ?? 0) + HANDS.backSit * (s.back ?? 0) + this.openerEdge(s, 'sitOut')
+          + this.chainEdge(Bm.side, 'sitOut') + BOTTOM_CHAIN.podSit * (s.pod ?? 0) + BOTTOM_CHAIN.hipsSit * (s.hips ?? 0), 0.05, 0.62) * PACE.sitOut * bigBottom(this.wrestlers[Bm.side].weightClass);
+        // Sitting out of a tripod, or with his hips already cleared, his hips are away from the rider: harder to catch
+        // and roll to his back (BOTTOM_CHAIN; with the chain's extra sit-outs, sit-outs turned to the back had doubled).
+        const turn = clamp(0.12 + (wt.turning ?? wt.mat) * 0.25 + STYLE_EFFECT.turnOdds * this.styleSteps[T.side].turn - wb.defense * 0.25 - (this.wrestlers[Bm.side].turnResist ?? 0)
+          - BOTTOM_CHAIN.podSit * (s.pod ?? 0) - BOTTOM_CHAIN.hipsSit * (s.hips ?? 0), 0.03, 0.5);
         const id = T.side === this.practicePartner || this.rng.chance(escape) ? 'sitOutEscape' : this.rng.chance(turn) ? 'sitOutTurn' : 'sitOutPull';
+        // Pulled back to his base, the chain window opens as he lands.
+        if (id === 'sitOutPull') this.stopped(Bm.side, 'sitOut', -MOVES.sitOutPull.dur);
         this.startMove(id, s.A, s.frame, false);
         // Off the hand control, his back pressure or right on the whistle, the short sit and turn-in explode (TIMING).
         if (id === 'sitOutEscape') this.burst(clamp01((s.hands ?? 0) + (s.back ?? 0) + ((s.whistle ?? 0) > 0 ? 0.5 : 0)), otherSide(s.A));
@@ -2426,7 +2520,8 @@ export class Bout {
         this.spend(Bm, 0.05);
         // Standing up off a weak base into a tight rider just gets you chopped back down. Back pressure, hand
         // control and going right off the whistle make it (HANDS).
-        const off = HANDS.standUp * (s.hands ?? 0) + HANDS.backStand * (s.back ?? 0) + ((s.whistle ?? 0) > 0 ? HANDS.whistleStand : 0) + this.openerEdge(s, 'standUp');
+        const off = HANDS.standUp * (s.hands ?? 0) + HANDS.backStand * (s.back ?? 0) + ((s.whistle ?? 0) > 0 ? HANDS.whistleStand : 0) + this.openerEdge(s, 'standUp')
+          + this.chainEdge(Bm.side, 'standUp') + BOTTOM_CHAIN.podStand * (s.pod ?? 0) + BOTTOM_CHAIN.hipsStand * (s.hips ?? 0);
         const p = clamp(0.3 + wb.quickness * 0.25 - s.control * 0.5 + (s.base - 0.5) * 0.6 + (1 - T.stamina) * 0.2 + tp.escape + off, 0.05, 0.85) * PACE.standUp * bigBottom(this.wrestlers[Bm.side].weightClass);
         // A cooperative practice partner lets a learner rehearse the escape.
         if (T.side === this.practicePartner || s.base > 0.4 && this.rng.chance(p)) {
@@ -2437,8 +2532,15 @@ export class Bout {
           return;
         }
         this.ev.feedback?.(Bm.side, 'shoot', 'lost');
-        s.base -= 0.12;
+        this.stopped(Bm.side, 'standUp');
         s.control = Math.min(1, s.control + 0.08);
+        // Off a working base he got his feet under him: the rider stops him rising, not his feet (BOTTOM_CHAIN). With
+        // the legs in, or off a weak base, he is just chopped back down.
+        if (BOTTOM_CHAIN.standLoss < 0.12 && s.base > 0.4 && (s.legRide ?? 0) < 0.8) {
+          s.base -= BOTTOM_CHAIN.standLoss;
+          s.pod = 1;
+          s.hips = Math.max(s.hips ?? 0, 0.4);
+        } else s.base -= 0.12;
       }
       if (s.commit < HANDS.switchWindow && this.take(Bm, 'fight')) {
         // Hand fight: take the rider's wrist at the waist (HANDS). A tight rider gives it up slower.
@@ -2448,14 +2550,17 @@ export class Bout {
       } else if (this.take(Bm, 'fight')) {
         this.spend(Bm, 0.05);
         // A switch beats weight that is out front: the more he just committed, the better it is.
-        const p = clamp(0.1 + s.commit * 0.8 + ((wb.bottom ?? wb.mat) - (wt.riding ?? wt.mat)) * 0.25 - STYLE_EFFECT.rideHold * this.styleSteps[T.side].ride + STYLE_EFFECT.bottomOdds * this.styleSteps[Bm.side].bottom + wb.quickness * 0.1 + tp.escape + this.openerEdge(s, 'switch'), 0.05, 0.85) * PACE.switch;
+        const p = clamp(0.1 + s.commit * 0.8 + ((wb.bottom ?? wb.mat) - (wt.riding ?? wt.mat)) * 0.25 - STYLE_EFFECT.rideHold * this.styleSteps[T.side].ride + STYLE_EFFECT.bottomOdds * this.styleSteps[Bm.side].bottom + wb.quickness * 0.1 + tp.escape + this.openerEdge(s, 'switch')
+          + this.chainEdge(Bm.side, 'switch') + BOTTOM_CHAIN.hipsSwitch * (s.hips ?? 0), 0.05, 0.85) * PACE.switch;
         this.ev.tell?.(T.side, 'switch');
         if (s.base > 0.25 && this.rng.chance(p)) {
           this.ev.feedback?.(Bm.side, 'fight', 'won');
           this.startMove('switch', s.A, s.frame, false);
           return;
         }
-        s.base -= 0.22;
+        this.stopped(Bm.side, 'switch');
+        s.pod = 0;
+        s.base -= BOTTOM_CHAIN.switchLoss;
         this.ev.feedback?.(Bm.side, 'fight', 'lost');
       }
       s.base = clamp(s.base, 0, 1);
@@ -2481,7 +2586,9 @@ export class Bout {
         } else {
           // The half needs control and a bottom man who is not fighting it.
           const p = clamp(
-            0.26 + (wt.turning ?? wt.mat) * 0.3 + STYLE_EFFECT.turnOdds * this.styleSteps[T.side].turn + wt.strength * 0.1 - wb.defense * 0.25 - s.base * 0.5 + (s.control - 0.5) * 0.3 - (this.wrestlers[Bm.side].turnResist ?? 0) + topPlanEffects(this.plans[s.A]).turn,
+            0.26 + (wt.turning ?? wt.mat) * 0.3 + STYLE_EFFECT.turnOdds * this.styleSteps[T.side].turn + wt.strength * 0.1 - wb.defense * 0.25 - s.base * 0.5 + (s.control - 0.5) * 0.3 - (this.wrestlers[Bm.side].turnResist ?? 0) + topPlanEffects(this.plans[s.A]).turn
+              // His signature turn lands a little more often (types.ts Signature: "they land a little more often").
+              + (this.wrestlers[s.A].signature?.turn !== undefined && this.wrestlers[s.A].signature?.turn === (selectedBar?.style ?? flatTurn) ? SIGNATURE_EDGE : 0),
             // Against good defense the floor is what decides it, since the top man can keep trying;
             // a hard-to-turn opponent (difficulty level vs a person) lowers the floor too.
             Math.max(0.015, 0.06 - (this.wrestlers[Bm.side].turnResist ?? 0) * 0.1),
@@ -2636,7 +2743,7 @@ export class Bout {
     // are a quick 2; the top man's squeeze still slows it. A flash is seldom a pin.
     const flash = s.flash ?? 0;
     s.adjustT = Math.max(0, (s.adjustT ?? 0) - dt);
-    if (flash > 0) s.fight += dt * flash * FLASH_ROLL * (s.expo < 1.5 ? 0.35 : 1) * (0.6 + 0.4 * Bm.stamina);
+    if (flash > 0) s.fight += dt * flash * FLASH_ROLL * (s.tilted ? TILT_HOLD.roll : 1) * (s.expo < 1.5 ? 0.35 : 1) * (0.6 + 0.4 * Bm.stamina);
     if (s.awarded === 0 && s.expo >= 2) {
       s.awarded = 2;
       T.stats.nearFalls += 1;
@@ -2651,9 +2758,15 @@ export class Bout {
       this.ev.score?.(T.side, 'nearFall4', 'Near fall');
       if (this.position !== s) return;
     }
+    // A tilt held for the count: he rolls him back to his belly and goes again (TILT_HOLD).
+    if (s.tilted && s.pinHold <= 0 && (s.awarded >= 4 && s.expo >= 4 + TILT_HOLD.after || s.awarded >= 2 && s.fight >= TILT_HOLD.fight)) {
+      this.ev.announce?.('Rolls him back', 'info', 'Held the tilt for the count: back to the ride to go again');
+      this.startMove('tiltRollBack', s.A, s.frame, s.mirror ?? false);
+      return;
+    }
     const ct = cmds[T.side];
     const wrestler = this.wrestlers[T.side];
-    const pinSkill = pinningMultiplier(`${wrestler.firstName} ${wrestler.lastName}`, this.styleSteps[T.side].pin);
+    const pinSkill = pinningMultiplier(`${wrestler.firstName} ${wrestler.lastName}`, this.styleSteps[T.side].pin) * (s.tilted ? TILT_HOLD.pin : 1);
     const squeezeGas = 0.5 + 0.5 * T.stamina;
     // Tightening also preserves the grip. Defensive hand work earns room to
     // lift the shoulders; it must contend with an actively maintained hold.
@@ -2671,7 +2784,7 @@ export class Bout {
       let lockedIn = false;
       if (flash > 0 && !shouldersUp && (s.adjustT ?? 0) <= 0) {
         s.adjustT = FLASH_ADJUST;
-        s.flash = Math.max(0, flash - FLASH_TIGHTEN * (0.6 + 0.8 * (wt.pinning ?? wt.mat)) * squeezeGas);
+        s.flash = Math.max(s.tilted ? TILT_HOLD.floor : 0, flash - FLASH_TIGHTEN * (s.tilted ? TILT_HOLD.tighten : 1) * (0.6 + 0.8 * (wt.pinning ?? wt.mat)) * squeezeGas);
         lockedIn = Math.ceil(s.flash * 4) < Math.ceil(flash * 4);
       }
       const r = shouldersUp ? 'blocked' : lockedIn ? 'won' : 'ok';
@@ -2875,6 +2988,8 @@ export class Bout {
           if(isArmBar(bar))mat.turnStyle=bar;
           if(m.id.endsWith('Resisted'))mat.turnCool=.8;
           if (next.sub === 'exposed' && FLASH_EXPOSURES.has(m.id)) mat.flash = 1;
+          if (next.sub === 'exposed' && m.id === 'tilt') { mat.tilted = true; if (this.wrestlers[mat.A].signature?.tilt) mat.flash = ARM_BAR_TILT.loose; }
+          if (m.id === 'tiltRollBack') { mat.base = TILT_HOLD.base; mat.control = TILT_HOLD.control; mat.turnCool = TILT_HOLD.cool; }
           if (next.sub === 'exposed' && THROW_EXPOSURES.has(m.id)) mat.flash = this.rng.chance(throwTight(this.wrestlers[mat.A].attributes, this.styleSteps[mat.A].throws)) ? 0 : 1;
           if (next.sub === 'exposed' && m.id === 'cementMixer' && mat.flash === 0) mat.neck = true;
           // Fighting off your back leaves you scrambling, not flat and helpless.

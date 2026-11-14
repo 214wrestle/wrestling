@@ -238,7 +238,9 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
               sprawl: P('Ride tight', 'idle', 'Lower: tap Cut · hold Legs in'),
             }
           : {
-              shoot: P('Stand up', (pos.whistle ?? 0) > 0 ? 'hot' : pos.base > 0.4 ? 'idle' : 'off', 'Sit out + Lower: Granby roll'),
+              // Up in a tripod off a stopped stand-up (BOTTOM_CHAIN): go right again, or sit out of it.
+              shoot: (pos.pod ?? 0) > 0.3 ? P('Stand up', 'hot', 'Up in a tripod: go again, or sit out')
+                : P('Stand up', (pos.whistle ?? 0) > 0 ? 'hot' : pos.base > 0.4 ? 'idle' : 'off', 'Sit out + Lower: Granby roll'),
               fight: pos.commit >= HANDS.switchWindow ? P('Switch', 'hot') : P('Hand control', 'idle'),
               sprawl: P('Base up', pos.base < 0.5 ? 'hot' : 'idle', legsIn ? 'Closes pockets · Lower: Catch leg' : undefined),
             },

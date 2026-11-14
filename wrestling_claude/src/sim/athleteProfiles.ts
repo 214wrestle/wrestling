@@ -109,6 +109,8 @@ export const isScrambleSpecialist = (name: string): boolean => [
 const ACTIVE_HEAVYWEIGHTS = new Set([
   'Kyle Snyder', 'Nick Gwiazdowski', 'Mason Parris', 'Steve Mocco',
   'Michael Mocco', 'Cole Konrad', 'Tommy Rowlands', 'Dreshaun Ross',
+  // Owner, November 14: "elite athleticism and is so much quicker and explosive than your typically plodding big HWT".
+  'Gable Steveson',
 ]);
 export function heavyweightActivity(w: Pick<Wrestler, 'firstName' | 'lastName' | 'weightClass'>): {attack: number; pressure: number} {
   if (w.weightClass !== 285) return {attack: 1, pressure: 1};

@@ -117,7 +117,7 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete], rideQu
       else if (p.sub === 'exposed') progress = Math.min(1, p.pin - 0.6 * Math.max(0, p.fight));
       else progress = Math.min(1, p.pin);
       const matLegs = p.sub === 'ride' || p.sub === 'flat';
-      const legClip = matLegs && (p.legCaught ?? 0) > 0.05 ? (p.sub==='flat' ? 'catchRidingLegFlat' : 'catchRidingLeg') : matLegs && (p.legRide ?? 0) > 0 ? (p.sub==='flat' ? ((p.legRide??0)>=.8?'legRidePressure':'legRideFlat') : 'legRide') : matLegs && (p.pockets ?? 0) > 0.3 && (p.sub !== 'flat' || p.base < 0.15 && (p.heave ?? 0) < 0.2) ? (p.sub==='flat' ? 'closedPocketsFlat' : 'closedPockets') : null;
+      const legClip = matLegs && (p.legCaught ?? 0) > 0.05 ? (p.sub==='flat' ? 'catchRidingLegFlat' : 'catchRidingLeg') : matLegs && (p.legRide ?? 0) > 0 ? (p.sub==='flat' ? ((p.legRide??0)>=.8?'legRidePressure':'legRideFlat') : 'legRide') : matLegs && (p.pockets ?? 0) > 0.3 && (p.sub !== 'flat' || p.base < 0.15 && (p.heave ?? 0) < 0.2) && !(p.sub === 'ride' && ((p.pod ?? 0) > 0.05 || (p.hips ?? 0) > 0.1)) ? (p.sub==='flat' ? 'closedPocketsFlat' : 'closedPockets') : null;
       if (legClip) progress = legClip==='legRidePressure' ? rideQuality : (legClip === 'catchRidingLeg' || legClip === 'catchRidingLegFlat') ? Math.min(1,p.legCaught!/LEG_CLEAR_THRESHOLD) : (legClip === 'closedPockets' || legClip === 'closedPocketsFlat') ? p.pockets! : p.legRide!;
       return {
         mode: 'paired',
@@ -131,6 +131,8 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete], rideQu
         intensity: p.intensity,
         pockets: matLegs ? p.pockets ?? 0 : undefined,
         hands: p.sub === 'ride' ? p.hands ?? 0 : undefined,
+        pod: p.sub === 'ride' ? p.pod ?? 0 : undefined,
+        hipsOut: p.sub === 'ride' ? p.hips ?? 0 : undefined,
         resistance: p.sub==='exposed' && (p.turnStyle==='cradle'||isArmBar(p.turnStyle)) ? Math.max(0,Math.min(1,p.fight)) : undefined,
         ...base,
       };

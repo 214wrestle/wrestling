@@ -229,12 +229,13 @@ function PlanCard({ state, api, inline = false }: { state: UiState; api: GameApi
 }
 
 /** On top at the whistle: the top plan, picked right there (it stays the plan until changed). */
-/** Before the whistle on top: the breakdown he goes to at the whistle (owner, November 10), or cut him. */
+/** Before the whistle on top: the breakdown he goes to at the whistle (owner, November 10), or cut him at this whistle
+ *  only (owner, November 14: cutting is not a plan; PLAN_TOP). */
 function TopRestart({ state, api }: { state: UiState; api: GameApi }) {
   const cut = state.topRestartCut;
-  const pick = (kind: Breakdown) => { if (topPlanOf(state.plan) === 'cut') api.setPlan({ ...state.plan, top: 'turn' }); api.chooseTopRestart(false); api.chooseBreakdown(kind); };
-  const chooseCut = () => { api.setPlan({ ...state.plan, top: 'cut' }); api.chooseTopRestart(true); };
-  const note = cut ? 'Let him up for one point and go back to your feet' : BREAKDOWNS.find(b => b.id === state.topRestartBreakdown)?.note;
+  const pick = (kind: Breakdown) => { api.chooseTopRestart(false); api.chooseBreakdown(kind); };
+  const chooseCut = () => api.chooseTopRestart(true);
+  const note = cut ? 'Let him up for one point at this whistle and go back to your feet' : BREAKDOWNS.find(b => b.id === state.topRestartBreakdown)?.note;
   return (
     <div className="top-restart">
       <strong>At the whistle</strong>

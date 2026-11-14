@@ -1,7 +1,7 @@
 import {isArmBar} from './armBars';
 import { isScrambleSpecialist, heavyweightActivity, isFootSweepSpecialist, lateAttackUrgency, GABLE_PRESSURE_NAMES } from './athleteProfiles';
-import type { Bout } from './bout';
-import { BOUT, COLD_READ, EDGE, Rng, edgeDistance, legCounterFor } from './bout';
+import type { Bout, BottomTry } from './bout';
+import { BOUT, BOTTOM_CHAIN, COLD_READ, EDGE, Rng, edgeDistance, legCounterFor } from './bout';
 import { otherSide } from './types';
 import { STYLE_EFFECT, gradeStep, styleStep } from './attributeRatings';
 import { MAT } from './rules';
@@ -14,6 +14,16 @@ export type Difficulty = 'practice' | 'walk-on' | 'starter' | 'all-american';
 export const POUNCE = { base: 0.12, aggression: 0.5 } as const;
 /** Seconds a warned rider keeps a standing man up before he cuts him instead of being hit for stalling on top. */
 export const STALL_CUT = 4;
+/**
+ * Owner, November 14: "Any action is better than none, so if someone is riding and unable to breakdown and turn within
+ * 15-20 seconds, I'd like to see bottom man activity increase. If top man is really strong (like Zain Retherford) he can
+ * prob break a guy down flat and work on turning him." The AI bottom man's urge builds from `from` seconds ridden on
+ * his base (not broken down flat or turned) to full at `full`: shorter waits (`wait`) and beats (`pace`), more chained
+ * moves (`chain`, and a third link past half), more stand-ups (`stand`) and sit-outs (`sit`) on a quiet beat.
+ * A rider who breaks him down flat starts it over.
+ */
+export const RIDE_URGE = { from: 10, full: 18, wait: 0.5, pace: 0.35, chain: 0.3, stand: 0.2, sit: 0.06 } as const;
+export const rideUrge = (ridden: number): number => Math.max(0, Math.min(1, (ridden - RIDE_URGE.from) / (RIDE_URGE.full - RIDE_URGE.from)));
 
 /**
  * Hand fighting in neutral (owner, November 11: "Yes, more hand fighting"; the review found neutral stretches of up to
@@ -97,6 +107,14 @@ export class WrestlerAI {
   /** He was flat a moment ago: back on his base he goes right away (owner, November 10: up and moving). */
   private wasFlat = false;
   private bottomWait = 0;
+  /** Chain wrestling on the bottom (BOTTOM_CHAIN): the stop he last answered, the move he is going to next, and seconds
+   *  left of working his hips out. */
+  private chainSeen = 0;
+  private chainNext: BottomTry | null = null;
+  private chainLinks = 0;
+  /** Seconds ridden on his base without being broken down or turned (RIDE_URGE). */
+  private rideIdle = 0;
+  private hipsT = 0;
   /** Already decided whether to explode off this whistle. */
   private whistleRead = false;
   private lastPos = '';
@@ -171,6 +189,7 @@ export class WrestlerAI {
       this.held = { shoot: false, fight: false, sprawl: false };
       // Every whistle is a fresh start, even when play stopped and restarts in the same position.
       this.lastPos = 'whistle';
+      this.rideIdle = 0;
       return cmd;
     }
     if(this.p.effort===0)return cmd; // Cooperative practice partner: no attacks or counters.
@@ -191,6 +210,13 @@ export class WrestlerAI {
       this.mashT = this.p.reaction;
     }
     this.decideT -= dt;
+    this.hipsT = Math.max(0, this.hipsT - dt);
+    // Ridden without being broken down or turned (RIDE_URGE): counts on his base, holds through his own moves and on
+    // his feet, and starts over once he is flat or on his back, or off the bottom.
+    if (pos.kind === 'mat' && pos.A !== this.side) {
+      if (pos.sub === 'ride') this.rideIdle += dt;
+      else if (pos.sub !== 'standing') this.rideIdle = 0;
+    } else if (!(pos.kind === 'move' && pos.A !== this.side)) this.rideIdle = 0;
     this.mashT -= dt;
     this.circleT -= dt;
     this.pushT -= dt;
@@ -716,7 +742,8 @@ export class WrestlerAI {
       if ((pos.base < 0.32 || (pos.legRide ?? 0) >= 0.8 && pos.base < BOUT.turkBase) && pos.turnCool <= 0) {
         // Bar specialists finish the breakdown before committing their arm control.
         // With the legs in the turn is the turk, bar man or not.
-        if(isArmBar(style?.preferredTurn)&&(pos.legRide??0)<0.8)cmd.fight=true;else cmd.shoot=true;
+        // An arm-bar tilt man (Spencer Lee, ARM_BAR_TILT) tilts off the bar right from the ride instead.
+        if(isArmBar(style?.preferredTurn)&&!bout.wrestlers[this.side].signature?.tilt&&(pos.legRide??0)<0.8)cmd.fight=true;else cmd.shoot=true;
       }
       else if (pos.base < 0.32 && pos.turnCool > 0) cmd.fight = true;
       else if (me.stamina < 0.2 || pos.control < 0.45) cmd.sprawl = true;
@@ -765,14 +792,55 @@ export class WrestlerAI {
       }
     }
     if ((pos.whistle ?? 0) <= 0) this.whistleRead = false;
-    if (this.switchIn >= 0 || this.decideT > 0) return;
-    this.decideT = 0.35 + this.rng.next() * 0.5;
+    // Clearing his hips (BOTTOM_CHAIN): the stick away from the rider and a little forward, for a beat before he goes.
+    if (this.hipsT > 0 && edgeDistance(pos.frame.x, pos.frame.z) > 1.6) {
+      const c = Math.cos(pos.frame.yaw), s = Math.sin(pos.frame.yaw), away = pos.mirror ? 1 : -1;
+      cmd.moveX = 0.85 * away * c + 0.3 * s;
+      cmd.moveZ = -0.85 * away * s + 0.3 * c;
+    }
+    if (this.switchIn >= 0) return;
+    // Chain wrestling (owner, November 14): stopped, he goes right to the next move while the rider is still answering
+    // the last one, more often the harder he works; otherwise he resets and builds it up again.
+    const urge = rideUrge(this.rideIdle);
+    const chain = bout.bottomChain[this.side];
+    if (BOTTOM_CHAIN.chain > 0 && chain.n !== this.chainSeen && chain.t >= 0 && pos.base > 0.3) {
+      this.chainSeen = chain.n;
+      // Two or three moves in a row, then he resets and builds it up again; ridden long, he keeps going.
+      if (this.chainLinks < 2 + (urge > 0.5 ? 1 : 0) && this.rng.next() < 0.3 + 0.4 * this.p.effort + RIDE_URGE.chain * urge) {
+        this.chainLinks++;
+        const granbyMan = bout.wrestlers[this.side].signature?.bottom === 'granbyRoll';
+        const r = this.rng.next();
+        const sit = (): BottomTry => (granbyMan || pos.commit > 0.3 || this.rng.next() < 0.2 ? 'granby' : 'sitOut');
+        this.chainNext = chain.last === 'standUp' ? (r < 0.45 ? sit() : r < 0.75 || pos.commit < 0.2 ? 'standUp' : 'switch')
+          : chain.last === 'switch' ? (r < 0.6 ? 'standUp' : sit())
+          : r < 0.6 ? 'standUp' : r < 0.8 && pos.commit >= 0.2 ? 'switch' : sit();
+        this.decideT = 0.45 + this.rng.next() * 0.45;
+        if (this.rng.next() < 0.4) this.hipsT = 0.3;
+        return;
+      }
+      this.chainLinks = 0;
+      this.bottomWait = 0;
+      this.decideT = 0.6 + this.rng.next() * 0.6;
+      return;
+    }
+    if (this.decideT > 0) return;
+    if (this.chainNext) {
+      const next = this.chainNext;
+      this.chainNext = null;
+      this.bottomWait = 0;
+      this.decideT = 0.3 + this.rng.next() * 0.3;
+      if (next === 'standUp') cmd.shoot = true;
+      else if (next === 'switch') cmd.fight = true;
+      else { cmd.sitOut = true; cmd.level = next === 'granby'; }
+      return;
+    }
+    this.decideT = (0.35 + this.rng.next() * 0.5) * (1 - RIDE_URGE.pace * urge);
     // Nobody sits on the bottom rebuilding for long. After a few quiet seconds he goes for it
     // as soon as he has enough base for it to work; off less it would only cost him the base.
     this.bottomWait += 1;
     if (this.wasFlat) { this.wasFlat = false; this.bottomWait = 99; }
     // (Owner, November 10: the bottom man should be up and moving; this was 3 + 1.5 / effort + up to 2 beats.)
-    if (this.bottomWait >= 1.5 + 1 / this.p.effort + this.rng.next() * 1.5 && pos.base > 0.42) {
+    if (this.bottomWait >= (1.5 + 1 / this.p.effort + this.rng.next() * 1.5) * (1 - RIDE_URGE.wait * urge) && pos.base > 0.42) {
       // Hands first (owner: stand-ups work off back pressure and hand control), then up.
       if (pos.commit < 0.3 && (pos.hands ?? 0) < 0.35 && this.rng.next() < 0.75) {
         cmd.fight = true;
@@ -781,17 +849,22 @@ export class WrestlerAI {
       }
       this.bottomWait = 0;
       if (pos.commit >= 0.4) cmd.fight = true;
+      // Up in his pod he goes right off it (BOTTOM_CHAIN).
+      else if ((pos.pod ?? 0) > 0.3 && this.rng.next() < 0.4) { cmd.sitOut = true; cmd.level = this.rng.next() < 0.3; }
       else cmd.shoot = true;
       return;
     }
     // Now and then he sits out instead of standing.
     // (About one in four of those a Granby roll, best right after his drive.)
     const granbyMan = bout.wrestlers[this.side].signature?.bottom === 'granbyRoll';
-    // (Owner, November 10: more stand-ups and sit-outs; this was 0.12 / 0.08.)
-    if (pos.base > 0.5 && this.rng.next() < (granbyMan ? 0.18 : 0.14)) { cmd.sitOut = true; cmd.level = granbyMan || pos.commit > 0.3 || this.rng.next() < 0.25; this.bottomWait = 0; return; }
+    // (Owner, November 10: more stand-ups and sit-outs; this was 0.12 / 0.08. November 14: 0.14 / 0.18 to 0.17 / 0.2.)
+    if (pos.base > 0.5 && this.rng.next() < (granbyMan ? 0.18 : 0.14) + RIDE_URGE.sit * urge) { cmd.sitOut = true; cmd.level = granbyMan || pos.commit > 0.3 || this.rng.next() < 0.25; this.bottomWait = 0; return; }
+    // Setting it up (owner, November 14: hand control, clearing hips and back pressure): up to a quad pod, or work the
+    // hips out, then go off it on a later beat.
+    // (Release build: no quad pod or hip work yet.)
     // Build the base first; stand when he has loosened up.
     if (pos.base < 0.6) cmd.sprawl = true;
-    else if (this.rng.next() < 0.35 + (1 - pos.control) * 0.5) { cmd.shoot = true; this.bottomWait = 0; }
+    else if (this.rng.next() < 0.35 + (1 - pos.control) * 0.5 + RIDE_URGE.stand * urge) { cmd.shoot = true; this.bottomWait = 0; }
     else cmd.sprawl = true;
   }
 }

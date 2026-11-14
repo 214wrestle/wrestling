@@ -12,11 +12,19 @@ export type PlanFocus = 'none' | 'double' | 'single' | 'highCrotch' | 'ties' | '
 export type TopPlan = 'turn' | 'ride' | 'cut';
 export interface MatchPlan { style: PlanStyle; focus: PlanFocus; top?: TopPlan; /** AI corner only: protecting a big lead. */ protect?: boolean }
 
-export const PLAN_TOP: { id: TopPlan; label: string; note: string }[] = [
+/**
+ * The player's top plans. Cut is not one (owner, November 14): "On the strategy window, cutting the wrestler is an option
+ * we should remove in that window. We would not want to cut a wrestler late in the 3rd period when we just took a 1 point
+ * lead and need a ride out. We're essentially letting him back in the match. That should just be an option during live
+ * action." He cuts with Lower on top while they wrestle, or at a single whistle (the At the whistle pick). An AI corner
+ * still plans to cut when it needs a takedown late (adaptPlan, scorerPlan).
+ */
+export const PLAN_TOP: { id: Exclude<TopPlan, 'cut'>; label: string; note: string }[] = [
   { id: 'turn', label: 'Turn him', note: 'Work for back points and the fall · a missed turn loosens the ride' },
   { id: 'ride', label: 'Ride', note: 'Tight ride for riding time, hard to escape · weaker turns, and the referee calls stalling sooner if you never try one' },
-  { id: 'cut', label: 'Cut', note: 'Let him up for one point and go back to your feet, at the whistle and after takedowns' },
 ];
+/** The player's plan as the game holds it: never a standing cut (PLAN_TOP). */
+export const playerPlan = (plan: MatchPlan): MatchPlan => (plan.top === 'cut' ? { ...plan, top: 'turn' } : plan);
 
 export const topPlanOf = (plan: MatchPlan | undefined): TopPlan => plan?.top ?? 'turn';
 

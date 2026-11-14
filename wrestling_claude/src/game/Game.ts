@@ -39,7 +39,7 @@ import { edgeHintFor, handsHintFor, readPrompts } from './prompts';
 import { isDone, newTournament, pairOf, playerMatch, record as recordTournament, simMatch, simUntilPlayer, toResult as tournamentResult, type Tournament } from '../sim/tournament';
 import { choiceFor, currentBout, newDual, pickList, pickOddEven, pickWrestler, recordBout, simulateBout, toBoutResult, type Dual } from '../sim/dual';
 import { ContextControls } from './contextControls';
-import { DEFAULT_PLAN, type MatchPlan } from '../sim/strategy';
+import { DEFAULT_PLAN, playerPlan, type MatchPlan } from '../sim/strategy';
 import type { GameApi, UiStore } from './store';
 
 export type PracticeStart = 'standing' | 'top' | 'bottom' | 'single' | 'double' | 'lowSingle' | 'highCrotch';
@@ -651,7 +651,8 @@ export class Game implements GameApi {
     this.store.set({ awaitingChoice: this.sim?.phase === 'positionChoice', canDefer: !!this.sim?.canDefer });
   }
 
-  setPlan(plan: MatchPlan): void {
+  setPlan(input: MatchPlan): void {
+    const plan = playerPlan(input);
     this.playerPlan = plan;
     if (this.sim) this.sim.setPlan(this.sim.humanSide, plan);
     this.store.set({ plan });
@@ -982,7 +983,7 @@ export class Game implements GameApi {
   }
 
   private isMatClip(id: string): boolean {
-    return /^(armBar|wristBar|barHalf|doubleBar)/.test(id) || ['sitOutPull', 'sitOutTurn', 'sitOutEscape', 'breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'fightOff', 'fall', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
+    return /^(armBar|wristBar|barHalf|doubleBar)/.test(id) || ['sitOutPull', 'sitOutTurn', 'sitOutEscape', 'breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'tiltRollBack', 'fightOff', 'fall', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
   }
 
   /** The official works the far side of the action and signals the score. */

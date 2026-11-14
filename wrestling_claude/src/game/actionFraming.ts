@@ -12,6 +12,7 @@ export function actionFraming(pos:Position,wrestling:boolean,radius:number):Acti
   if(pos.kind==='move'){
    const u=pos.t/pos.dur;
    if(pos.id==='fall')pin=1;
+   else if(pos.id==='tiltRollBack')pin=1-smooth(u/.6);
    else if(pos.id==='fightOff'){
     const release=pos.turnStyle==='cradle'?CRADLE_GRIP_RELEASE:isArmBar(pos.turnStyle)?ARM_BAR_GRIP_RELEASE:.5;
     pin=1-smooth((u-release)/(1-release));
