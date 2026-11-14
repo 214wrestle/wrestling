@@ -758,6 +758,11 @@ export class WrestlerAI {
     if (pos.sub === 'flat') this.wasFlat = true;
     else if (pos.sub !== 'ride') this.wasFlat = false;
     if ((pos.sub === 'exposed' || pos.sub === 'spladle') || pos.sub === 'flat') {
+      // Broken down flat he now and then sits out to a hip heist (SIT_OUT; Cary Kolat) rather than only pushing up.
+      if (pos.sub === 'flat' && this.decideT <= 0) {
+        this.decideT = 0.8 + this.rng.next() * 0.6;
+        if (this.rng.next() < 0.12 + 0.1 * this.p.effort) { cmd.sitOut = true; return; }
+      }
       // A wrestler fights hardest on his back; without this every turn is a pin.
       // Flat: he keeps working up (owner, November 10: up and moving, not lying on his belly).
       if (this.mashBeat(pos.sub === 'flat' ? (this.p.effort >= 0.6 ? 1.7 : 1.35) : bout.wrestlers[this.side].survival ?? 1.6)) cmd.sprawl = true;
@@ -803,7 +808,7 @@ export class WrestlerAI {
     // the last one, more often the harder he works; otherwise he resets and builds it up again.
     const urge = rideUrge(this.rideIdle);
     const chain = bout.bottomChain[this.side];
-    if (BOTTOM_CHAIN.chain > 0 && chain.n !== this.chainSeen && chain.t >= 0 && pos.base > 0.3) {
+    if (chain.n !== this.chainSeen && chain.t >= 0 && pos.base > 0.3) {
       this.chainSeen = chain.n;
       // Two or three moves in a row, then he resets and builds it up again; ridden long, he keeps going.
       if (this.chainLinks < 2 + (urge > 0.5 ? 1 : 0) && this.rng.next() < 0.3 + 0.4 * this.p.effort + RIDE_URGE.chain * urge) {
@@ -811,7 +816,9 @@ export class WrestlerAI {
         const granbyMan = bout.wrestlers[this.side].signature?.bottom === 'granbyRoll';
         const r = this.rng.next();
         const sit = (): BottomTry => (granbyMan || pos.commit > 0.3 || this.rng.next() < 0.2 ? 'granby' : 'sitOut');
-        this.chainNext = chain.last === 'standUp' ? (r < 0.45 ? sit() : r < 0.75 || pos.commit < 0.2 ? 'standUp' : 'switch')
+        // Still half up off a stopped stand-up, mostly he just goes again (owner, November 14).
+        this.chainNext = chain.last === 'standUp' && (pos.pod ?? 0) > 0.3 ? (r < 0.65 ? 'standUp' : r < 0.9 ? sit() : 'switch')
+          : chain.last === 'standUp' ? (r < 0.45 ? sit() : r < 0.75 || pos.commit < 0.2 ? 'standUp' : 'switch')
           : chain.last === 'switch' ? (r < 0.6 ? 'standUp' : sit())
           : r < 0.6 ? 'standUp' : r < 0.8 && pos.commit >= 0.2 ? 'switch' : sit();
         this.decideT = 0.45 + this.rng.next() * 0.45;
@@ -824,6 +831,17 @@ export class WrestlerAI {
       return;
     }
     if (this.decideT > 0) return;
+    // Up in his tripod (BOTTOM_CHAIN), he goes off it: a hip heist out of it, the tripod stand-up, or a switch out of
+    // the head post when the rider is over him.
+    if ((pos.hips ?? 0) >= BOTTOM_CHAIN.tripod && this.hipsT <= 0 && !this.chainNext) {
+      const r = this.rng.next();
+      if (r < 0.45) cmd.sitOut = true;
+      else if (r < 0.8 || pos.commit < 0.2) cmd.shoot = true;
+      else cmd.fight = true;
+      this.decideT = 0.4 + this.rng.next() * 0.3;
+      this.bottomWait = 0;
+      return;
+    }
     if (this.chainNext) {
       const next = this.chainNext;
       this.chainNext = null;
@@ -857,14 +875,17 @@ export class WrestlerAI {
     // Now and then he sits out instead of standing.
     // (About one in four of those a Granby roll, best right after his drive.)
     const granbyMan = bout.wrestlers[this.side].signature?.bottom === 'granbyRoll';
-    // (Owner, November 10: more stand-ups and sit-outs; this was 0.12 / 0.08. November 14: 0.14 / 0.18 to 0.17 / 0.2.)
+    // (Owner, November 10: more stand-ups and sit-outs; this was 0.12 / 0.08. November 14: chaining and the tripod's hip
+    // heist bring the extra sit-outs, so the quiet-beat sit-out stays 0.14 / 0.18; at 0.17 / 0.2 sit-outs turned to the
+    // back, already half the falls, rose further.)
     if (pos.base > 0.5 && this.rng.next() < (granbyMan ? 0.18 : 0.14) + RIDE_URGE.sit * urge) { cmd.sitOut = true; cmd.level = granbyMan || pos.commit > 0.3 || this.rng.next() < 0.25; this.bottomWait = 0; return; }
     // Setting it up (owner, November 14: hand control, clearing hips and back pressure): up to a quad pod, or work the
     // hips out, then go off it on a later beat.
-    // (Release build: no quad pod or hip work yet.)
+    if (pos.base > 0.7 && (pos.pod ?? 0) < 0.2 && this.rng.next() < 0.12) { cmd.pod = true; this.bottomWait = 99; return; }
+    if (pos.base > 0.55 && (pos.hips ?? 0) < 0.3 && this.rng.next() < 0.18) { this.hipsT = 0.5 + this.rng.next() * 0.5; return; }
     // Build the base first; stand when he has loosened up.
     if (pos.base < 0.6) cmd.sprawl = true;
-    else if (this.rng.next() < 0.35 + (1 - pos.control) * 0.5 + RIDE_URGE.stand * urge) { cmd.shoot = true; this.bottomWait = 0; }
+    else if (this.rng.next() < 0.12 + (1 - pos.control) * 0.25 + RIDE_URGE.stand * urge) { cmd.shoot = true; this.bottomWait = 0; }
     else cmd.sprawl = true;
   }
 }

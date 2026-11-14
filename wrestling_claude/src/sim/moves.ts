@@ -326,6 +326,29 @@ export const MOVES: Record<string, MoveDef> = {
     camera: 'mat',
     next: { kind: 'neutral', a: { x: 0.05, z: -0.42, yaw: 0 }, b: { x: 0, z: 0.62, yaw: PI } },
   },
+  // The sit-out family (SIT_OUT in bout.ts): turned out, away from the rider; a hip heist out of the tripod; a hip
+  // heist off his belly.
+  sitOutTurnOut: {
+    id: 'sitOutTurnOut',
+    dur: 1.05,
+    award: { to: 'B', kind: 'escape', at: 0.72, detail: 'Sits out and turns out' },
+    camera: 'mat',
+    next: { kind: 'neutral', a: { x: 0.05, z: -0.42, yaw: 0 }, b: { x: 0, z: 0.62, yaw: PI } },
+  },
+  hipHeist: {
+    id: 'hipHeist',
+    dur: 1.0,
+    award: { to: 'B', kind: 'escape', at: 0.7, detail: 'Hip heist' },
+    camera: 'mat',
+    next: { kind: 'neutral', a: { x: 0.05, z: -0.42, yaw: 0 }, b: { x: 0, z: 0.62, yaw: PI } },
+  },
+  hipHeistFlat: {
+    id: 'hipHeistFlat',
+    dur: 1.25,
+    award: { to: 'B', kind: 'escape', at: 0.74, detail: 'Hip heist off his belly' },
+    camera: 'mat',
+    next: { kind: 'neutral', a: { x: 0.05, z: -0.42, yaw: 0 }, b: { x: 0, z: 0.62, yaw: PI } },
+  },
   sitOutTurn: {
     id: 'sitOutTurn',
     dur: 1.5,

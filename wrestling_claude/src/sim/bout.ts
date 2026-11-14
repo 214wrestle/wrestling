@@ -415,7 +415,7 @@ export const setFlashRoll = (v: number, tighten = FLASH_TIGHTEN) => { FLASH_ROLL
 export const LOCKED_HANDS = { grab: 0.45, slip: 0.05, release: 0.4, desperate: 0.07, hold: 0.4, grace: 1, max: 4 } as const;
 const MAT_RETURNS: ReadonlySet<string> = new Set(['returnMat', 'standingTrip', 'crotchLift']);
 /** The bottom man's escapes and reversals off the mat (not on his feet), where locking up to stop one is a call. */
-const LOCK_ESCAPES: ReadonlySet<string> = new Set(['switch', 'sitOutEscape', 'granbyRoll']);
+const LOCK_ESCAPES: ReadonlySet<string> = new Set(['switch', 'sitOutEscape', 'sitOutTurnOut', 'hipHeist', 'hipHeistFlat', 'granbyRoll']);
 export const isLockEscape = (id: string): boolean => LOCK_ESCAPES.has(id);
 /**
  * Mat returns (owner's list, "mat return depth"). How he lands depends on the return and how well it was done:
@@ -469,21 +469,48 @@ export const HANDS = { gain: 0.4, fade: 0.25, chopBreak: 0.4, switchWindow: 0.3,
  * Chain wrestling on the bottom (owner, November 14): "The wrestler on the bottom should be able to move a little more
  * freely unless he is belly flat on the mat. More sit outs, stand ups, tripods, quad pods, etc. They don't always have
  * to be successful, but bottom wrestling is a lot about chain wrestling and immediately trying the next move if one
- * doesn't work. Hand control, clearing hips, and back pressure are all a part of that."
- * - A stopped stand-up from a working base leaves him up on his feet with a hand down (a tripod; both hands down, a quad
- *   pod) instead of back on his knees: it costs `standLoss` of base (was 0.12). The pod (0..1) fades at `podFade` a
- *   second (faster the tighter the ride), and a chop knocks him back to his knees. From it a stand-up gets `podStand`,
- *   a sit-out or Granby `podSit`. The AI also goes up to a quad pod on purpose (Command.pod).
+ * doesn't work. Hand control, clearing hips, and back pressure are all a part of that." Then: "A stop stand-up won't
+ * always end up in a tripod. The tripod probably happens more from the bottom position when the bottom man's trying to
+ * work up and he leaves his head on the mat and 2 feet ... the top rider's out to the side ... trying to get his hips
+ * out. A failed or stop stand-up could kind of end up in a variety of different places, back down to the mat, broken
+ * back down to the mat, or he could try to stand up again."
+ * - A stand-up the rider stops, off a working base, ends one of three ways (STAND_STOP): broken back down flat; still
+ *   half up on his hands and feet (`pod`, fading at `podFade` a second, faster the tighter the ride; a chop puts him
+ *   down), so he can go again at once (+`podStand`, and a sit-out +`podSit`), for `halfLoss` of base; or back down on
+ *   his base for `standLoss` of it (was 0.12 every time). The AI also goes up to a quad pod on purpose (Command.pod).
+ * - The tripod: on his base the stick works his hips out from under the rider (`hips`, 0..1: `hipsGain` a second,
+ *   fading at `hipsFade`) and moves the pair along (`crawl` m/s at a full base). From `tripod` up he is in the tripod,
+ *   head and both feet on the mat, hips high and out, the rider out to the side (Zack Esposito, "Bottom Man Tripod",
+ *   https://www.youtube.com/watch?v=z2sFBCKUkgU; USA Wrestling, "Chain Wrestling from Bottom": head post, circle the
+ *   hips away from the top man, switch out of the head post). It adds `hipsStand` to a stand-up (Donny Pritzlaff,
+ *   "Tripod Standup"), `hipsSwitch` to a switch, and a sit-out out of it is a hip heist (+`hipsSit`; SIT_OUT). A chop
+ *   knocks him out of it. Flat on his belly the stick does nothing.
  * - The next different move within `window` seconds of a stopped one gets `chain`: the rider is still answering the
  *   last one. The same move again does not.
- * - On his base the stick works his hips out from under the rider (`hips`, 0..1: `hipsGain` a second, fading at
- *   `hipsFade`) and moves the pair along (`crawl` m/s at a full base). It adds `hipsStand`, `hipsSit` and `hipsSwitch`.
- *   Flat on his belly he cannot.
  * - A stopped switch or Granby costs `switchLoss` / `granbyLoss` of base (were 0.22 / 0.25).
  */
-// Release build: held back until the owner has seen the rework (all of it off; a stopped stand-up costs 0.12 as before).
-export const BOTTOM_CHAIN = { window: 1.5, chain: 0, standLoss: 0.12, podFade: 0.5, podStand: 0, podSit: 0,
-  hipsGain: 0, hipsFade: 0.6, hipsStand: 0, hipsSit: 0, hipsSwitch: 0, crawl: 0, switchLoss: 0.22, granbyLoss: 0.25 } as const;
+// `rideDamp`: each step of the rider's riding grade (STYLE_EFFECT steps, -2..2) takes that share off the chain, half-up and
+// tripod edges and off how fast the bottom man works into his tripod (a riding-5 rider halves them; owner: a really strong
+// rider like Retherford breaks him down and works to turn him).
+export const BOTTOM_CHAIN = { window: 1.5, chain: 0.08, rideDamp: 0.25, standLoss: 0.1, halfLoss: 0.04, podFade: 0.5, podStand: 0.1, podSit: 0.1,
+  hipsGain: 1.6, hipsFade: 0.6, tripod: 0.5, hipsStand: 0.06, hipsSit: 0.1, hipsSwitch: 0.08, crawl: 0.15, switchLoss: 0.12, granbyLoss: 0.15 } as const;
+/** Where a stopped stand-up ends (BOTTOM_CHAIN): broken flat `flat` of the time and still half up `up` of the time
+ *  between even men, the rest back on his base; the rider's riding over his bottom skill moves both by `skill` a point
+ *  of rating gap, and a ride tighter than 0.6 control breaks him down `tight` more for each point over. (At 0.18 /
+ *  0.4 / 0.4 a quarter of them ended flat: with the AI trying a stand-up every few seconds, the bottom man spent 16% of
+ *  his time flat, not 5%, and falls rose by a fifth to a third; 0.06 / 0.25 / 0.25 still left one in eight flat.) The AI
+ *  tries a stand-up every few seconds, so broken flat has to be a small share of each stopped one. */
+export const STAND_STOP = { flat: 0.03, up: 0.3, skill: 0.15, tight: 0.1 } as const;
+/**
+ * The sit-out family (owner, November 14: "sit-out, turn in, sit-out, turn out, hip heist, things like that", from
+ * film). A sit-out that gets him out finishes as a hip heist out of the tripod (Cary Kolat, "Sit Out to Hip Heist",
+ * https://www.youtube.com/shorts/ktNBmoBlTIA: sat through, a hand posted, the hips swung round to face him); as a turn
+ * out, away from the rider (a peek out, "out the back door"), `out` of the time plus up to `over` more when the rider is
+ * over the top of him (his weight committed forward); otherwise a turn in toward him (Jon Morrison, "Sit Out, Turn In",
+ * https://www.youtube.com/watch?v=vkY16JCnNnQ). Broken down flat, a sit-out is a hip heist off his belly: `flat` plus
+ * his quickness and what base he has, a hard way out but a way out.
+ */
+export const SIT_OUT = { out: 0.2, over: 0.55, flat: 0.06 } as const;
 export type BottomTry = 'standUp' | 'sitOut' | 'granby' | 'switch';
 /**
  * The top man's breakdown at the whistle from the referee's position (owner, November 10: "give the top man 3-4
@@ -700,6 +727,14 @@ export class Bout {
   readonly bottomChain: [{ last: BottomTry | null; t: number; n: number }, { last: BottomTry | null; t: number; n: number }] =
     [{ last: null, t: 99, n: 0 }, { last: null, t: 99, n: 0 }];
   private stopped(side: Side, last: BottomTry, t = 0): void { const c = this.bottomChain[side]; c.last = last; c.t = t; c.n++; }
+  /** How a sit-out that gets him out finishes (SIT_OUT): a hip heist out of the tripod, a turn out (away from the
+   *  rider) more often when the rider is over the top of him, otherwise a turn in. */
+  private sitOutFinish(s: Extract<Position, { kind: 'mat' }>): MoveId {
+    if ((s.hips ?? 0) >= BOTTOM_CHAIN.tripod) return 'hipHeist';
+    return this.rng.chance(clamp(SIT_OUT.out + SIT_OUT.over * clamp01(s.commit / 0.5), 0, 0.9)) ? 'sitOutTurnOut' : 'sitOutEscape';
+  }
+  /** How much of the chain, half-up and tripod edges the rider leaves him (BOTTOM_CHAIN.rideDamp). */
+  private chainDamp(top: Side): number { return clamp(1 - BOTTOM_CHAIN.rideDamp * this.styleSteps[top].ride, 0.4, 1.5); }
   /** BOTTOM_CHAIN.chain when he goes to a different move inside the window after a stopped one. */
   private chainEdge(side: Side, kind: BottomTry): number {
     const c = this.bottomChain[side];
@@ -2375,8 +2410,8 @@ export class Bout {
         const cb = cmds[Bm.side];
         const legsIn = (s.legRide ?? 0) >= 0.8;
         const m = Math.min(1, Math.hypot(cb.moveX, cb.moveZ));
-        if (m > 0.3 && !legsIn && Bm.side !== this.practicePartner && BOTTOM_CHAIN.crawl > 0) {
-          s.hips = Math.min(1, (s.hips ?? 0) + dt * BOTTOM_CHAIN.hipsGain * m * (0.5 + 0.5 * Bm.stamina) * (1.2 - 0.6 * s.control));
+        if (m > 0.3 && !legsIn && Bm.side !== this.practicePartner) {
+          s.hips = Math.min(1, (s.hips ?? 0) + dt * BOTTOM_CHAIN.hipsGain * m * (0.5 + 0.5 * Bm.stamina) * (1.2 - 0.6 * s.control) * this.chainDamp(T.side));
           s.control = Math.max(0, s.control - dt * 0.04 * m);
           this.spend(Bm, dt * 0.015 * m);
           const r = Math.hypot(s.frame.x, s.frame.z);
@@ -2386,7 +2421,7 @@ export class Bout {
             s.frame.z += cb.moveZ * v * dt;
           }
         } else s.hips = Math.max(0, (s.hips ?? 0) - dt * BOTTOM_CHAIN.hipsFade);
-        if (BOTTOM_CHAIN.podStand > 0 && cb.pod && !this.prev[Bm.side].pod && !legsIn && s.base > 0.6 && (s.pod ?? 0) < 0.3) {
+        if (cb.pod && !this.prev[Bm.side].pod && !legsIn && s.base > 0.6 && (s.pod ?? 0) < 0.3) {
           s.pod = 1;
           this.spend(Bm, 0.02);
           this.ev.feedback?.(Bm.side, 'sprawl', 'ok', 'Quad pod');
@@ -2432,8 +2467,9 @@ export class Bout {
         s.base -= hit;
         s.commit = 0.5;
         s.hands = Math.max(0, (s.hands ?? 0) - HANDS.chopBreak);
-        // A chop knocks him off his feet, back to his knees (BOTTOM_CHAIN).
+        // A chop knocks him off his feet, back to his knees, and down out of his tripod (BOTTOM_CHAIN).
         s.pod = 0;
+        s.hips = (s.hips ?? 0) * 0.4;
         this.spend(T, 0.035);
         this.ev.feedback?.(T.side, 'fight', 'ok');
         if (s.base <= 0) {
@@ -2479,7 +2515,7 @@ export class Bout {
         this.granbyPending[Bm.side] = 0;
         this.spend(Bm, 0.07);
         const p = clamp(0.24 + wb.quickness * 0.3 - s.control * 0.35 + s.commit * 0.5 + (1 - T.stamina) * 0.15 + this.signatureEdge(Bm.side, 'bottom', 'granbyRoll')
-          + this.chainEdge(Bm.side, 'granby') + BOTTOM_CHAIN.podSit * (s.pod ?? 0), 0.06, 0.6) * PACE.sitOut;
+          + this.chainDamp(T.side) * (this.chainEdge(Bm.side, 'granby') + BOTTOM_CHAIN.podSit * (s.pod ?? 0)), 0.06, 0.6) * PACE.sitOut;
         if (T.side === this.practicePartner || this.rng.chance(p)) {
           this.ev.feedback?.(Bm.side, 'shoot', 'won', 'Granby roll');
           this.startMove('granbyRoll', s.A, s.frame, false);
@@ -2495,17 +2531,21 @@ export class Bout {
         this.sitOutPending[Bm.side] = 0;
         this.spend(Bm, 0.06);
         const escape = clamp(0.2 + wb.quickness * 0.25 - s.control * 0.4 - STYLE_EFFECT.rideHold * this.styleSteps[T.side].ride + STYLE_EFFECT.bottomOdds * this.styleSteps[Bm.side].bottom + (s.base - 0.5) * 0.5 + (1 - T.stamina) * 0.2 + tp.escape + HANDS.sitOut * (s.hands ?? 0) + HANDS.backSit * (s.back ?? 0) + this.openerEdge(s, 'sitOut')
-          + this.chainEdge(Bm.side, 'sitOut') + BOTTOM_CHAIN.podSit * (s.pod ?? 0) + BOTTOM_CHAIN.hipsSit * (s.hips ?? 0), 0.05, 0.62) * PACE.sitOut * bigBottom(this.wrestlers[Bm.side].weightClass);
+          + this.chainDamp(T.side) * (this.chainEdge(Bm.side, 'sitOut') + BOTTOM_CHAIN.podSit * (s.pod ?? 0) + BOTTOM_CHAIN.hipsSit * (s.hips ?? 0)), 0.05, 0.62) * PACE.sitOut * bigBottom(this.wrestlers[Bm.side].weightClass);
         // Sitting out of a tripod, or with his hips already cleared, his hips are away from the rider: harder to catch
         // and roll to his back (BOTTOM_CHAIN; with the chain's extra sit-outs, sit-outs turned to the back had doubled).
-        const turn = clamp(0.12 + (wt.turning ?? wt.mat) * 0.25 + STYLE_EFFECT.turnOdds * this.styleSteps[T.side].turn - wb.defense * 0.25 - (this.wrestlers[Bm.side].turnResist ?? 0)
-          - BOTTOM_CHAIN.podSit * (s.pod ?? 0) - BOTTOM_CHAIN.hipsSit * (s.hips ?? 0), 0.03, 0.5);
-        const id = T.side === this.practicePartner || this.rng.chance(escape) ? 'sitOutEscape' : this.rng.chance(turn) ? 'sitOutTurn' : 'sitOutPull';
+        // (Base 0.12 until November 14: with the chain's extra sit-outs, sit-outs turned to the back became the single
+        // biggest source of falls, a third of them even before; at 0.08 most stopped sit-outs are pulled back to his base.)
+        const turn = clamp(0.08 + (wt.turning ?? wt.mat) * 0.25 + STYLE_EFFECT.turnOdds * this.styleSteps[T.side].turn - wb.defense * 0.25 - (this.wrestlers[Bm.side].turnResist ?? 0)
+          - this.chainDamp(T.side) * (this.chainEdge(Bm.side, 'sitOut') + BOTTOM_CHAIN.podSit * (s.pod ?? 0) + BOTTOM_CHAIN.hipsSit * (s.hips ?? 0)), 0.03, 0.5);
+        const out = T.side === this.practicePartner || this.rng.chance(escape);
+        const id: MoveId = out ? this.sitOutFinish(s) : this.rng.chance(turn) ? 'sitOutTurn' : 'sitOutPull';
         // Pulled back to his base, the chain window opens as he lands.
         if (id === 'sitOutPull') this.stopped(Bm.side, 'sitOut', -MOVES.sitOutPull.dur);
+        if (out) this.ev.feedback?.(Bm.side, 'shoot', 'won', id === 'hipHeist' ? 'Hip heist' : id === 'sitOutTurnOut' ? 'Turn out' : 'Turn in');
         this.startMove(id, s.A, s.frame, false);
-        // Off the hand control, his back pressure or right on the whistle, the short sit and turn-in explode (TIMING).
-        if (id === 'sitOutEscape') this.burst(clamp01((s.hands ?? 0) + (s.back ?? 0) + ((s.whistle ?? 0) > 0 ? 0.5 : 0)), otherSide(s.A));
+        // Off the hand control, his back pressure or right on the whistle, the short sit and turn explode (TIMING).
+        if (out) this.burst(clamp01((s.hands ?? 0) + (s.back ?? 0) + ((s.whistle ?? 0) > 0 ? 0.5 : 0)), otherSide(s.A));
         return;
       }
       // Bottom.
@@ -2521,7 +2561,7 @@ export class Bout {
         // Standing up off a weak base into a tight rider just gets you chopped back down. Back pressure, hand
         // control and going right off the whistle make it (HANDS).
         const off = HANDS.standUp * (s.hands ?? 0) + HANDS.backStand * (s.back ?? 0) + ((s.whistle ?? 0) > 0 ? HANDS.whistleStand : 0) + this.openerEdge(s, 'standUp')
-          + this.chainEdge(Bm.side, 'standUp') + BOTTOM_CHAIN.podStand * (s.pod ?? 0) + BOTTOM_CHAIN.hipsStand * (s.hips ?? 0);
+          + this.chainDamp(T.side) * (this.chainEdge(Bm.side, 'standUp') + BOTTOM_CHAIN.podStand * (s.pod ?? 0) + BOTTOM_CHAIN.hipsStand * (s.hips ?? 0));
         const p = clamp(0.3 + wb.quickness * 0.25 - s.control * 0.5 + (s.base - 0.5) * 0.6 + (1 - T.stamina) * 0.2 + tp.escape + off, 0.05, 0.85) * PACE.standUp * bigBottom(this.wrestlers[Bm.side].weightClass);
         // A cooperative practice partner lets a learner rehearse the escape.
         if (T.side === this.practicePartner || s.base > 0.4 && this.rng.chance(p)) {
@@ -2534,12 +2574,20 @@ export class Bout {
         this.ev.feedback?.(Bm.side, 'shoot', 'lost');
         this.stopped(Bm.side, 'standUp');
         s.control = Math.min(1, s.control + 0.08);
-        // Off a working base he got his feet under him: the rider stops him rising, not his feet (BOTTOM_CHAIN). With
-        // the legs in, or off a weak base, he is just chopped back down.
-        if (BOTTOM_CHAIN.standLoss < 0.12 && s.base > 0.4 && (s.legRide ?? 0) < 0.8) {
-          s.base -= BOTTOM_CHAIN.standLoss;
-          s.pod = 1;
-          s.hips = Math.max(s.hips ?? 0, 0.4);
+        // Where it ends (STAND_STOP; owner, November 14): broken back down flat, still half up to go again, or back down
+        // on his base. With the legs in, or off a weak base, he is just put back down.
+        if (s.base > 0.4 && (s.legRide ?? 0) < 0.8) {
+          const edge = (wt.riding ?? wt.mat) - (wb.bottom ?? wb.mat);
+          const flat = clamp(STAND_STOP.flat + STAND_STOP.skill * edge + STAND_STOP.tight * Math.max(0, s.control - 0.6), 0.01, 0.2);
+          const up = clamp(STAND_STOP.up - STAND_STOP.skill * edge, 0.1, 0.45);
+          const r = this.rng.next();
+          if (r < flat && T.side !== this.practicePartner) {
+            s.pod = 0;
+            this.startMove('breakdown', s.A, s.frame, false);
+            return;
+          }
+          if (r < flat + up) { s.pod = 1; s.base -= BOTTOM_CHAIN.halfLoss; }
+          else s.base -= BOTTOM_CHAIN.standLoss;
         } else s.base -= 0.12;
       }
       if (s.commit < HANDS.switchWindow && this.take(Bm, 'fight')) {
@@ -2551,7 +2599,7 @@ export class Bout {
         this.spend(Bm, 0.05);
         // A switch beats weight that is out front: the more he just committed, the better it is.
         const p = clamp(0.1 + s.commit * 0.8 + ((wb.bottom ?? wb.mat) - (wt.riding ?? wt.mat)) * 0.25 - STYLE_EFFECT.rideHold * this.styleSteps[T.side].ride + STYLE_EFFECT.bottomOdds * this.styleSteps[Bm.side].bottom + wb.quickness * 0.1 + tp.escape + this.openerEdge(s, 'switch')
-          + this.chainEdge(Bm.side, 'switch') + BOTTOM_CHAIN.hipsSwitch * (s.hips ?? 0), 0.05, 0.85) * PACE.switch;
+          + this.chainDamp(T.side) * (this.chainEdge(Bm.side, 'switch') + BOTTOM_CHAIN.hipsSwitch * (s.hips ?? 0)), 0.05, 0.85) * PACE.switch;
         this.ev.tell?.(T.side, 'switch');
         if (s.base > 0.25 && this.rng.chance(p)) {
           this.ev.feedback?.(Bm.side, 'fight', 'won');
@@ -2622,6 +2670,24 @@ export class Bout {
       if (this.take(T, 'sprawl')) {
         s.control = Math.min(1, s.control + 0.2);
         this.ev.feedback?.(T.side, 'sprawl', 'ok');
+      }
+      // A sit-out off his belly is a hip heist (SIT_OUT): he sits through, posts a hand and swings his hips round to face
+      // the rider. Hard, but a way out; stopped, he has at least got some base under him.
+      if ((this.sitOutPending[Bm.side] > 0 || this.granbyPending[Bm.side] > 0) && Bm.side !== this.practicePartner) {
+        this.sitOutPending[Bm.side] = 0;
+        this.granbyPending[Bm.side] = 0;
+        this.spend(Bm, 0.06);
+        const p = clamp(SIT_OUT.flat + wb.quickness * 0.2 + s.base * 0.3 - s.control * 0.25 + (1 - T.stamina) * 0.15 + STYLE_EFFECT.bottomOdds * this.styleSteps[Bm.side].bottom, 0.03, 0.35)
+          * PACE.sitOut * bigBottom(this.wrestlers[Bm.side].weightClass);
+        if (this.rng.chance(p)) {
+          this.ev.feedback?.(Bm.side, 'shoot', 'won', 'Hip heist');
+          this.startMove('hipHeistFlat', s.A, s.frame, false);
+          return;
+        }
+        s.base = Math.min(1, s.base + 0.08);
+        s.heave = 1;
+        s.control = Math.min(1, s.control + 0.05);
+        this.ev.feedback?.(Bm.side, 'shoot', 'lost', 'Hip heist');
       }
       // All three buttons push up; holding several together is still one push.
       let pushed = false;

@@ -983,7 +983,7 @@ export class Game implements GameApi {
   }
 
   private isMatClip(id: string): boolean {
-    return /^(armBar|wristBar|barHalf|doubleBar)/.test(id) || ['sitOutPull', 'sitOutTurn', 'sitOutEscape', 'breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'tiltRollBack', 'fightOff', 'fall', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
+    return /^(armBar|wristBar|barHalf|doubleBar)/.test(id) || ['sitOutPull', 'sitOutTurn', 'sitOutEscape', 'sitOutTurnOut', 'hipHeist', 'hipHeistFlat', 'breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'tiltRollBack', 'fightOff', 'fall', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
   }
 
   /** The official works the far side of the action and signals the score. */

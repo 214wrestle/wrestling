@@ -1,7 +1,7 @@
 import {ARM_BAR_LABELS,CRADLE_LABELS,flatTurnFor,isArmBar,type TopTurnChoice} from '../sim/armBars';
 import { LEG_CLEAR_THRESHOLD } from '../sim/legRideQuality';
 import { MOVES } from '../sim/moves';
-import { BOUT, EDGE, edgeDistance, HANDS, legCounterFor, TIE_UP, LEG_COUNTER_LABELS, isLockEscape } from '../sim/bout';
+import { BOTTOM_CHAIN, BOUT, EDGE, edgeDistance, HANDS, legCounterFor, TIE_UP, LEG_COUNTER_LABELS, isLockEscape } from '../sim/bout';
 import { MAT } from '../sim/rules';
 import type { MatchSim } from '../sim/MatchSim';
 import { otherSide } from '../sim/types';
@@ -224,7 +224,7 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
           position: label,
           prompts: top
             ? { shoot: P(turnLabel, pos.control > 0.3 ? 'hot' : 'idle'), fight: P('Pressure', 'idle'), sprawl: P('Ride tight', 'idle', 'Lower: tap Cut · hold Legs in') }
-            : { shoot: P('Push up', 'mash'), fight: P('Push up', 'mash'), sprawl: P('Push up', 'mash', legsIn ? 'Closes pockets · Lower: Catch leg' : undefined) },
+            : { shoot: P('Push up', 'mash', 'Sit out: hip heist'), fight: P('Push up', 'mash'), sprawl: P('Push up', 'mash', legsIn ? 'Closes pockets · Lower: Catch leg' : undefined) },
           meters: [{ label: 'Base', value: Math.min(1, pos.base / 0.68), tone: top ? 'them' : 'you' }, ...legMeters],
         };
       }
@@ -238,8 +238,9 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
               sprawl: P('Ride tight', 'idle', 'Lower: tap Cut · hold Legs in'),
             }
           : {
-              // Up in a tripod off a stopped stand-up (BOTTOM_CHAIN): go right again, or sit out of it.
-              shoot: (pos.pod ?? 0) > 0.3 ? P('Stand up', 'hot', 'Up in a tripod: go again, or sit out')
+              // Half up off a stopped stand-up: go right again. In the tripod (BOTTOM_CHAIN): stand off it, or sit out to a hip heist.
+              shoot: (pos.hips ?? 0) >= BOTTOM_CHAIN.tripod ? P('Stand up', 'hot', 'Tripod: Sit out is a hip heist')
+                : (pos.pod ?? 0) > 0.3 ? P('Stand up', 'hot', 'Half up: go again')
                 : P('Stand up', (pos.whistle ?? 0) > 0 ? 'hot' : pos.base > 0.4 ? 'idle' : 'off', 'Sit out + Lower: Granby roll'),
               fight: pos.commit >= HANDS.switchWindow ? P('Switch', 'hot') : P('Hand control', 'idle'),
               sprawl: P('Base up', pos.base < 0.5 ? 'hot' : 'idle', legsIn ? 'Closes pockets · Lower: Catch leg' : undefined),

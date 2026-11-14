@@ -51,11 +51,11 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
   },
   {
     title: 'On bottom',
-    lead: 'Get your base, then get out. On a phone, tap repeatedly or hold a button to build effort while fighting off your back or breaking a grip.',
+    lead: 'Get your base, then get out, and chain it: when he stops one move, go straight to the next (stand again, sit out, switch) while he is still answering the last. On your base the stick works your hips out from under him, up into a tripod: head and feet on the mat, hips high, where a stand-up, a switch or a hip heist works better. On a phone, tap repeatedly or hold a button to build effort while fighting off your back or breaking a grip.',
     rows: [
-      { key: 'J', move: 'Stand up', note: 'From a good base, best right off the whistle or with hand control. Then K for hand control and J to turn out, or K + Shift for a standing switch. Returned to the mat: J as you come down to turn in the moment you land (miss and you land flatter).' },
+      { key: 'J', move: 'Stand up', note: 'From a good base, best right off the whistle or with hand control. If he stops it you may be back on your base, broken down flat, or still half up to go again. Up on your feet: K for hand control and J to turn out, or K + Shift for a standing switch. Returned to the mat: J as you come down to turn in the moment you land (miss and you land flatter).' },
       { key: 'K', move: 'Hand control · Switch', note: 'Take his hand at your waist: your stand-up and sit-out work far better with it and with back pressure (L builds your base into him). Right after he chops or drives it is a switch: a reversal puts you on top.' },
-      { key: 'X', move: 'Sit out', note: 'Sit through and turn in. Risky: he can pull you to your back. X + Shift is a Granby roll.' },
+      { key: 'X', move: 'Sit out', note: 'Sit through and turn in toward him, or turn out away from him when he is over the top of you. From the tripod, or broken down flat on your belly, it is a hip heist: sit through, post a hand and swing your hips round to face him. Risky: he can pull you to your back. X + Shift is a Granby roll.' },
       { key: 'L', move: 'Base up', note: 'Rebuild your base; on your back, hammer to fight off. Against his legs it closes your pockets; Shift catches the leg.' },
     ],
   },

@@ -133,6 +133,7 @@ function pairedFor(p: Position, side: Side, athletes: [Athlete, Athlete], rideQu
         hands: p.sub === 'ride' ? p.hands ?? 0 : undefined,
         pod: p.sub === 'ride' ? p.pod ?? 0 : undefined,
         hipsOut: p.sub === 'ride' ? p.hips ?? 0 : undefined,
+        back: p.sub === 'ride' ? p.back ?? 0 : undefined,
         resistance: p.sub==='exposed' && (p.turnStyle==='cradle'||isArmBar(p.turnStyle)) ? Math.max(0,Math.min(1,p.fight)) : undefined,
         ...base,
       };

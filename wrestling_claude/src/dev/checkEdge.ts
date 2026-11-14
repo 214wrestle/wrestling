@@ -38,12 +38,20 @@ function rideOut(sub:'ride'|'exposed',d:number,bottom:Partial<Command>,top:Parti
   ok(!held.out,'a rider dragging him to the center keeps him in');
 }
 
-// Far from the line, the stick does nothing to the position.
+// Far from the line the stick moves him only a little on his base (owner, November 14: "The wrestler on the bottom
+// should be able to move a little more freely unless he is belly flat on the mat"; BOTTOM_CHAIN.crawl), and not at all
+// flat on his belly. (November 10 to 14 he could not move at all there.)
 {
   const b=new Bout([R[0],R[1]],{},7);b.setReferee(0,{x:0,z:0},0);
   const f=(b.position as Extract<Position,{kind:'mat'}>).frame;const x0=f.x;
   for(let i=0;i<60;i++)b.tick(DT,[NO_COMMAND,cmd(OUT)]);
-  ok(Math.abs((b.position as any).frame.x-x0)<0.02,'in the middle of the mat the bottom man cannot crawl anywhere');
+  const moved=Math.abs((b.position as any).frame.x-x0);
+  ok(moved>0.02&&moved<0.2,`in the middle of the mat the bottom man on his base moves only a little (${(moved*100).toFixed(0)} cm in a second)`);
+  const c=new Bout([R[0],R[1]],{},7);c.setReferee(0,{x:0,z:0},0);
+  Object.assign(c.position,{sub:'flat',base:0});
+  const g=(c.position as Extract<Position,{kind:'mat'}>).frame;const gx=g.x;
+  for(let i=0;i<60;i++)c.tick(DT,[NO_COMMAND,cmd(OUT)]);
+  ok(Math.abs((c.position as any).frame.x-gx)<0.005,'flat on his belly he cannot crawl anywhere');
   ok(edgeDistance(0,0)>EDGE.zone,'the edge zone is only near the line');
 }
 

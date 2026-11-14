@@ -584,7 +584,7 @@ export class MatchSim {
   }
 
   private isMatMove(id: string): boolean {
-    return ['sitOutPull', 'sitOutTurn', 'sitOutEscape', 'breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'tiltRollBack', 'fightOff', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
+    return ['sitOutPull', 'sitOutTurn', 'sitOutEscape', 'sitOutTurnOut', 'hipHeist', 'hipHeistFlat', 'breakdown', 'rebase', 'halfNelson', 'cradle', 'tilt', 'tiltRollBack', 'fightOff', 'standUp', 'returnMat', 'standingTrip', 'crotchLift', 'switch', 'escapeTurn'].includes(id);
   }
 
   private endPeriod(): void {

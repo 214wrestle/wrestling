@@ -1026,6 +1026,99 @@ registerMove({
     { who: 'A', hand: 'R', on: 'spine', at: [-0.04, 0.03, 0.12], from: 0, to: 0.36, fade: 0.14 },
   ],
 });
+// The sit-out family (SIT_OUT in bout.ts; owner, November 14: "sit-out, turn in, sit-out, turn out, hip heist").
+// Turn out (a peek out, "out the back door"): the same short sit, but onto the far hip and posted on the far hand,
+// turning away from the rider and on round to face him. Its yaw runs the other way from the turn in (0, -50, -110,
+// -180; poses blend in local yaw, so the sign picks the direction he spins).
+registerMove({
+  id: 'sitOutTurnOut',
+  A: [
+    { t: 0, pose: { base: holdAt('ride', 'A', 0.3) } },
+    { t: 0.18, pose: SIT_CLEAR_A },
+    { t: 0.32, pose: SIT_A },
+    { t: 0.5, pose: { hips: [0.24, 0.6, -0.42], rot: [-10, 12, 0], spine: [2, 0, 0] } },
+    { t: 1, pose: { base: stanceAt({ x: 0.05, z: -0.42, yaw: 0 }, 1) } },
+  ],
+  B: [
+    { t: 0, pose: { base: holdAt('ride', 'B', 0.3) } },
+    { t: 0.16, pose: SIT_THROUGH_B },
+    // Short sit onto the far hip, posted on the far hand, looking out over the far shoulder.
+    { t: 0.3, pose: { hips: [-0.06, 0.22, -0.04], rot: [-50, 18, 22], spine: [8, -10, 0], head: [-10, -20, 0],
+      footR: [-0.3, 0.06, 0.2, -40, 60], footL: [0.32, 0.06, 0.3, -60, 30], kneeR: [-0.12, 0.12, 0.08], kneeL: [0.2, 0.35, 0.3],
+      handR: [-0.32, POST, -0.02], handL: [-0.05, 0.4, 0.25], elbowR: [-0.4, 0.25, -0.1], elbowL: [0.15, 0.4, 0.1] } },
+    // Turned out and round onto his knees, hands posted, facing the rider.
+    { t: 0.56, pose: { hips: [-0.06, 0.36, 0.2], rot: [-110, 40, 0], spine: [12, -6, 0], handR: [-0.2, POST, 0.1], handL: [0.1, POST, 0.5] } },
+    { t: 1, pose: { base: stanceAt({ x: 0, z: 0.62, yaw: -180 }, 1) } },
+  ],
+  contacts: [
+    { who: 'A', hand: 'L', on: 'forearmL', at: [0, -0.04, -0.035], from: 0, to: 0.14, fade: 0.08 },
+    { who: 'A', hand: 'R', on: 'spine', at: [-0.04, 0.03, 0.12], from: 0, to: 0.36, fade: 0.14 },
+  ],
+});
+// Hip heist (Cary Kolat, "Sit Out to Hip Heist", https://www.youtube.com/shorts/ktNBmoBlTIA; Mark Branch: drill it to
+// separate the hips): he sits through onto his seat, posts the far hand, lifts his hips off the mat and swings them round
+// under him, and comes up on his knees facing the rider. Out of the tripod, and off his belly after a breakdown.
+const HEIST_SEAT_B: PoseSpec = { hips: [0.02, 0.15, 0.02], rot: [0, -4, 0], spine: [-4, 0, 0], head: [-12, 0, 0],
+  footL: [0.2, 0.05, 0.6, 0, 20], footR: [-0.2, 0.05, 0.6, 0, 20], kneeL: [0.3, 0.5, 0.4], kneeR: [-0.3, 0.5, 0.4],
+  handL: [0.24, POST, -0.12], handR: [-0.24, POST, -0.1], elbowL: [0.32, 0.3, -0.25], elbowR: [-0.32, 0.3, -0.25] };
+const HEIST_SWING_B: PoseSpec = { hips: [-0.1, 0.32, 0.12], rot: [-70, 25, 20], spine: [10, -8, 0], head: [-6, -10, 0],
+  footL: [0.25, 0.12, 0.42, -70, 30], footR: [-0.05, BALL, 0.5, -50, 50], kneeL: [0.3, 0.4, 0.2], kneeR: [0, 0.3, 0.4],
+  handR: [-0.32, POST, 0.0], handL: [0.0, 0.45, 0.25], elbowR: [-0.4, 0.3, -0.1], elbowL: [0.1, 0.45, 0.1] };
+// Up on his knees facing the rider (turned round, so the kneel is the ride's turned 180 degrees): knees under him, feet
+// behind him on the toes, hands posted in front. Left out, the feet stayed where the swing had them, legs in the air.
+const HEIST_KNEES_B: PoseSpec = { hips: [-0.04, 0.4, 0.24], rot: [-165, 45, 0], spine: [12, -4, 0],
+  footL: [-0.13, BALL, 0.68, -180, 75], footR: [0.13, BALL, 0.68, -180, 75], kneeL: [-0.14, -0.3, -0.06], kneeR: [0.14, -0.3, -0.06],
+  handR: [0.15, POST, -0.18], handL: [-0.17, POST, -0.15], elbowR: [0.3, 0.3, -0.05], elbowL: [-0.32, 0.3, -0.03] };
+// The rider loses the waist as the hips come out and comes up off him to his feet.
+const HEIST_OFF_A: PoseSpec = { hips: [0.26, 0.52, -0.38], rot: [-14, 22, 0], spine: [6, -2, 0] };
+const HEIST_UP_A: PoseSpec = { hips: [0.2, 0.62, -0.42], rot: [-8, 10, 0], spine: [2, 0, 0] };
+registerMove({
+  id: 'hipHeist',
+  A: [
+    { t: 0, pose: { base: holdAt('ride', 'A', 0.3) } },
+    { t: 0.2, pose: SIT_CLEAR_A },
+    { t: 0.4, pose: HEIST_OFF_A },
+    { t: 0.62, pose: HEIST_UP_A },
+    { t: 1, pose: { base: stanceAt({ x: 0.05, z: -0.42, yaw: 0 }, 1) } },
+  ],
+  B: [
+    { t: 0, pose: { base: holdAt('ride', 'B', 0.3) } },
+    { t: 0.16, pose: SIT_THROUGH_B },
+    { t: 0.32, pose: HEIST_SEAT_B },
+    { t: 0.5, pose: HEIST_SWING_B },
+    { t: 0.7, pose: HEIST_KNEES_B },
+    { t: 1, pose: { base: stanceAt({ x: 0, z: 0.62, yaw: -180 }, 1) } },
+  ],
+  contacts: [
+    { who: 'A', hand: 'L', on: 'forearmL', at: [0, -0.04, -0.035], from: 0, to: 0.14, fade: 0.08 },
+    { who: 'A', hand: 'R', on: 'spine', at: [-0.04, 0.03, 0.12], from: 0, to: 0.4, fade: 0.14 },
+  ],
+});
+registerMove({
+  id: 'hipHeistFlat',
+  A: [
+    { t: 0, pose: { base: holdAt('flat', 'A', 0.3) } },
+    { t: 0.22, pose: { base: holdAt('flat', 'A', 1) } },
+    { t: 0.36, pose: SIT_CLEAR_A },
+    { t: 0.55, pose: HEIST_OFF_A },
+    { t: 0.72, pose: HEIST_UP_A },
+    { t: 1, pose: { base: stanceAt({ x: 0.05, z: -0.42, yaw: 0 }, 1) } },
+  ],
+  B: [
+    { t: 0, pose: { base: holdAt('flat', 'B', 0.5) } },
+    // Up off his belly onto a hand and a knee, then the sit-through.
+    { t: 0.2, pose: { base: holdAt('flat', 'B', 1) } },
+    { t: 0.34, pose: SIT_THROUGH_B },
+    { t: 0.46, pose: HEIST_SEAT_B },
+    { t: 0.6, pose: HEIST_SWING_B },
+    { t: 0.78, pose: HEIST_KNEES_B },
+    { t: 1, pose: { base: stanceAt({ x: 0, z: 0.62, yaw: -180 }, 1) } },
+  ],
+  contacts: [
+    { who: 'A', hand: 'L', on: 'forearmL', at: [0, -0.2, 0.0], from: 0, to: 0.26, fade: 0.08 },
+    { who: 'A', hand: 'R', on: 'hips', at: [-0.13, 0.02, 0.0], from: 0, to: 0.48, fade: 0.14 },
+  ],
+});
 registerMove({
   id: 'sitOutTurn',
   A: [

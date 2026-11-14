@@ -1471,10 +1471,12 @@ if(!v.hold && v.role==='A')applyArmBarTurnSteps(lp,v.clip,v.u,v.mirror);
       }
     }
     // Moving on the bottom (BOTTOM_CHAIN; owner, November 14: "move a little more freely ... More sit outs, stand ups,
-    // tripods, quad pods"; "Hand control, clearing hips, and back pressure are all a part of that"). Up in a pod his
-    // knees come off the mat: feet up under him on the balls, hips high and back over them, hands still posted (one on
-    // the rider's wrist in a tripod, from the hand control below). Clearing his hips swings them out away from the rider
-    // with a twist through the trunk; back pressure sits him back into the rider, chest up. The rider rises and follows.
+    // tripods, quad pods"; "Hand control, clearing hips, and back pressure are all a part of that"). Half up after a
+    // stopped stand-up (the pod), his knees come off the mat: feet up under him on the balls, hips high and back over
+    // them, hands still posted. Working his hips out he goes up into the tripod (owner: "he leaves his head on the mat
+    // and 2 feet ... the top rider's out to the side"; Zack Esposito, "Bottom Man Tripod"): the chest dives so the head
+    // posts on the mat, feet under him and wider, hips high and swung out away from the rider, both hands off the mat
+    // fighting the rider's hands; the rider stays out to the side. Back pressure sits him back into the rider, chest up.
     const riding = v.hold && v.clip === 'ride';
     const ease = (target: number, cur: number, rate: number) => this.instant ? target : cur + (target - cur) * Math.min(1, this.frameDt * rate);
     this.podK = ease(riding ? v.pod ?? 0 : 0, this.podK, 6);
@@ -1483,25 +1485,37 @@ if(!v.hold && v.role==='A')applyArmBarTurnSteps(lp,v.clip,v.u,v.mirror);
     let podLift = 0;
     if (riding) {
       const s3 = (x: number) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
-      const pk = s3(this.podK), hk = s3(this.hipsK), bk = s3(this.backK) * (1 - pk);
+      const pk = s3(this.podK), tk = s3((this.hipsK - 0.2) / 0.5) * (1 - pk), bk = s3(this.backK) * (1 - Math.max(pk, tk));
       // The rider is on the bottom man's left (+X), on his right when mirrored; clearing goes away from him.
-      const away = v.mirror ? 1 : -1;
-      podLift = 0.2 * pk;
+      const away = v.mirror ? 1 : -1, side = v.mirror ? -1 : 1;
+      const up = Math.max(pk, tk);
+      podLift = 0.2 * up;
       if (v.role === 'B') {
-        lp[P.HIPS + 1] += podLift - 0.02 * bk;
-        lp[P.HIPS + 2] += -0.07 * pk - 0.05 * bk;
-        lp[P.HIPS] += away * 0.1 * hk;
+        lp[P.HIPS + 1] += 0.2 * pk + 0.27 * tk - 0.02 * bk;
+        lp[P.HIPS + 2] += -0.07 * pk - 0.04 * tk - 0.05 * bk;
+        lp[P.HIPS] += away * 0.1 * tk;
         for (const f of [P.FOOT_L, P.FOOT_R]) {
-          lp[f + 2] += (-0.2 - lp[f + 2]) * pk;
-          lp[f + FOOT.HEEL] += (0.65 - lp[f + FOOT.HEEL]) * pk;
-          lp[f] += away * 0.06 * hk;
+          lp[f + 2] += (-0.2 - lp[f + 2]) * up;
+          lp[f + FOOT.HEEL] += (0.65 - lp[f + FOOT.HEEL]) * up;
+          lp[f] += (away * 0.06 + Math.sign(lp[f] || 1) * 0.05) * tk;
         }
-        lp[P.SPINE] += 0.18 * pk - 0.14 * bk;
-        lp[P.SPINE + 1] += away * 0.2 * hk;
-        lp[P.HEAD] -= 0.12 * bk;
+        lp[P.SPINE] += 0.18 * pk + 0.45 * tk - 0.14 * bk;
+        lp[P.HIPS_Q + 1] += 0.45 * tk;
+        lp[P.SPINE + 1] += away * 0.15 * tk;
+        lp[P.HEAD] += 0.35 * tk - 0.12 * bk;
+        if (tk > 0.01) {
+          // Hands off the mat: the far hand on the rider's wrist at his waist, the near arm tucked in under him.
+          const targets: [number, number[]][] = [
+            [v.mirror ? P.HAND_L : P.HAND_R, [side * 0.02, 0.34 + 0.24 * tk, 0.02]],
+            [v.mirror ? P.ELBOW_L : P.ELBOW_R, [side * -0.2, 0.5 + 0.2 * tk, 0.12]],
+            [v.mirror ? P.HAND_R : P.HAND_L, [side * 0.08, 0.36 + 0.12 * tk, 0.25]],
+            [v.mirror ? P.ELBOW_R : P.ELBOW_L, [side * 0.18, 0.42 + 0.12 * tk, 0.18]],
+          ];
+          for (const [at, to] of targets) for (let axis = 0; axis < 3; axis++) lp[at + axis] += (to[axis] - lp[at + axis]) * tk;
+        }
       } else if (v.role === 'A') {
         lp[P.HIPS + 1] += 0.45 * podLift;
-        lp[P.HIPS] += away * 0.05 * hk;
+        lp[P.HIPS] -= away * 0.08 * tk;
       }
     }
     this.handControl += ((v.hold && v.clip==='ride' && v.role==='B' ? v.hands ?? 0 : 0) - this.handControl) * Math.min(1, this.frameDt * 6);
