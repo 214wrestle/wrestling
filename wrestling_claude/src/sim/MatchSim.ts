@@ -410,13 +410,7 @@ export class MatchSim {
       }
     }
     if (this.period === 3) {
-      this.applyRidingTimePoint();
-      if (this.result) return;
-      const diff = this.score[0] - this.score[1];
-      if (diff !== 0) {
-        this.finish(diff > 0 ? 0 : 1, classifyDecision(Math.abs(diff)));
-        return;
-      }
+      // Level after regulation and its riding-time point (decidedAtBuzzer): sudden victory.
       // Riding time from regulation does not carry into overtime (Rule 3.15.1).
       this.ridingTime = 0;
       this.announce({ text: 'Sudden Victory', detail: 'Two minutes. First points win it.', tone: 'big', hold: 2.4 });
@@ -433,16 +427,7 @@ export class MatchSim {
         this.requestPeriodChoice();
         return;
       }
-      // End of a tiebreaker pair: more points, or a net riding-time edge of a second or more (Rule 3.16.4).
-      const diff = this.score[0] - this.score[1];
-      if (diff !== 0) {
-        this.finish(diff > 0 ? 0 : 1, 'tiebreaker');
-        return;
-      }
-      if (Math.abs(this.ridingTime) >= TIEBREAKER_RIDING_EDGE) {
-        this.finish(this.ridingTime > 0 ? 0 : 1, 'tiebreaker');
-        return;
-      }
+      // Still level after the tiebreaker pair (decidedAtBuzzer): another sudden victory.
       this.announce({ text: `Sudden Victory ${overtimeRound(this.period) + 1}`, detail: 'One minute. First points win it.', tone: 'big', hold: 2.4 });
       this.beginPeriod(this.period + 1);
       return;
@@ -616,6 +601,9 @@ export class MatchSim {
     this.releaseNearFall();
     this.releaseLock();
     if(this.result)return;
+    // A buzzer that decides it ends the match right there (finish blows it): no break and no game plan, which is only
+    // for a match going on (owner, November 15: "It should only come up when the match is going to OT").
+    if (this.decidedAtBuzzer()) return;
     this.listeners.onWhistle?.('period');
     this.bout.setFree();
     // They separate for the break (the view cuts here): ending a period tied up or on the mat left them standing
@@ -633,6 +621,22 @@ export class MatchSim {
     }
     this.announce({ text: this.period >= 3 ? 'End of period' : `End of period ${this.period}`, tone: 'whistle', hold: 1.6 });
     this.setPhase('periodBreak', this.breakSeconds);
+  }
+
+  /** The end of regulation (with its riding-time point) or of a tiebreaker pair settles the match at the buzzer, as
+   *  the scorer's table does; true when that finished it. Level, it goes on to overtime after the break. */
+  private decidedAtBuzzer(): boolean {
+    if (this.period === 3) {
+      this.applyRidingTimePoint();
+      const diff = this.score[0] - this.score[1];
+      if (diff !== 0) this.finish(diff > 0 ? 0 : 1, classifyDecision(Math.abs(diff)));
+    } else if (this.period >= 4 && overtimePart(this.period) === 2) {
+      // More points over the tiebreaker pair, or a net riding-time edge of a second or more (Rule 3.16.4).
+      const diff = this.score[0] - this.score[1];
+      if (diff !== 0) this.finish(diff > 0 ? 0 : 1, 'tiebreaker');
+      else if (Math.abs(this.ridingTime) >= TIEBREAKER_RIDING_EDGE) this.finish(this.ridingTime > 0 ? 0 : 1, 'tiebreaker');
+    }
+    return !!this.result;
   }
 
   private whistle(reason: 'out' | 'stalemate'): void {
