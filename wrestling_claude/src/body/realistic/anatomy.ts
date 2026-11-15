@@ -129,7 +129,12 @@ export interface BodyParams {
   baseHead?: boolean;
   /** Photo fit for the base head's face (landmark offsets and photo projection). */
   faceFit?: import('./faceFit').FaceFitData;
+  /** Also mesh a pair of finger-pistol hands (Oklahoma State's "Pistols Firing" celebration; generate.ts). */
+  pistolHands?: boolean;
 }
+
+/** How the fingers are held: the relaxed hand every body has, or a finger pistol (index out, thumb up). */
+export type HandPose = 'relaxed' | 'pistol';
 
 export const NEUTRAL_FACE: FaceParams = {
   jaw: 0,
@@ -781,7 +786,7 @@ function ears(cauli: number, flare = 0, size = 1): Spec[] {
   return [...specs, ...specs.map(mirror)];
 }
 
-function arms(f: FrameParams): Spec[] {
+function arms(f: FrameParams, handPose: HandPose = 'relaxed'): Spec[] {
   const muscleBlend = 1 - 0.4 * Math.max(0, Math.min(1, f.definition ?? 0));
   const A = PART.Arm;
   const D = PART.Hand;
@@ -854,15 +859,18 @@ function arms(f: FrameParams): Spec[] {
     ...pair(ell('handL', [0.193, 0.83, -0.002], [0.012, 0.045, 0.036], 0.016, D, { w: { handL: 1 } })),
     // Thenar pad.
     ...pair(ell('handL', [0.18, 0.834, 0.024], [0.016, 0.026, 0.016], 0.012, D, { rot: [0, 0, -10], w: { handL: 1 } })),
-    ...hand(),
+    ...hand(handPose),
   ];
 }
 
 /**
  * Fingers in three phalanges, held together in a relaxed curl that increases
  * from the index to the little finger; the thumb rests along the index.
+ * The pistol (Oklahoma State's "Pistols Firing", owner November 15) straightens the index as the barrel, curls the
+ * other three into the palm as the grip morph closes them, and stands the thumb up from its first joint as the hammer.
+ * It is meshed on its own (generate.ts): bending a relaxed hand's index out of the fused fingers tore a web.
  */
-function hand(): Spec[] {
+function hand(pose: HandPose = 'relaxed'): Spec[] {
   const D = PART.Hand;
   const specs: Spec[] = [];
   // [z across the palm, radius, proximal, distal (middle+distal), curl at knuckle, middle, tip]
@@ -872,6 +880,10 @@ function hand(): Spec[] {
     [-0.0123, 0.0098, 0.041, 0.034, 25, 52, 67],
     [-0.028, 0.0089, 0.034, 0.028, 28, 56, 71],
   ];
+  if (pose === 'pistol') {
+    fingers[0] = [...fingers[0].slice(0, 4), 3, 5, 6] as typeof fingers[0];
+    for (let i = 1; i < 4; i++) fingers[i] = [...fingers[i].slice(0, 4), 65, 125, 160] as typeof fingers[0];
+  }
   const knuckle = 0.78;
   const DEG = Math.PI / 180;
   const dir = (deg: number): V3 => [-Math.sin(deg * DEG), -Math.cos(deg * DEG), 0];
@@ -894,6 +906,17 @@ function hand(): Spec[] {
     [0.174, 0.798, 0.045],
     [0.171, 0.776, 0.043],
   ];
+  if (pose === 'pistol') {
+    // The hammer: past its first joint the thumb stands out from the index side (+z), a little back toward the wrist.
+    const joint = t[1];
+    const l1 = Math.hypot(t[2][0] - joint[0], t[2][1] - joint[1], t[2][2] - joint[2]);
+    const l2 = Math.hypot(t[3][0] - t[2][0], t[3][1] - t[2][1], t[3][2] - t[2][2]);
+    const d: V3 = [0.05, 0.25, 1];
+    const n = Math.hypot(...d);
+    const u: V3 = [d[0] / n, d[1] / n, d[2] / n];
+    t[2] = [joint[0] + u[0] * l1, joint[1] + u[1] * l1, joint[2] + u[2] * l1];
+    t[3] = [t[2][0] + u[0] * l2, t[2][1] + u[1] * l2, t[2][2] + u[2] * l2];
+  }
   const tr = [0.013, 0.0114, 0.01, 0.0088];
   for (let i = 0; i < 3; i++) {
     specs.push(...pair(cone('handL', t[i], t[i + 1], tr[i], tr[i + 1], i === 0 ? 0.008 : 0.003, D, { w: { handL: 1 } })));
@@ -1187,14 +1210,14 @@ function toPrim(s: Spec, params: BodyParams, bind: BindPose): Prim {
   return p;
 }
 
-export function buildPrims(params: BodyParams): { prims: Prim[]; bind: BindPose } {
+export function buildPrims(params: BodyParams, handPose: HandPose = 'relaxed'): { prims: Prim[]; bind: BindPose } {
   const bind = bindPose(params.scale);
   const specs = [
     ...torso(params.frame),
     ...neckBase(params.frame),
     ...head(params.face, params.hair, params.hairFront, params.sculptedSweep, params.hairVolume, params.hairLow ?? 0),
     ...neckTop(params.frame),
-    ...arms(params.frame),
+    ...arms(params.frame, handPose),
     ...legs(params.frame),
   ];
   const prims = specs.map((s) => toPrim(s, params, bind));

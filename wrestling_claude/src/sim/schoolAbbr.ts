@@ -57,6 +57,12 @@ export function iconSchool(w: Schooled): string | null {
   return m ? m[1].trim() : null;
 }
 
+/** Oklahoma State's "Pistols Firing" celebration (owner, November 15): its wrestlers, and an Icon who wrestled there. */
+export function firesPistols(w: Schooled): boolean {
+  const own = iconSchool(w);
+  return (own ? own.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : w.school.id) === 'oklahoma-state';
+}
+
 /** The school to show: his own for an Icon outside a dual meet, otherwise his team. */
 export function schoolLabel(w: Schooled, inDual = false): { name: string; abbr: string } {
   const own = inDual ? null : iconSchool(w);

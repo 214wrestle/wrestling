@@ -1,4 +1,6 @@
 import { STILL_INTENSITY } from '../anim/clips';
+import { PISTOLS_SECONDS } from '../anim/library/solo';
+import { firesPistols } from '../sim/schoolAbbr';
 import {isArmBar} from '../sim/armBars';
 import {legRideQuality,LEG_CLEAR_THRESHOLD} from '../sim/legRideQuality';
 import { SHOT_CLIPS, LEG_HOLDS } from '../sim/moves';
@@ -178,7 +180,9 @@ export function wrestlerViews(sim: MatchSim): [AnimView, AnimView] {
       case 'results': {
         const won = sim.result?.winner === side;
         const t = sim.phase === 'results' ? 9 : sim.phaseT;
-        if (won) v = t > 3.2 ? soloView(me, 'handRaised', 0) : soloView(me, 'celebrate', t / 1.5);
+        // An Oklahoma State winner celebrates with "Pistols Firing" (owner, November 15), then the hand raise.
+        const pistols = firesPistols(sim.wrestlers[side]);
+        if (won) v = t > PISTOLS_SECONDS ? soloView(me, 'handRaised', 0) : pistols ? soloView(me, 'pistols', t / PISTOLS_SECONDS) : soloView(me, 'celebrate', t / 1.5);
         else v = soloView(me, 'dejected', 0);
         break;
       }

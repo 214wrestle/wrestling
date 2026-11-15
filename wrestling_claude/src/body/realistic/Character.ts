@@ -163,6 +163,8 @@ function gearMaterial(shell: string, strap: string): MeshPhysicalMaterial {
 
 export class RealCharacter {
   private gripMeshes: Partial<Record<'L'|'R', SkinnedMesh>> = {};
+  /** Finger-pistol hands (geo.pistolHands), hidden until setPistol swaps them in. */
+  private pistolMeshes: Partial<Record<'L'|'R', SkinnedMesh>> = {};
   readonly root = new Group();
   readonly motion: WrestlingStyle;
   readonly bones = {} as Record<BoneName, Bone>;
@@ -231,6 +233,20 @@ export class RealCharacter {
       mesh.updateMatrixWorld(true);
       mesh.bind(skeleton);
     }
+    // Oklahoma State's finger pistols (generate.ts): bound like the hands, hidden until setPistol swaps them in.
+    geo.pistolHands?.forEach((m, i) => {
+      const g = toGeometry(m);
+      this.geometries.push(g);
+      const mesh = new SkinnedMesh(g, this.material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mesh.frustumCulled = false;
+      mesh.visible = false;
+      this.root.add(mesh);
+      mesh.updateMatrixWorld(true);
+      mesh.bind(skeleton);
+      this.pistolMeshes[i === 0 ? 'L' : 'R'] = mesh;
+    });
 
     for (const b of this.boneList) b.quaternion.identity();
     this.root.updateMatrixWorld(true);
@@ -301,6 +317,15 @@ export class RealCharacter {
   setGrip(hand:'L'|'R',amount:number):void {
     const mesh=this.gripMeshes[hand];
     if(mesh?.morphTargetInfluences)mesh.morphTargetInfluences[0]=Math.max(0,Math.min(1,amount));
+  }
+  /** Finger pistol for Oklahoma State's "Pistols Firing": past half way the pistol hand (geo.pistolHands) stands in
+   *  for the relaxed one. A body built without pistol hands keeps its own. */
+  setPistol(hand:'L'|'R',amount:number):void {
+    const pistol=this.pistolMeshes[hand],relaxed=this.gripMeshes[hand];
+    if(!pistol||!relaxed)return;
+    const on=amount>0.5;
+    pistol.visible=on;
+    relaxed.visible=!on;
   }
 
   setGaze(target: Vector3): void {

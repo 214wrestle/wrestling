@@ -31,6 +31,9 @@ export interface RealGeometry {
   /** Fine face-detail patch (high quality only). */
   face: RealMesh | null;
   hands: RealMesh[];
+  /** Finger-pistol hands, left and right (params.pistolHands; Oklahoma State's celebration), shown in place of the
+   *  first two hands while it plays. */
+  pistolHands?: RealMesh[];
   headgear: MeshData | null;
   /** Coarse scalp patch the hair shells are grown from (head-joint space). */
   scalp: MeshData | null;
@@ -147,6 +150,8 @@ function bakeAO(prims: Prim[], m: MeshData, sc: number, reachScale = 1, fadeY = 
 }
 
 const gearCache = new Map<string, MeshData>();
+/** Within this of the wrist joint (canonical metres) a pistol hand keeps the relaxed hand's box (generateBody). */
+const PISTOL_WRIST = 0.06;
 
 /** Headgear meshed once for the canonical 1.76 m head, in head-joint space. */
 function canonicalHeadgear(quality: 'high' | 'low'): MeshData {
@@ -282,6 +287,33 @@ export function generateBody(
     return r;
   };
 
+  // Oklahoma State's finger pistols (anatomy hand('pistol')), meshed like the hands from the pistol primitives. The box
+  // grows for the straight index and the raised thumb, but only away from the wrist: within PISTOL_WRIST of the joint
+  // the mesh keeps exactly the relaxed hand's box, so it meets the forearm on the same seam instead of doubling the
+  // forearm skin where the body mesh already has it.
+  let pistolHands: RealMesh[] | undefined;
+  if (params.pistolHands) {
+    const { prims: pp, bind } = buildPrims(params, 'pistol');
+    pistolHands = ([1, -1] as const).map((side, i) => {
+      const own = bounds(pp.filter((p) => p.part === PART.Hand && Math.sign(p.bcx) === side), 0.012 * sc);
+      const hb = handBoxes[i];
+      const box: Box = {
+        min: [Math.min(own.min[0], hb.min[0]), Math.min(own.min[1], hb.min[1]), Math.min(own.min[2], hb.min[2])],
+        max: [Math.max(own.max[0], hb.max[0]), Math.max(own.max[1], hb.max[1]), Math.max(own.max[2], hb.max[2])],
+      };
+      const w = bind.pos[side === 1 ? 'handL' : 'handR'];
+      const m = polygonize(pp, {
+        min: box.min,
+        max: box.max,
+        h: hFine * (quality === 'high' ? 1.15 : 1.45),
+        keep: (x, y, z) => inside(hb, x, y, z) || Math.hypot(x - w[0], y - w[1], z - w[2]) > PISTOL_WRIST * sc,
+      });
+      tuck(m, hb, 0.005 * sc, 0.0007 * sc);
+      return { ...m, ao: bakeAO(pp, m, sc, 0.7, -1, box) };
+    });
+    lap('pistolHands');
+  }
+
   let headgear: MeshData | null = null;
   if (withHeadgear) {
     // The headgear is rigid and the same for everyone: mesh it once at the
@@ -341,6 +373,7 @@ export function generateBody(
     head: useBase ? darkenEyeMargins(withAO(head, 0.5, 1.565 * sc), sc) : withAO(head, 0.5, 1.565 * sc),
     face: face ? withAO(face, 0.5, 1.565 * sc) : null,
     hands: [...hands.map((h, i) => withAO(h, 0.7, -1, handBoxes[i])), ...feet.map((f) => withAO(f))],
+    pistolHands,
     headgear,
     scalp,
     scalpLen,

@@ -2,7 +2,7 @@ import type { Wrestler } from '../../sim/types';
 import { animationMotion } from '../../sim/athleteProfiles';
 import { likenessFor } from './likeness';
 import { eraKitFor, kitIdOf, schoolColours } from './eraKits';
-import { iconSchool } from '../../sim/schoolAbbr';
+import { firesPistols, iconSchool } from '../../sim/schoolAbbr';
 import { FIT_FACE, type FaceFitData } from './faceFit';
 import { FACE_FITS } from './faces/fits';
 import { LIKENESS_LOOKS } from './likenessLooks';
@@ -361,6 +361,8 @@ function configuration(w: Wrestler, band: string, override?: BuildOverride) {
 
 export async function buildRealCharacter(w: Wrestler, band: string, quality: Quality): Promise<RealCharacter> {
   const {params, options, sides} = configuration(w, band);
+  // Oklahoma State wrestlers celebrate with "Pistols Firing" and get a pair of finger-pistol hands for it.
+  if (firesPistols(w)) params.pistolHands = true;
   const geo = await requestGeometry(params, quality, sides);
   return new RealCharacter(geo, options);
 }

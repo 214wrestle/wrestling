@@ -1,5 +1,5 @@
 import { registerSolo } from '../solo';
-import type { PoseSpec } from '../spec';
+import type { Key, PoseSpec, V3 } from '../spec';
 import { BALL, PALM_DOWN, POST } from './kit';
 
 /**
@@ -82,6 +82,71 @@ registerSolo({
         elbowR: [-0.7, 1.45, -0.1],
       },
     },
+  ],
+});
+
+/* ------------------------------------------- Oklahoma State: Pistols Firing */
+
+/**
+ * Owner, November 15: "Can you add the pistol celebration for Oklahoma state". OSU's hand sign is "Pistols Firing":
+ * thumb and index out as a pistol, held up with "Go Pokes". An Oklahoma State winner draws from the hips, fires both
+ * pistols into the air (never at anyone) left, right, left, right, then both overhead twice, blows the smoke off the
+ * right one and holsters them. One pass is PISTOLS_SECONDS; the referee's hand raise follows (views.ts). The hands take
+ * the pistol shape while it plays (Animator, setPistol).
+ */
+export const PISTOLS_SECONDS = 3.2;
+const holstered: PoseSpec = {
+  ...tall,
+  spine: [-6, 0, 0],
+  head: [-8, 0, 0],
+  handL: [0.25, 0.99, 0.03],
+  handR: [-0.25, 0.99, 0.03],
+  elbowL: [0.6, 1.0, -0.3],
+  elbowR: [-0.6, 1.0, -0.3],
+};
+const upL: V3 = [0.3, 1.76, 0.2], upR: V3 = [-0.3, 1.76, 0.2];
+const highL: V3 = [0.24, 2.0, 0.1], highR: V3 = [-0.24, 2.0, 0.1];
+const firing: PoseSpec = {
+  spine: [-8, 0, 0],
+  head: [-16, 0, 0],
+  handL: upL,
+  handR: upR,
+  elbowL: [0.6, 1.25, 0.1],
+  elbowR: [-0.6, 1.25, 0.1],
+  wristL: [0, 0, 0],
+  wristR: [0, 0, 0],
+};
+/** The kick of a shot: the hand jumps up and back and the barrel tips back. */
+const KICK_WRIST: V3 = [-28, 0, 0];
+const kicked = (h: V3): V3 => [h[0], h[1] + 0.07, h[2] - 0.03];
+/** One shot from `left`/`right` at u: the kick, then back on aim. */
+function shot(u: number, left: boolean, right: boolean, l: V3, r: V3): Key[] {
+  return [
+    { t: u, pose: { ...(left ? { handL: kicked(l), wristL: KICK_WRIST } : {}), ...(right ? { handR: kicked(r), wristR: KICK_WRIST } : {}) } },
+    { t: u + 0.05, stop: true, pose: { ...(left ? { handL: l, wristL: [0, 0, 0] as V3 } : {}), ...(right ? { handR: r, wristR: [0, 0, 0] as V3 } : {}) } },
+  ];
+}
+registerSolo({
+  id: 'pistols',
+  keys: [
+    { t: 0, stop: true, pose: holstered },
+    // The draw.
+    { t: 0.07, stop: true, pose: firing },
+    ...shot(0.12, true, false, upL, upR),
+    ...shot(0.2, false, true, upL, upR),
+    ...shot(0.28, true, false, upL, upR),
+    ...shot(0.36, false, true, upL, upR),
+    // Both overhead, twice.
+    { t: 0.45, stop: true, pose: { head: [-24, 0, 0], handL: highL, handR: highR, elbowL: [0.55, 1.65, 0], elbowR: [-0.55, 1.65, 0] } },
+    ...shot(0.5, true, true, highL, highR),
+    ...shot(0.6, true, true, highL, highR),
+    // Blow the smoke off the right one, its barrel straight up just in front of his mouth; the left goes back in its
+    // holster.
+    { t: 0.74, stop: true, pose: { head: [10, 0, 0], handR: [-0.04, 1.49, 0.18], elbowR: [-0.14, 0.95, 0.3], wristR: [0, 0, 0], handL: holstered.handL, elbowL: holstered.elbowL } },
+    { t: 0.84, stop: true, pose: { head: [16, 0, 0], handR: [-0.04, 1.5, 0.17] } },
+    // Holster it.
+    { t: 0.95, stop: true, pose: holstered },
+    { t: 1, stop: true, pose: holstered },
   ],
 });
 

@@ -154,6 +154,8 @@ export class Animator {
   private legFree: [number, number] = [1, 1];
   /** Seconds left of getting up off the mat into a walk: a slower blend than a step. */
   private riseT = 0;
+  /** Finger-pistol hand shape weight (Oklahoma State's celebration). */
+  private pistolW = 0;
   private gazeTarget = new Vector3();
   private phase = Math.random() * 10;
   private breath = Math.random() * 6;
@@ -440,9 +442,16 @@ export class Animator {
       case 'solo':
         this.buildSolo(view, opp);
         footTarget = 0;
-        this.halfLife = this.riseT > 0 ? 0.22 : 0.09;
+        // The pistols' recoil is a snap: a tighter follow than a celebration's bounce.
+        this.halfLife = this.riseT > 0 ? 0.22 : view.clip === 'pistols' ? 0.035 : 0.09;
         break;
     }
+    // Oklahoma State's "Pistols Firing" (views: an OSU winner's celebration): the hands make finger pistols.
+    const pistolWant = view.mode === 'solo' && view.clip === 'pistols' ? 1 : 0;
+    this.pistolW += (pistolWant - this.pistolW) * (this.instant ? 1 : Math.min(1, dt * 9));
+    if (this.pistolW < 0.002) this.pistolW = 0;
+    this.character.setPistol?.('L', this.pistolW);
+    this.character.setPistol?.('R', this.pistolW);
 
     if(timedRecovery&&!changed)this.halfLife=.035/Math.max(.05,clipRate);
     // A chop is a strike (CHOP): the pose follows it at once instead of easing it into a pull.
@@ -824,7 +833,8 @@ this.authoredGripWant[hand]=want;
       const aperture=bone==='neck'||bone==='head'?.5:
         bone?.startsWith('forearm')?.72:bone?.startsWith('hand')?.85:
         bone?.startsWith('shin')?.6:bone?.startsWith('thigh')?.35:.4;
-      this.character.setGrip?.(hand,w*(clasp?.8:aperture),clasp?'gable':'hook');
+      // A pistol hand (setPistol) already curls three fingers: the grip gives way to it instead of curling them twice.
+      this.character.setGrip?.(hand,w*(clasp?.8:aperture)*(1-this.pistolW),clasp?'gable':'hook');
       // A free hand forgets its old anchor, so a later grip never glides from a stale spot.
       if (w < 0.01 || !bone || !opp) { this.gripRelease[hand].age=1; this.handFightAnchor[hand].bone=null; continuity();saveHand();continue; }
       const ob = opp.character.bones[bone];

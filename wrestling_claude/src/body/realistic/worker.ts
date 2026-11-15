@@ -6,7 +6,7 @@ self.onmessage = (event: MessageEvent<{id: number; params: BodyParams; quality: 
   const geo = generateBody(params, quality, true, sides);
   // AO and patch arrays can share buffers. Transfer each buffer only once.
   const buffers = new Set<ArrayBuffer>();
-  for (const mesh of [geo.body, geo.head, geo.face, ...geo.hands, geo.headgear, geo.scalp]) {
+  for (const mesh of [geo.body, geo.head, geo.face, ...geo.hands, ...(geo.pistolHands ?? []), geo.headgear, geo.scalp]) {
     if (!mesh) continue;
     for (const value of Object.values(mesh)) if (ArrayBuffer.isView(value)) buffers.add(value.buffer as ArrayBuffer);
   }
