@@ -223,6 +223,7 @@ export class Game implements GameApi {
       else if (this.sim?.phase === 'intros') this.skipIntros();
       else if (this.sim?.phase === 'whistle') this.skipReturn();
     });
+    canvas.addEventListener('pointerdown', this.onMatTap);
     this.input.onDevice = (device) => this.store.set({ device });
     window.addEventListener('blur', this.clearPendingTechnique);
 
@@ -760,6 +761,12 @@ export class Game implements GameApi {
     this.skippedReturn = true;
     if (!this.sim.skipReturn()) this.skippedReturn = false;
   }
+  /** A tap or click anywhere on the mat is the phone's "any button": the touch buttons are gone between the action,
+   * so it skips a replay or, once the call is in (as a pad press, step), the walk back. HUD buttons keep their taps. */
+  private onMatTap = (): void => {
+    if (this.replay.playing) this.skipReplay();
+    else if (this.sim?.phase === 'whistle' && this.sim.phaseT >= 0.25) this.skipReturn();
+  };
 
   /* ------------------------------------------------------------- phases --- */
 
@@ -1281,6 +1288,7 @@ export class Game implements GameApi {
     cancelAnimationFrame(this.raf);
     window.removeEventListener('resize', this.onResize);
     window.removeEventListener('blur', this.clearPendingTechnique);
+    this.canvas.removeEventListener('pointerdown', this.onMatTap);
     this.resizeObserver?.disconnect();
     this.teardownMatch();
     this.removeBodies();
