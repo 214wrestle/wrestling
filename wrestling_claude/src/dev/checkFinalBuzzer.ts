@@ -77,4 +77,21 @@ for(const period of [1,2]){
   sim.tick(DT,idle);
   ok(!sim.result&&sim.phase==='periodBreak',`period ${period} ends in the break`);
 }
-console.log('Final buzzer: a decided match ends at the buzzer; the break and its game plan only come before more wrestling');
+// The winner's celebration runs 7.5 s to the results unless skipped; a skip asked for early waits for its first second.
+{
+  const full=atBuzzer(3,[5,2]);
+  full.sim.tick(DT,idle);
+  let t=0;for(;t<20&&full.sim.phase==='celebration';t+=DT)full.sim.tick(DT,idle);
+  ok(full.sim.phase==='results'&&Math.abs(t-7.5)<0.1,`unskipped, the celebration runs its 7.5 s (${t.toFixed(2)} s)`);
+  const early=atBuzzer(3,[5,2]);
+  early.sim.tick(DT,idle);
+  ok(early.sim.skipCelebration()&&early.sim.phase==='celebration','a skip at the buzzer is kept, not taken at once');
+  let e=0;for(;e<20&&early.sim.phase==='celebration';e+=DT)early.sim.tick(DT,idle);
+  ok(early.sim.phase==='results'&&e>0.9&&e<1.1,`it goes to the results at the celebration's first second (${e.toFixed(2)} s)`);
+  const late=atBuzzer(3,[5,2]);
+  late.sim.tick(DT,idle);
+  for(let i=0;i<120;i++)late.sim.tick(DT,idle);
+  ok(late.sim.skipCelebration()&&late.sim.phase==='results','a skip two seconds in goes straight to the results');
+  ok(!late.sim.skipCelebration(),'nothing to skip on the results');
+}
+console.log('Final buzzer: a decided match ends at the buzzer; the break and its game plan only come before more wrestling; the celebration can be skipped to the results');

@@ -222,6 +222,7 @@ export class Game implements GameApi {
       if (this.replay.playing) this.skipReplay();
       else if (this.sim?.phase === 'intros') this.skipIntros();
       else if (this.sim?.phase === 'whistle') this.skipReturn();
+      else if (this.sim?.phase === 'celebration') this.skipCelebration();
     });
     canvas.addEventListener('pointerdown', this.onMatTap);
     this.input.onDevice = (device) => this.store.set({ device });
@@ -766,7 +767,12 @@ export class Game implements GameApi {
   private onMatTap = (): void => {
     if (this.replay.playing) this.skipReplay();
     else if (this.sim?.phase === 'whistle' && this.sim.phaseT >= 0.25) this.skipReturn();
+    else if (this.sim?.phase === 'celebration' && this.sim.phaseT >= 0.25) this.skipCelebration();
   };
+  /** After the match: on to the results once the celebration has had its moment (MatchSim.skipCelebration). */
+  skipCelebration(): void {
+    this.sim?.skipCelebration();
+  }
 
   /* ------------------------------------------------------------- phases --- */
 
@@ -910,6 +916,7 @@ export class Game implements GameApi {
     const freshPress = pad.shoot && !this.skipPad.shoot || pad.fight && !this.skipPad.fight || pad.sprawl && !this.skipPad.sprawl;
     this.skipPad = { shoot: pad.shoot, fight: pad.fight, sprawl: pad.sprawl };
     if (freshPress && sim.phase === 'whistle' && sim.phaseT >= 0.25) this.skipReturn();
+    else if (freshPress && sim.phase === 'celebration' && sim.phaseT >= 0.25) sim.skipCelebration();
     const move = this.stickToWorld(pad.x, pad.y);
     // The position and stick pick the move; a dedicated key, where one is pressed, still wins.
     const ctx = sim.phase === 'wrestling' ? this.context.map(dt, pad, move, sim.bout, sim.humanSide) : {};

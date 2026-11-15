@@ -225,6 +225,8 @@ export interface GameApi {
   skipReturn: () => void;
   /** Skip the instant replay playing now. */
   skipReplay: () => void;
+  /** After the match: skip the rest of the winner's celebration to the results (RESTART.celebrate). */
+  skipCelebration: () => void;
   chooseTopRestart: (cut: boolean) => void;
   chooseBreakdown: (kind: import('../sim/bout').Breakdown) => void;
   /** Dual meet: start one, pick the wrestler at the current weight, wrestle or sim the bout, back to the dual. */

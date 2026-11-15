@@ -74,6 +74,7 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
     rows: [
       { key: 'Enter', move: 'Skip', note: 'After a whistle, any button (or Enter, or a tap on the mat) skips the walk back to the restart.' },
       { key: 'Enter', move: 'Replay', note: 'A big takedown, throw, near fall or fall right before the whistle gets a slow-motion replay; any button or a tap on the mat skips it.' },
+      { key: 'Enter', move: 'Results', note: 'After the match, any button or a tap on the mat skips the rest of the celebration to the results.' },
     ],
   },
 ];

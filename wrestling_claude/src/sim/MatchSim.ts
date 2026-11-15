@@ -100,9 +100,10 @@ export const RETURN_RISE = 0.8;
  * Seconds on the marks before the whistle. Owner, November 14 (fluid, like a console game): every referee's position
  * waited 3 s and neutral 1.3 s, about 9 s a match of standing still. Now 2.4 s while the player on top can pick his
  * breakdown ("At the whistle"; his last pick stands), blown `picked` s after he picks; 1.8 s with the player underneath;
- * 1.0 s in neutral. The walk back after a stoppage can be skipped from `skipAfter` s on (MatchSim.skipReturn).
+ * 1.0 s in neutral. The walk back after a stoppage can be skipped from `skipAfter` s on (MatchSim.skipReturn), and the
+ * winner's celebration from `celebrate` s on (MatchSim.skipCelebration).
  */
-export const RESTART = { neutral: 1.0, referee: 1.8, topPick: 2.4, picked: 0.6, skipAfter: 0.5 } as const;
+export const RESTART = { neutral: 1.0, referee: 1.8, topPick: 2.4, picked: 0.6, skipAfter: 0.5, celebrate: 1.0 } as const;
 const RETURN_MARK = [-0.9, 0.9] as const;
 /** Owner, November 10: after a whistle they run back to the center (they were walking it). A fresh man runs it
  *  (about 2.9 m/s), a gassed one still jogs (1.9 m/s). */
@@ -136,6 +137,15 @@ export class MatchSim {
     if (this.phase !== 'whistle' || this.result) return false;
     this.returnSkip = true;
     if (this.phaseT >= RESTART.skipAfter) this.resetToPosition(this.restart.pos, this.restart.top);
+    return true;
+  }
+  /** The player skips the rest of the winner's celebration (7.5 s) to the results. Like the walk back, a skip asked for
+   *  early waits for the celebration's first moment (RESTART.celebrate), so it is never cut unseen. */
+  private celebrationSkip = false;
+  skipCelebration(): boolean {
+    if (this.phase !== 'celebration') return false;
+    this.celebrationSkip = true;
+    if (this.phaseT >= RESTART.celebrate) this.setPhase('results', Infinity);
     return true;
   }
   readonly wrestlers: [Wrestler, Wrestler];
@@ -308,7 +318,7 @@ export class MatchSim {
         if (this.phaseT >= this.phaseDur) this.advancePeriod();
         break;
       case 'celebration':
-        if (this.phaseT >= this.phaseDur) this.setPhase('results', Infinity);
+        if (this.phaseT >= this.phaseDur || this.celebrationSkip && this.phaseT >= RESTART.celebrate) this.setPhase('results', Infinity);
         break;
       default:
         break;

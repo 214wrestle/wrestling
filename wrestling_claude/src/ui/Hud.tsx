@@ -372,6 +372,11 @@ export function Hud({ state, api }: { state: UiState; api: GameApi }) {
           Skip <Key>Enter</Key>
         </button>
       )}
+      {state.phase === 'celebration' && !state.replay && (
+        <button type="button" className="skip skip--restart" onClick={() => api.skipCelebration()}>
+          Results <Key>Enter</Key>
+        </button>
+      )}
       {state.phase === 'coinToss' && <CoinToss state={state} />}
       {state.difficulty !== 'practice' && !state.result && !state.awaitingChoice && ['intros', 'handshake', 'coinToss', 'periodBreak', 'positionChoice'].includes(state.phase) && <PlanCard state={state} api={api} />}
       {state.awaitingChoice && <Choice state={state} api={api} />}
