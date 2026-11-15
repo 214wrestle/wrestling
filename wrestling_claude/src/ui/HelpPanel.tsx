@@ -68,6 +68,14 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
       { key: 'Move', move: 'On your feet', note: 'Walk him to the line: if he backs out, it is stalling on him. Your back to it: circle off.' },
     ],
   },
+  {
+    title: 'Between the action',
+    lead: 'A press in the last moments of a move is kept and goes off as soon as it ends.',
+    rows: [
+      { key: 'Enter', move: 'Skip', note: 'After a whistle, any button (or Enter) skips the walk back to the restart.' },
+      { key: 'Enter', move: 'Replay', note: 'A big takedown, throw, near fall or fall right before the whistle gets a slow-motion replay; any button skips it.' },
+    ],
+  },
 ];
 
 export function HelpPanel({ api }: { api: GameApi }) {

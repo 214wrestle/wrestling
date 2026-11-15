@@ -12,6 +12,8 @@ import {
   Vector3,
 } from 'three';
 import { Renderer } from '../engine/Renderer';
+import { AdaptiveResolution } from '../engine/AdaptiveResolution';
+import { Replay, REPLAY } from './Replay';
 import { CameraRig } from '../engine/CameraRig';
 import type { CameraMode } from '../engine/CameraRig';
 import type { PadState } from '../engine/Input';
@@ -164,6 +166,8 @@ export class Game implements GameApi {
   private slowMoT = 0;
   private hitStop = 0;
   private excitement = 0.1;
+  /** Holds the frame rate on slower devices by rendering fewer pixels (AdaptiveResolution). */
+  private adaptive: AdaptiveResolution;
   private frameTimes: number[] = [];
   private uiClock = 0;
   private running = false;
@@ -191,6 +195,7 @@ export class Game implements GameApi {
     const small = Math.min(window.innerWidth, window.innerHeight) < 600;
     this.quality = coarse && small ? 'low' : 'high';
     this.renderer = new Renderer(canvas, this.quality === 'low' ? 'medium' : 'high');
+    this.adaptive = new AdaptiveResolution((scale) => this.renderer.setResolutionScale(scale));
     this.input = new Input();
     const home = byId(DEFAULT_MATCHUP[0]).school;
     const away = byId(DEFAULT_MATCHUP[1]).school;
@@ -214,7 +219,9 @@ export class Game implements GameApi {
     this.input.on('help', () => this.toggleHelp());
     this.input.on('mute', () => this.toggleMute());
     this.input.on('confirm', () => {
-      if (this.sim?.phase === 'intros') this.skipIntros();
+      if (this.replay.playing) this.skipReplay();
+      else if (this.sim?.phase === 'intros') this.skipIntros();
+      else if (this.sim?.phase === 'whistle') this.skipReturn();
     });
     this.input.onDevice = (device) => this.store.set({ device });
     window.addEventListener('blur', this.clearPendingTechnique);
@@ -323,6 +330,10 @@ export class Game implements GameApi {
     const human = options.humanSide;
     const sim = new MatchSim(playableMatchup(wrestlers,human,options.difficulty), {
       onScore: (e) => {
+        // A replay-worthy moment (Replay.ts): takedowns, reversals and near falls, with the build-up before them.
+        if (e.kind === 'takedown') this.replay.mark(this.playT, 3, 2.0, 0.8, this.cameraRig.viewAzimuth);
+        else if (e.kind === 'reversal') this.replay.mark(this.playT, 2, 1.6, 0.8, this.cameraRig.viewAzimuth);
+        else if (e.kind === 'nearFall2' || e.kind === 'nearFall3' || e.kind === 'nearFall4') this.replay.mark(this.playT, 1 + e.points * 0.5, 3.0, 0.6, this.cameraRig.viewAzimuth);
         this.audio.roar(e.points >= 3 ? 0.9 : 0.5);
         this.audio.score(e.side === human);
         this.gym.excite(e.points >= 3 ? 0.6 : 0.3);
@@ -339,6 +350,7 @@ export class Game implements GameApi {
         }, a.hold * 1000);
       },
       onMove: (def) => {
+        if (def.id === 'fall') this.replay.mark(this.playT, 10, 2.4, 1.8, this.cameraRig.viewAzimuth);
         this.cameraRig.setMode(def.camera as CameraMode);
         this.audio.whoosh(0.5);
         if (def.crowd) {
@@ -347,6 +359,8 @@ export class Game implements GameApi {
         }
       },
       onImpact: (strength, _at, slowmo) => {
+        // A throw or a hard landing is a replay too.
+        if (strength >= 0.6) this.replay.mark(this.playT, strength * 2, 1.4, 1.0, this.cameraRig.viewAzimuth);
         // Freeze-frame on contact, then let it breathe.
         this.hitStop = Math.max(this.hitStop, 0.04 + strength * 0.07);
         for (const b of bodies) b.anim.impulse(strength * 0.8, (Math.random() - 0.5) * strength * 0.5);
@@ -469,6 +483,10 @@ export class Game implements GameApi {
       flash: null,
     });
     this.running = true;
+    // Instant replays (Replay.ts): both wrestlers and the referee; none in practice.
+    this.replayOn = !practice && options.difficulty !== 'practice';
+    this.replay.track(this.official ? [bodies[0].anim.character, bodies[1].anim.character, this.official.anim.character] : [bodies[0].anim.character, bodies[1].anim.character]);
+    this.playT = 0;
     if(practice || options.difficulty==='practice'){
       sim.bout.setNeutral({x:0,z:0},Math.PI/2,1.05);
       sim.phase='wrestling';
@@ -707,10 +725,48 @@ export class Game implements GameApi {
     this.sim?.skipIntros();
   }
 
+  /** Instant replay (Replay.ts) of a big moment when play stops soon after it. */
+  private replay = new Replay();
+  private replayOn = false;
+  /** Seconds of match play (sim time), the replay's clock. */
+  private playT = 0;
+  /** Each phase change counts up; one replay try per stoppage. */
+  private phaseCount = 0;
+  private replayTried = -1;
+  private maybeReplay(sim: MatchSim): void {
+    if (!this.replayOn || this.replayTried === this.phaseCount || sim.phaseT < REPLAY.delay) return;
+    if (sim.phase !== 'whistle' && sim.phase !== 'periodBreak' && sim.phase !== 'celebration') return;
+    this.replayTried = this.phaseCount;
+    if (this.replay.start(this.playT)) {
+      this.store.set({ replay: true });
+      this.audio.whoosh(0.8);
+    }
+  }
+  private endReplay(): void {
+    this.replay.stop();
+    this.store.set({ replay: false });
+    // Back from a replay during a stoppage the broadcast cuts to the restart, not to the walk back: the replay takes
+    // the walk back's place instead of adding to it.
+    if (this.sim?.phase === 'whistle') this.skipReturn();
+  }
+  skipReplay(): void {
+    if (this.replay.playing) this.endReplay();
+  }
+
+  /** Skipped walk back: they did not walk onto the marks, so the restart is a cut (onPhase). */
+  private skippedReturn = false;
+  skipReturn(): void {
+    if (!this.sim) return;
+    this.skippedReturn = true;
+    if (!this.sim.skipReturn()) this.skippedReturn = false;
+  }
+
   /* ------------------------------------------------------------- phases --- */
 
   private onPhase(phase: MatchPhase): void {
-    const walkedBack = this.lastPhase === 'whistle' && phase === 'setPosition' && this.sim?.bout.top === null;
+    const walkedBack = !this.skippedReturn && this.lastPhase === 'whistle' && phase === 'setPosition' && this.sim?.bout.top === null;
+    this.skippedReturn = false;
+    this.phaseCount++;
     this.lastPhase = phase;
     // They walked back to the center themselves; they just step onto the marks.
     if (walkedBack) {
@@ -762,7 +818,8 @@ export class Game implements GameApi {
 
   private loop = (now: number) => {
     this.raf = requestAnimationFrame(this.loop);
-    const wall = Math.min(0.1, (now - this.lastTime) / 1000 || FIXED_DT);
+    // Never negative: a frame stamped earlier than the last one (a throttled tab resuming) must not run time backwards.
+    const wall = Math.max(0, Math.min(0.1, (now - this.lastTime) / 1000 || FIXED_DT));
     this.lastTime = now;
     this.clockT += wall;
     this.frameTimes.push(wall);
@@ -770,6 +827,7 @@ export class Game implements GameApi {
     this.input.poll();
 
     const paused = this.store.getSnapshot().paused;
+    this.adaptive.update(wall, !!this.sim && this.running && !paused && document.visibilityState === 'visible');
     if (this.slowMoT > 0) {
       this.slowMoT -= wall;
       if (this.slowMoT <= 0) this.timeScale = 1;
@@ -784,14 +842,26 @@ export class Game implements GameApi {
     this.squeakT -= dt;
 
     if (this.sim && this.bodies && this.running) {
-      this.accumulator += dt;
-      let steps = 0;
-      while (this.accumulator >= FIXED_DT && steps < 5) {
-        this.step(FIXED_DT);
-        this.accumulator -= FIXED_DT;
-        steps++;
+      if (this.replay.playing) {
+        // Instant replay (Replay.ts): the match waits where it stopped; a fresh action press skips it.
+        const pad = this.input.state();
+        const fresh = pad.shoot && !this.skipPad.shoot || pad.fight && !this.skipPad.fight || pad.sprawl && !this.skipPad.sprawl;
+        this.skipPad = { shoot: pad.shoot, fight: pad.fight, sprawl: pad.sprawl };
+        if (fresh) this.endReplay();
+        else if (!paused && !this.replay.update(wall, this.renderer.camera)) this.endReplay();
+      } else {
+        this.accumulator += dt;
+        let steps = 0;
+        while (this.accumulator >= FIXED_DT && steps < 5) {
+          this.step(FIXED_DT);
+          this.accumulator -= FIXED_DT;
+          steps++;
+        }
+        this.present(dt, wall);
+        this.playT += dt;
+        if (dt > 0 && this.sim?.phase === 'wrestling') this.replay.record(this.playT);
+        if (this.sim) this.maybeReplay(this.sim);
       }
-      this.present(dt, wall);
     } else {
       this.presentShowcase(wall);
     }
@@ -825,9 +895,14 @@ export class Game implements GameApi {
     return { x: rx * x + fx * y, z: rz * x + fz * y };
   }
 
+  private skipPad = { shoot: false, fight: false, sprawl: false };
   private step(dt: number): void {
     const sim = this.sim!;
     const pad = this.input.state();
+    // A fresh action press once the call is in skips the walk back (RESTART.skipAfter).
+    const freshPress = pad.shoot && !this.skipPad.shoot || pad.fight && !this.skipPad.fight || pad.sprawl && !this.skipPad.sprawl;
+    this.skipPad = { shoot: pad.shoot, fight: pad.fight, sprawl: pad.sprawl };
+    if (freshPress && sim.phase === 'whistle' && sim.phaseT >= 0.25) this.skipReturn();
     const move = this.stickToWorld(pad.x, pad.y);
     // The position and stick pick the move; a dedicated key, where one is pressed, still wins.
     const ctx = sim.phase === 'wrestling' ? this.context.map(dt, pad, move, sim.bout, sim.humanSide) : {};
@@ -1189,6 +1264,7 @@ export class Game implements GameApi {
   /* ------------------------------------------------------------ teardown -- */
 
   private teardownMatch(): void {
+    if (this.replay.playing) this.endReplay();
     this.coaches?.dispose();
     this.coaches = null;
     this.sim = null;

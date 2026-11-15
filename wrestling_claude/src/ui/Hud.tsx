@@ -328,8 +328,16 @@ export function Hud({ state, api }: { state: UiState; api: GameApi }) {
   return (
     <div className="hud">
       <Scorebug state={state} />
-      {live && <PlayerCard state={state} />}
-      {live && <ActionPad state={state} />}
+      {live && !state.replay && <PlayerCard state={state} />}
+      {live && !state.replay && <ActionPad state={state} />}
+      {state.replay && (
+        <>
+          <div className="replay-badge" role="status"><span className="replay-badge__dot" />Replay</div>
+          <button type="button" className="skip skip--restart" onClick={() => api.skipReplay()}>
+            Skip <Key>Enter</Key>
+          </button>
+        </>
+      )}
       {live && !state.touchControls && state.edgeHint && <div className="edge-hint" role="status">{state.edgeHint}</div>}
       {state.phase === 'setPosition' && state.top === state.humanSide && <TopRestart state={state} api={api} />}
       <ScoreBanner state={state} />
@@ -358,6 +366,11 @@ export function Hud({ state, api }: { state: UiState; api: GameApi }) {
             </button>
           )}
         </>
+      )}
+      {state.phase === 'whistle' && !state.result && !state.replay && (
+        <button type="button" className="skip skip--restart" onClick={() => api.skipReturn()}>
+          Skip <Key>Enter</Key>
+        </button>
       )}
       {state.phase === 'coinToss' && <CoinToss state={state} />}
       {state.difficulty !== 'practice' && !state.result && !state.awaitingChoice && ['intros', 'handshake', 'coinToss', 'periodBreak', 'positionChoice'].includes(state.phase) && <PlanCard state={state} api={api} />}

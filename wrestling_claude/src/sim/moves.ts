@@ -315,7 +315,10 @@ export const MOVES: Record<string, MoveDef> = {
   },
   sitOutPull: {
     id: 'sitOutPull',
-    dur: 1.7,
+    // 1.7 until November 14 (owner: fluid and responsive, like a console game): with the bottom man chaining, stopped
+    // sit-outs were about 21 s of every match in which neither man could act. 1.2 keeps every bone under the 12 m/s
+    // pop line (outputs/nov11-review/speedprobe.ts: 11.9 at the extreme sizes; 1.1 went to 13).
+    dur: 1.2,
     camera: 'mat',
     next: { kind: 'mat', A: 'A', frame: { x: 0, z: 0, yaw: 0 }, sub: 'ride', base: 0.55 },
   },

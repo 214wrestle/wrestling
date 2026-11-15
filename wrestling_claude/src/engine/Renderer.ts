@@ -77,7 +77,20 @@ export class Renderer {
       this.composer = null;
       this.bloom = null;
     }
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality === 'high' ? 2 : 1.5));
+    this.renderer.setPixelRatio(this.pixelRatio());
+    this.resize();
+  }
+
+  /** Share of the quality's pixel ratio actually rendered (AdaptiveResolution). */
+  private resolutionScale = 1;
+  private pixelRatio(): number {
+    return Math.min(window.devicePixelRatio, this.quality === 'high' ? 2 : 1.5) * this.resolutionScale;
+  }
+  setResolutionScale(scale: number): void {
+    if (Math.abs(scale - this.resolutionScale) < 1e-3) return;
+    this.resolutionScale = scale;
+    this.renderer.setPixelRatio(this.pixelRatio());
+    this.composer?.setPixelRatio(this.renderer.getPixelRatio());
     this.resize();
   }
 

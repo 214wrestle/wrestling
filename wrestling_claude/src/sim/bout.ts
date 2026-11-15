@@ -697,6 +697,16 @@ const DEEP_SPRAWL = 0.65;
 /** Seconds between counted presses in a contest: the same rate as holding a button. */
 const PRESS_INTERVAL = 0.18;
 
+/**
+ * Owner, November 14: "improving the fluidity of it and just responsiveness to the moves ... as much like a PlayStation
+ * game, like UFC". Nobody can act while a move plays, and a press there used to last only BOUT.buffer (0.2 s), so a
+ * press in the last moments of a move was lost and had to be made again. Like a console game's input queue, a fresh
+ * press in the last `window` seconds of a move is kept until `after` seconds past its end (past the 0.25 s cooldown a
+ * return to the feet leaves), so it goes off the moment the move is over. Earlier presses still drop: mashing through a
+ * long move never fires anything later.
+ */
+export const MOVE_QUEUE = { window: 0.45, after: 0.35 } as const;
+
 export class Bout {
   /** Only the cooperative AI partner; player defense remains fully active. */
   practicePartner: Side | null = null;
@@ -915,13 +925,16 @@ export class Bout {
   /* ----------------------------------------------------------------- tick */
 
   tick(dt: number, cmds: [Command, Command]): void {
+    // A press near the end of a move waits for it to finish (MOVE_QUEUE).
+    const moveLeft = this.position.kind === 'move' ? this.position.dur - this.position.t : Infinity;
+    const queued = moveLeft <= MOVE_QUEUE.window ? moveLeft + MOVE_QUEUE.after : 0;
     for (const a of this.athletes) {
       let c = cmds[a.side];
       const p = this.prev[a.side];
       this.bottomChain[a.side].t += dt;
       this.scramblePending[a.side] = c.scramble && !p.scramble ? 2.5 : Math.max(0, this.scramblePending[a.side] - dt);
-      this.granbyPending[a.side] = c.sitOut && !p.sitOut && c.level ? 0.3 : Math.max(0, this.granbyPending[a.side] - dt);
-      this.sitOutPending[a.side] = c.sitOut && !p.sitOut && !c.level ? 0.3 : Math.max(0, this.sitOutPending[a.side] - dt);
+      this.granbyPending[a.side] = c.sitOut && !p.sitOut && c.level ? Math.max(0.3, queued) : Math.max(0, this.granbyPending[a.side] - dt);
+      this.sitOutPending[a.side] = c.sitOut && !p.sitOut && !c.level ? Math.max(0.3, queued) : Math.max(0, this.sitOutPending[a.side] - dt);
       if (c.lowSingle && !p.lowSingle) c = cmds[a.side] = {...c, shoot:true, level:true};
       // Buffer fresh presses so a tap just before an action opens still counts.
       // Keep one fresh press through a restart or a short return to stance.
@@ -962,7 +975,7 @@ export class Bout {
         const held = a.side === this.pressLimitedSide && (this.position.kind === 'legs' || this.position.kind === 'fhl' || this.position.kind === 'mat');
         const open = !held || this.pressCool[a.side] <= 0;
         if (c.shoot && !p.shoot && held && open) this.pressCool[a.side] = PRESS_INTERVAL;
-        a.buffer.shoot = c.shoot && !p.shoot && open ? shotBuffer : Math.max(0, a.buffer.shoot - dt);
+        a.buffer.shoot = c.shoot && !p.shoot && open ? Math.max(shotBuffer, queued) : Math.max(0, a.buffer.shoot - dt);
       }
       const position = this.position;
       // In a contest, tapping faster than the hold rate earns nothing, so holding is always
@@ -973,9 +986,9 @@ export class Bout {
       const freshFight = c.fight && !p.fight && pressOpen;
       const freshSprawl = c.sprawl && !p.sprawl && pressOpen;
       if (contest && (freshFight || freshSprawl)) this.pressCool[a.side] = PRESS_INTERVAL;
-      a.buffer.fight = freshFight ? BOUT.buffer : Math.max(0, a.buffer.fight - dt);
+      a.buffer.fight = freshFight ? Math.max(BOUT.buffer, queued) : Math.max(0, a.buffer.fight - dt);
       if (freshFight) a.tieWanted = !!c.tieUp;
-      a.buffer.sprawl = freshSprawl ? BOUT.buffer : Math.max(0, a.buffer.sprawl - dt);
+      a.buffer.sprawl = freshSprawl ? Math.max(BOUT.buffer, queued) : Math.max(0, a.buffer.sprawl - dt);
       const sustained = c.sustainedEffort && (position.kind === 'fhl' || position.kind === 'legs'
         || position.kind === 'mat' && (position.sub === 'standing' || position.sub === 'exposed' || position.sub === 'spladle' || position.sub === 'flat' && position.A !== a.side));
       if (sustained && (c.shoot || c.fight || c.sprawl)) {
@@ -2277,6 +2290,8 @@ export class Bout {
     const B = otherSide(p.A);
     if (p.t / p.dur > 0.3 && cmds[B].shoot && !this.prev[B].shoot) {
       r.turnIn = true;
+      // The press is spent on the turn in, not also queued for a stand-up as he lands (MOVE_QUEUE).
+      this.athletes[B].buffer.shoot = 0;
       this.ev.feedback?.(B, 'shoot', 'ok', 'Turn in');
     }
   }
@@ -3009,9 +3024,12 @@ export class Bout {
         a.yaw = pa.yaw;
         b.pos = { x: pb.x, z: pb.z };
         b.yaw = pb.yaw;
+        // A press queued in the move's last moments (MOVE_QUEUE) survives the return to the feet.
+        const queuedPresses = this.athletes.map((x) => ({ ...x.buffer }));
         for (const x of this.athletes) {
           this.resetAthlete(x);
           x.cooldown = 0.25;
+          x.buffer = queuedPresses[x.side];
         }
         if (m.offBalance) {
           // A bad shot: the shooter stumbles up off balance and can neither sprawl nor attack yet;

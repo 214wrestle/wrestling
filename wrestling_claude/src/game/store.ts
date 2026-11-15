@@ -99,6 +99,8 @@ export interface UiState {
   /** The player's breakdown at the whistle on top (OPENER). */
   topRestartBreakdown: import('../sim/bout').Breakdown | null;
   introFocus: Side | null;
+  /** An instant replay is playing (Replay.ts). */
+  replay: boolean;
   showHelp: boolean;
   muted: boolean;
   paused: boolean;
@@ -166,6 +168,7 @@ export const initialState: UiState = {
   topRestartCut: false,
   topRestartBreakdown: 'chop',
   introFocus: null,
+  replay: false,
   showHelp: false,
   muted: false,
   paused: false,
@@ -218,6 +221,10 @@ export interface GameApi {
   setTouch: (state: import("../engine/Input").PadState) => void;
   cancelTouch: (key?: import("../engine/TouchGestures").TouchKey) => void;
   skipIntros: () => void;
+  /** After a stoppage: skip the walk back to the marks (RESTART.skipAfter). */
+  skipReturn: () => void;
+  /** Skip the instant replay playing now. */
+  skipReplay: () => void;
   chooseTopRestart: (cut: boolean) => void;
   chooseBreakdown: (kind: import('../sim/bout').Breakdown) => void;
   /** Dual meet: start one, pick the wrestler at the current weight, wrestle or sim the bout, back to the dual. */

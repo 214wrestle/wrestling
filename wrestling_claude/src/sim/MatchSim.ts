@@ -96,6 +96,13 @@ export const FLAT_STALL = { after: 4, pushing: 0.4, rate: 0.75 };
 export const STALL_FEET = { backDrive: -0.15, pressDrive: 0.2, givingRate: 0.55, oneSidedRate: 0.35, attackGap: 3, quiet: 15, memory: 75, slowFade: 0.3, backSpeed: 0.25, unanswered: 5, unansweredStrict: 4 };
 /** After a whistle: seconds to get up, then each walks to his side of the center at his own pace. */
 export const RETURN_RISE = 0.8;
+/**
+ * Seconds on the marks before the whistle. Owner, November 14 (fluid, like a console game): every referee's position
+ * waited 3 s and neutral 1.3 s, about 9 s a match of standing still. Now 2.4 s while the player on top can pick his
+ * breakdown ("At the whistle"; his last pick stands), blown `picked` s after he picks; 1.8 s with the player underneath;
+ * 1.0 s in neutral. The walk back after a stoppage can be skipped from `skipAfter` s on (MatchSim.skipReturn).
+ */
+export const RESTART = { neutral: 1.0, referee: 1.8, topPick: 2.4, picked: 0.6, skipAfter: 0.5 } as const;
 const RETURN_MARK = [-0.9, 0.9] as const;
 /** Owner, November 10: after a whistle they run back to the center (they were walking it). A fresh man runs it
  *  (about 2.9 m/s), a gassed one still jogs (1.9 m/s). */
@@ -105,7 +112,10 @@ export class MatchSim {
   private preWhistleCut = false;
   get topRestartCut(): boolean { return this.preWhistleCut; }
   chooseTopRestart(cut: boolean): void {
-    if (this.phase === 'setPosition' && this.bout.top === this.humanSide) this.preWhistleCut = cut;
+    if (this.phase === 'setPosition' && this.bout.top === this.humanSide) {
+      this.preWhistleCut = cut;
+      this.readyForWhistle();
+    }
   }
   /** The player's breakdown at the whistle on top (OPENER), Chop until he picks; kept for later restarts. */
   private humanBreakdown: Breakdown | null = 'chop';
@@ -113,6 +123,20 @@ export class MatchSim {
   chooseBreakdown(kind: Breakdown | null): void {
     this.humanBreakdown = kind;
     if (kind) this.preWhistleCut = false;
+    if (this.phase === 'setPosition' && this.bout.top === this.humanSide) this.readyForWhistle();
+  }
+  /** He has made his pick for this whistle: the referee blows it shortly (RESTART.picked), not after the full wait. */
+  private readyForWhistle(): void {
+    this.phaseDur = Math.min(this.phaseDur, this.phaseT + RESTART.picked);
+  }
+  /** The player skips the walk back: once the call is in (RESTART.skipAfter) they are straight onto the marks, as a
+   *  broadcast cuts. Without it they still run back (owner, November 10). */
+  private returnSkip = false;
+  skipReturn(): boolean {
+    if (this.phase !== 'whistle' || this.result) return false;
+    this.returnSkip = true;
+    if (this.phaseT >= RESTART.skipAfter) this.resetToPosition(this.restart.pos, this.restart.top);
+    return true;
   }
   readonly wrestlers: [Wrestler, Wrestler];
   readonly bout: Bout;
@@ -277,7 +301,7 @@ export class MatchSim {
         // A breath at every stoppage and on the walk back (FATIGUE.rest).
         this.bout.rest(dt);
         this.tickReturn(dt);
-        if (this.phaseT >= this.phaseDur) this.resetToPosition(this.restart.pos, this.restart.top);
+        if (this.phaseT >= this.phaseDur || this.returnSkip && this.phaseT >= RESTART.skipAfter) this.resetToPosition(this.restart.pos, this.restart.top);
         break;
       case 'periodBreak':
         this.bout.rest(dt);
@@ -340,14 +364,15 @@ export class MatchSim {
 
   private resetToPosition(pos: StartPosition, top: Side): void {
     this.preWhistleCut = false;
+    this.returnSkip = false;
     this.restart = { pos, top };
     if (pos === 'neutral') {
       this.bout.setNeutral({ x: 0, z: 0 }, Math.PI / 2, 1.05);
     } else {
       this.bout.setReferee(top, { x: 0, z: 0 }, Math.PI / 2);
     }
-    // Bodies settle onto the marks before the whistle.
-    this.setPhase('setPosition', pos === 'neutral' ? 1.3 : 3);
+    // Bodies settle onto the marks before the whistle (RESTART): the player on top gets time to pick his breakdown.
+    this.setPhase('setPosition', pos === 'neutral' ? RESTART.neutral : top === this.humanSide ? RESTART.topPick : RESTART.referee);
   }
 
   /** Starts from the set position, still, with play beginning at the whistle. */

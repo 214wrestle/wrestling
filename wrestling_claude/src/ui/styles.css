@@ -1349,6 +1349,51 @@ button:focus-visible {
   cursor: pointer;
 }
 
+/* Skipping the walk back after a stoppage: under the scorebug, level with the referee's call. */
+.skip--restart {
+  top: calc(max(1.6vh, env(safe-area-inset-top)) + 4.9rem);
+}
+
+/* Instant replay (Replay.ts): a broadcast's REPLAY tag, top left under the scorebug, and thin letterbox bars. */
+.replay-badge {
+  position: absolute;
+  left: max(1.6vw, env(safe-area-inset-left));
+  top: calc(max(1.6vh, env(safe-area-inset-top)) + 4.9rem);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem 0.4rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(8, 10, 16, 0.78);
+  color: #fff;
+  font: 800 0.85rem/1 var(--display, var(--body));
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  animation: dropIn 0.35s var(--ease) both;
+}
+.replay-badge__dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: #e5322d;
+  animation: replayBlink 1s steps(2, start) infinite;
+}
+@keyframes replayBlink {
+  to { visibility: hidden; }
+}
+.hud:has(.replay-badge)::before,
+.hud:has(.replay-badge)::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6vh;
+  background: #000;
+  pointer-events: none;
+}
+.hud:has(.replay-badge)::before { top: 0; }
+.hud:has(.replay-badge)::after { bottom: 0; }
+
 /* ---------------------------------------------------------------- modals --- */
 
 .modal {
