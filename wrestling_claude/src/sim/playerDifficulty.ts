@@ -2,8 +2,9 @@ import { withHiddenSkill } from './hiddenSkill';
 import type { Difficulty } from './ai';
 import type { Side, Wrestler } from './types';
 /** Match-local assistance; historical roster ratings and records stay untouched. */
-/** How much harder the player is to turn, by level (subtracted from the AI's turn odds, as turnResist). */
-export const PLAYER_TURN_RESIST: Record<Difficulty, number> = { practice: 0, 'walk-on': 0.2, starter: 0.1, 'all-american': 0.1 };
+/** How much harder the player is to turn, by level (subtracted from the AI's turn odds, as turnResist).
+ *  Varsity and All-American 0.1 -> 0.15 on November 14 (owner: both a bit too hard; see `resistance` below). */
+export const PLAYER_TURN_RESIST: Record<Difficulty, number> = { practice: 0, 'walk-on': 0.2, starter: 0.15, 'all-american': 0.15 };
 
 export function playableMatchup(input: [Wrestler,Wrestler], human: Side, difficulty: Difficulty): [Wrestler,Wrestler] {
   // Hidden skill first (owner, November 10: the Morenos and Shawn Rustad wrestle like high-80s wrestlers), then the
@@ -17,7 +18,11 @@ export function playableMatchup(input: [Wrestler,Wrestler], human: Side, difficu
   // November 10, the slower scoring pace (Bout PACE) took Varsity to 45%: .96 / .99. Then the player's own turn
   // resistance (PLAYER_TURN_RESIST) took Varsity to 58%: back to 1 at Varsity. Then longer leg battles and stalling on
   // a man who will not attack (owner) took it to 43%: .96 again.
-  const resistance={practice:.3,'walk-on':.8,starter:.96,'all-american':.99}[difficulty];
+  // November 14, owner: "JV mode is just right. Varsity is hard and needs tuned down a bit. AA same." Varsity .96 -> .89
+  // and All-American .99 -> .93, with the player's turn resistance 0.1 -> 0.15 at both. The balance scan's stand-in
+  // (even, 2,400): JV 86% unchanged, Varsity 48% -> 60%, All-American 32% -> 42%; the AI pins him in 10% -> 5% and
+  // 21% -> 14% of matches (outputs/nov14-difficulty).
+  const resistance={practice:.3,'walk-on':.8,starter:.89,'all-american':.93}[difficulty];
   // Mat skill and defense keep most of their real value at every level: an easier level gives up
   // takedowns, not tech falls and pins. Owner target for bonus finishes (fall or tech fall) against
   // a good player: about 15% at JV, 10% at Varsity, 5% at All-American.
