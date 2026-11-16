@@ -1,5 +1,6 @@
 import {wrestlerViews} from '../game/views';
 import {readPrompts} from '../game/prompts';
+import {readOptions} from '../game/situationOptions';
 import {Bout} from '../sim/bout';
 import {MatchSim} from '../sim/MatchSim';
 import {PROTOTYPE_ROSTER} from '../sim/roster';
@@ -100,6 +101,7 @@ console.log('Standing trip, crotch lift and mat return preserve control without 
 
 const promptSim = new MatchSim([PROTOTYPE_ROSTER[0],PROTOTYPE_ROSTER[1]],{},123);
 promptSim.phase = 'wrestling';
+promptSim.humanSide = 0;
 for (const shot of ['single','highCrotch','double','lowSingle'] as const) {
  promptSim.bout.position={kind:'legs',A:0,shot,mirror:false,t:0,frame:{x:0,z:0,yaw:0},progress:.6,lifted:shot==='single'?.4:0,intensity:0};
  const attack=readPrompts(promptSim,0),defense=readPrompts(promptSim,1);
@@ -107,8 +109,10 @@ for (const shot of ['single','highCrotch','double','lowSingle'] as const) {
  ok((attack.legActions?.length??0)===0,'no separate finish buttons');
  const liftable=shot==='single'||shot==='highCrotch';
  ok((attack.prompts.fight.label==='Lift leg')===liftable,'Hand fight lifts only a single or high crotch');
- ok((attack.prompts.shoot.alt??'').includes('Trip')===liftable,'trip is offered only where the leg can be lifted');
- ok(shot==='lowSingle'?!attack.prompts.shoot.alt:(attack.prompts.shoot.alt??'').includes('double'),'Lower + Shoot double option matches the grip');
+ // The finishes are named moves for the position now (situation options, owner November 15), not stick hints.
+ const finishes=readOptions(promptSim,0).options.flatMap(o=>o?[o.id]:[]);
+ ok(finishes.includes('trip')===liftable,'trip is offered only where the leg can be lifted');
+ ok(shot==='double'?finishes.includes('liftDouble')&&finishes.includes('doubleTrip'):finishes.includes('double'),'the double offers its lift and trip; every other grip offers the switch to the double');
  ok(defense.legActions?.length===0,'defender cannot request attacker leg finishes');
  const name={single:'Single leg',highCrotch:'High crotch',double:'Double leg',lowSingle:'Low single'}[shot];
  ok([attack,defense].every(p=>p.meters.some(m=>m.label===name&&m.value===.6)),'both sides see captured leg type and finish progress');

@@ -70,6 +70,10 @@ export interface UiState {
   top: Side | null;
   meters: Meter[];
   legActions?: readonly ('lift' | 'trip' | 'double' | 'drive')[];
+  /** The named moves for this position (situationOptions.ts): always four slots, null an empty one. */
+  options: (import('./situationOptions').SituationOption | null)[];
+  /** Which position they belong to; the set and its slots hold while this does. */
+  optionsKey: string;
   /** Which way to move at the edge of the mat right now, or when locked hands is a risk (edgeHintFor, handsHintFor). */
   edgeHint?: string;
   nearFall: { active: boolean; timer: number; earned: number };
@@ -151,6 +155,8 @@ export const initialState: UiState = {
   meters: [],
   nearFall: { active: false, timer: 0, earned: 0 },
   prompts: idlePrompts(),
+  options: [null, null, null, null],
+  optionsKey: 'none',
   react: null,
   flash: null,
   stats: [emptyStats(), emptyStats()],

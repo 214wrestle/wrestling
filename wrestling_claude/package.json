@@ -66,6 +66,7 @@
     "check:replay": "esbuild src/dev/checkReplay.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-replay.mjs --log-level=warning && node node_modules/.cache/check-replay.mjs",
     "check:adaptive-res": "esbuild src/dev/checkAdaptiveResolution.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-adaptive-res.mjs --log-level=warning && node node_modules/.cache/check-adaptive-res.mjs",
     "check:final-buzzer": "esbuild src/dev/checkFinalBuzzer.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-final-buzzer.mjs --log-level=warning && node node_modules/.cache/check-final-buzzer.mjs",
+    "check:situation-options": "esbuild src/dev/checkSituationOptions.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-situation-options.mjs --log-level=warning && node node_modules/.cache/check-situation-options.mjs",
     "check:osu-pistols": "esbuild src/dev/checkOsuPistols.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-osu-pistols.mjs --log-level=warning && node node_modules/.cache/check-osu-pistols.mjs",
     "check:matreturn": "esbuild src/dev/checkMatReturn.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-matreturn.mjs --log-level=warning && node node_modules/.cache/check-matreturn.mjs",
     "check:dual": "esbuild src/dev/checkDual.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-dual.mjs --log-level=warning && node node_modules/.cache/check-dual.mjs",

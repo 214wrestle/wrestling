@@ -8,7 +8,7 @@ export class TouchBuffer {
   private pending = new Map<Key, Array<boolean | string>>();
   private last: Partial<Record<Key, boolean | string>> = {};
   set(next: PadState): void {
-    for (const key of [...buttons, 'technique', 'legAction'] as Key[]) {
+    for (const key of [...buttons, 'technique', 'legAction', 'option'] as Key[]) {
       const value = next[key];
       if (value && value !== this.current[key]) {
         const queue = this.pending.get(key) ?? [];
@@ -20,7 +20,7 @@ export class TouchBuffer {
   }
   sample(): PadState {
     const result = { ...this.current };
-    for (const key of [...buttons, 'technique', 'legAction'] as Key[]) {
+    for (const key of [...buttons, 'technique', 'legAction', 'option'] as Key[]) {
       const queue = this.pending.get(key);
       // An intervening release lets the simulation recognize a second press.
       const value = queue?.length ? (this.last[key] ? undefined : queue.shift()) : this.current[key];

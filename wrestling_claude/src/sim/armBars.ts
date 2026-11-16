@@ -2,7 +2,9 @@ export const ARM_BARS = ['armBar','wristBar','barHalf','doubleBar'] as const;
 export type ArmBar = typeof ARM_BARS[number];
 /** The top man's chosen turn from the flat: an arm-bar combination, or a cradle (near side or crossface). */
 export type CradleTurn = 'cradle' | 'crossfaceCradle';
-export type TopTurnChoice = {style:ArmBar|CradleTurn;mirror:boolean};
+/** A turn asked for by name: an arm-bar combination or a cradle, or (situation options) the half, the tilt or the turk. */
+export type TopTurnStyle = ArmBar|CradleTurn|'halfNelson'|'tilt'|'turk';
+export type TopTurnChoice = {style:TopTurnStyle;mirror:boolean};
 export const CRADLE_LABELS:Record<CradleTurn,string>={cradle:'Cradle',crossfaceCradle:'Crossface cradle'};
 export const isCradleTurn=(value:unknown):value is CradleTurn=>value==='cradle'||value==='crossfaceCradle';
 /**
@@ -16,6 +18,7 @@ export function flatTurnFor(name:string, preferred?:string):'halfNelson'|CradleT
 }
 export function isArmBar(value:unknown):value is ArmBar {return ARM_BARS.includes(value as ArmBar);}
 export const ARM_BAR_LABELS:Record<ArmBar,string>={armBar:'Arm bar',wristBar:'Wrist + bar',barHalf:'Bar + half',doubleBar:'Double bar'};
+export const TOP_TURN_LABELS:Record<TopTurnStyle,string>={...ARM_BAR_LABELS,...CRADLE_LABELS,halfNelson:'Half nelson',tilt:'Tilt',turk:'Turk'};
 
 // Full release of the bar during the belly-down recovery.
 export const ARM_BAR_GRIP_RELEASE = .4;

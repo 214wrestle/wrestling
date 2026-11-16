@@ -41,6 +41,7 @@ import { edgeHintFor, handsHintFor, readPrompts } from './prompts';
 import { isDone, newTournament, pairOf, playerMatch, record as recordTournament, simMatch, simUntilPlayer, toResult as tournamentResult, type Tournament } from '../sim/tournament';
 import { choiceFor, currentBout, newDual, pickList, pickOddEven, pickWrestler, recordBout, simulateBout, toBoutResult, type Dual } from '../sim/dual';
 import { ContextControls } from './contextControls';
+import { optionCommand, readOptions, resolveOption, type OptionId } from './situationOptions';
 import { DEFAULT_PLAN, playerPlan, type MatchPlan } from '../sim/strategy';
 import type { GameApi, UiStore } from './store';
 
@@ -134,6 +135,9 @@ interface Body {
 export class Game implements GameApi {
   private topTurn: import('../sim/armBars').TopTurnChoice | undefined;
   private context = new ContextControls();
+  /** The situation option held down (by id), chosen on the press and kept until release, like the stick choices. */
+  private optionLatch: OptionId | undefined;
+  private optionPress: string | number | undefined;
   private footworkAi: WrestlerAI | undefined;
   private autoAi?: WrestlerAI;
   /** Which mirror side the camera holds for the current mat sequence (null on the feet). */
@@ -956,6 +960,12 @@ export class Game implements GameApi {
       this.autoAi ??= new WrestlerAI(sim.humanSide, 'starter', 91);
       Object.assign(human, this.autoAi.update(dt, sim.bout, wrestling, {timeLeft:sim.clock,finalPeriod:sim.period>=3,deficit:sim.score[otherSide(sim.humanSide)]-sim.score[sim.humanSide]}));
     }
+    // A named move for this position (situation options): picked when its button goes down, kept while it is held.
+    const optionInput = pad.option ?? pad.optionSlot;
+    if (optionInput === undefined || !wrestling) this.optionLatch = undefined;
+    else if (optionInput !== this.optionPress) this.optionLatch = resolveOption(readOptions(sim, sim.humanSide), pad.option, pad.optionSlot);
+    this.optionPress = wrestling ? optionInput : undefined;
+    if (this.optionLatch) Object.assign(human, optionCommand(this.optionLatch));
     const commands: [Command, Command] = sim.humanSide === 0 ? [human, aiCmd] : [aiCmd, human];
     const techniqueLabels = {duckUnder:'Duck under',superDuck:'Super duck',slideBy:'Slide by',firemansCarry:'Fireman’s carry',footSweep:'Foot sweep',anklePick:'Ankle pick',kneePick:'Knee pick',throwBy:'Throw-by',lateralDrop:'Lateral drop',headlock:'Headlock'};
     this.namedAttackFeedback = human.technique ? techniqueLabels[human.technique] : human.lowSingle ? 'Low single' : undefined;
@@ -1227,6 +1237,7 @@ export class Game implements GameApi {
     }
     const me = sim.humanSide;
     const read = readPrompts(sim, me, this.topTurn);
+    const situation = readOptions(sim, me);
     const pos = sim.bout.position;
     const a = sim.bout.athletes;
     const snap = this.store.getSnapshot();
@@ -1256,6 +1267,8 @@ export class Game implements GameApi {
       topRestartBreakdown: sim.topRestartBreakdown,
       meters: read.meters,
       legActions: read.legActions,
+      options: situation.options,
+      optionsKey: situation.key,
       edgeHint: handsHintFor(sim, me) ?? edgeHintFor(sim, me),
       nearFall: { active: sim.earnedNearFallPoints > 0 || pos.kind === 'mat' && (pos.sub === 'exposed' || pos.sub === 'spladle'), timer: pos.kind === 'mat' ? pos.expo : 0, earned: sim.earnedNearFallPoints },
       stats: [{ ...a[0].stats }, { ...a[1].stats }],

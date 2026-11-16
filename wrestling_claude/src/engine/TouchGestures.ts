@@ -1,6 +1,6 @@
 import type { PadState } from './Input';
-export type TouchKey = Exclude<keyof PadState, 'x' | 'y' | 'sustainedEffort'>;
-type Value = boolean | NonNullable<PadState['technique']> | NonNullable<PadState['legAction']>;
+export type TouchKey = Exclude<keyof PadState, 'x' | 'y' | 'sustainedEffort' | 'optionSlot'>;
+type Value = boolean | string | NonNullable<PadState['technique']> | NonNullable<PadState['legAction']>;
 /** Each finger owns its gesture; releasing one cannot release another. */
 export class TouchGestures {
   private pointers = new Map<number, {key: TouchKey; value: Value}>();

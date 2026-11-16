@@ -321,10 +321,12 @@ const aiMinutes = (w: Wrestler, seeds = 24) => {
   ok(edgeIn(clutch, true, 0) > 0.13 && edgeIn(choke, true, -2) < -0.13, 'clutch: his edge late in a close match');
   ok(edgeIn(clutch, false, 0) === 0 && edgeIn(clutch, true, 6) === 0, 'clutch: nothing early or in a blowout');
   ok(edgeIn(heart, false, -4) > 0.09 && edgeIn(heart, false, 2) === 0, 'heart: his edge while trailing');
-  // AI against AI from neutral in the third period, tied, 30 s each, 200 starts: takedowns he scores.
+  // AI against AI from neutral in the third period, tied, 30 s each, 400 starts: takedowns he scores. (200 until
+  // November 15: with the named finishes the 5-vs-1 gap sat right on the margin, 67 against 57 of 200; at 400 it is
+  // 153 against 132, the same five percent with half the noise.)
   const lateTds = (a: Wrestler) => {
     let n = 0;
-    for (let seed = 1; seed <= 200; seed++) {
+    for (let seed = 1; seed <= 400; seed++) {
       let td = false;
       const ais = [new WrestlerAI(0, 'starter', 660 + seed), new WrestlerAI(1, 'starter', 690 + seed)];
       const b = new Bout([a, opp], { tell: (to: number, what: any) => ais[to].onTell(what), score: (side: number, kind: string) => { if (side === 0 && kind === 'takedown') td = true; } } as any, 8000 + seed);
@@ -335,7 +337,7 @@ const aiMinutes = (w: Wrestler, seeds = 24) => {
     return n;
   };
   const c5 = lateTds(clutch), c3 = lateTds(base), c1 = lateTds(choke);
-  ok(c5 > c3 && c3 > c1 && c5 > c1 + 10, `clutch: more takedowns tied in the third (5: ${c5}, ungraded ${c3}, 1: ${c1} of 200)`);
+  ok(c5 > c3 && c3 > c1 && c5 > c1 + 20, `clutch: more takedowns tied in the third (5: ${c5}, ungraded ${c3}, 1: ${c1} of 400)`);
   // Near empty: a minute of taps from 30%.
   const emptyMinute = (w: Wrestler) => {
     const b = new Bout([w, opp], {}, 11); b.setNeutral({ x: 0, z: 0 }, 0, 1.25); tick(b, 20);
@@ -345,7 +347,7 @@ const aiMinutes = (w: Wrestler, seeds = 24) => {
   };
   const e5 = emptyMinute(heart), e3 = emptyMinute(base);
   ok(e5 < e3 * 0.9, `heart: work near empty costs less (${e5.toFixed(4)} vs ${e3.toFixed(4)})`);
-  console.log(`Clutch: takedowns tied in the third, 30 s, 200 starts — 5: ${c5}, ungraded ${c3}, 1: ${c1}. Heart: 20 s of taps from 30% costs ${(e5 * 100).toFixed(2)}% vs ${(e3 * 100).toFixed(2)}%`);
+  console.log(`Clutch: takedowns tied in the third, 30 s, 400 starts — 5: ${c5}, ungraded ${c3}, 1: ${c1}. Heart: 20 s of taps from 30% costs ${(e5 * 100).toFixed(2)}% vs ${(e3 * 100).toFixed(2)}%`);
 }
 
 // --- Bonus-point scorer from career tech falls (owner, November 12: "Yes, use them") ------------------------------

@@ -1,4 +1,4 @@
-import {ARM_BAR_LABELS,CRADLE_LABELS,flatTurnFor,isArmBar,type TopTurnChoice} from '../sim/armBars';
+import {flatTurnFor,isArmBar,TOP_TURN_LABELS,type TopTurnChoice} from '../sim/armBars';
 import { LEG_CLEAR_THRESHOLD } from '../sim/legRideQuality';
 import { MOVES } from '../sim/moves';
 import { BOTTOM_CHAIN, BOUT, EDGE, edgeDistance, HANDS, legCounterFor, TIE_UP, LEG_COUNTER_LABELS, isLockEscape } from '../sim/bout';
@@ -151,7 +151,8 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
         position: attacking ? 'In on the legs' : 'Defending the shot',
         prompts: attacking
           ? {
-              shoot: P('Drive through', 'hold', pos.shot === 'double' ? 'Lower: Finish double' : pos.shot === 'lowSingle' ? undefined : 'Sideways: Trip · Lower: Switch to double'),
+              // The finishes are named moves for the position now (situationOptions.ts), not stick combinations.
+              shoot: P('Drive through', 'hold'),
               fight: (pos.counterGrip ?? 0) > 0 ? P('Clear capture', 'mash') : pos.shot === 'single' || pos.shot === 'highCrotch' ? P('Lift leg', 'hold') : P('—', 'off'),
               sprawl: P('—', 'off'),
             }
@@ -180,7 +181,7 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
               // up the chin whip; Sprawl shucks him by while he drives in.
               shoot: pos.recover >= 0.5
                 ? P('Chin whip', pos.recover < 0.8 ? 'hot' : 'idle')
-                : P('Spin behind', 'hot', pos.recover < 0.4 ? 'Lower: Cement mixer' : undefined),
+                : P('Spin behind', 'hot'),
               fight: P('Snap him down', 'idle'),
               sprawl: P('Shuck', (pos.drive ?? 0) > 0.45 ? 'hot' : 'idle'),
             }
@@ -218,13 +219,13 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
         const preferred=bout.wrestlers[me].motion?.preferredTurn;
         const selected=topTurn?.style ?? (isArmBar(preferred)?preferred:undefined);
         const own=flatTurnFor(`${bout.wrestlers[me].firstName} ${bout.wrestlers[me].lastName}`,preferred);
-        const turnLabel=selected ? (isArmBar(selected) ? ARM_BAR_LABELS[selected] : CRADLE_LABELS[selected])
+        const turnLabel=selected ? TOP_TURN_LABELS[selected]
           : (pos.legRide ?? 0) >= 0.8 ? 'Turk' : own==='crossfaceCradle' ? 'Crossface cradle' : own==='cradle' ? 'Cradle' : 'Half nelson';
         return {
           position: label,
           prompts: top
             ? { shoot: P(turnLabel, pos.control > 0.3 ? 'hot' : 'idle'), fight: P('Pressure', 'idle'), sprawl: P('Ride tight', 'idle', 'Lower: tap Cut · hold Legs in') }
-            : { shoot: P('Push up', 'mash', 'Sit out: hip heist'), fight: P('Push up', 'mash'), sprawl: P('Push up', 'mash', legsIn ? 'Closes pockets · Lower: Catch leg' : undefined) },
+            : { shoot: P('Push up', 'mash'), fight: P('Push up', 'mash'), sprawl: P('Push up', 'mash', legsIn ? 'Closes pockets · Lower: Catch leg' : undefined) },
           meters: [{ label: 'Base', value: Math.min(1, pos.base / 0.68), tone: top ? 'them' : 'you' }, ...legMeters],
         };
       }
@@ -241,7 +242,7 @@ export function readPrompts(sim: MatchSim, me: Side, topTurn?: TopTurnChoice): P
               // Half up off a stopped stand-up: go right again. In the tripod (BOTTOM_CHAIN): stand off it, or sit out to a hip heist.
               shoot: (pos.hips ?? 0) >= BOTTOM_CHAIN.tripod ? P('Stand up', 'hot', 'Tripod: Sit out is a hip heist')
                 : (pos.pod ?? 0) > 0.3 ? P('Stand up', 'hot', 'Half up: go again')
-                : P('Stand up', (pos.whistle ?? 0) > 0 ? 'hot' : pos.base > 0.4 ? 'idle' : 'off', 'Sit out + Lower: Granby roll'),
+                : P('Stand up', (pos.whistle ?? 0) > 0 ? 'hot' : pos.base > 0.4 ? 'idle' : 'off'),
               fight: pos.commit >= HANDS.switchWindow ? P('Switch', 'hot') : P('Hand control', 'idle'),
               sprawl: P('Base up', pos.base < 0.5 ? 'hot' : 'idle', legsIn ? 'Closes pockets · Lower: Catch leg' : undefined),
             },

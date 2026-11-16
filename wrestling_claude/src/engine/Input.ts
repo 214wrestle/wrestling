@@ -46,6 +46,9 @@ const KEY_MAP: Record<string, string> = {
   KeyP: 'pause',
   KeyH: 'help',
   KeyM: 'mute',
+  // The moves for this position (situation options), by slot.
+  Digit1: 'opt1', Digit2: 'opt2', Digit3: 'opt3', Digit4: 'opt4',
+  Numpad1: 'opt1', Numpad2: 'opt2', Numpad3: 'opt3', Numpad4: 'opt4',
 };
 
 export interface PadState {
@@ -65,6 +68,9 @@ export interface PadState {
   lowSingle?: boolean;
   scramble?: boolean;
   sitOut?: boolean;
+  /** A move for this position (situation options): touch sends the move it showed, the keyboard its slot, 1-4. */
+  option?: string;
+  optionSlot?: number;
 }
 
 export const NO_PAD: PadState = { x: 0, y: 0, shoot: false, fight: false, sprawl: false, level: false };
@@ -169,6 +175,8 @@ export class Input {
       legRide: has('legRide'), closePockets: has('closePockets'), catchLeg: has('catchLeg'),
       technique: (['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).find(has),
       legAction,
+      // The latest slot key pressed wins while an older one is still down, like the finish keys.
+      optionSlot: [...this.heldKeys].reverse().map(code => /^(Digit|Numpad)[1-4]$/.test(code) ? Number(code.slice(-1)) : 0).find(Boolean),
     });
   }
 
@@ -277,7 +285,7 @@ export class Input {
     if (keyboard.technique || !touch.technique && padTechnique) this.touchTechniqueOwner = false;
     else if (technique && technique !== this.previousTechnique) this.touchTechniqueOwner = !!touch.technique;
     this.previousTechnique = technique;
-    return { x, y, shoot, fight, sprawl, level, technique, legRide: keyboard.legRide || touch.legRide, closePockets: keyboard.closePockets || touch.closePockets, catchLeg: keyboard.catchLeg || touch.catchLeg, legAction: keyboard.legAction ?? touch.legAction, sustainedEffort: shoot || fight || sprawl, lowSingle, scramble: keyboard.scramble || !!touch.scramble || !!pad?.buttons[3]?.pressed, sitOut: keyboard.sitOut || !!touch.sitOut || !!pad?.buttons[11]?.pressed };
+    return { x, y, shoot, fight, sprawl, level, technique, legRide: keyboard.legRide || touch.legRide, closePockets: keyboard.closePockets || touch.closePockets, catchLeg: keyboard.catchLeg || touch.catchLeg, legAction: keyboard.legAction ?? touch.legAction, option: touch.option, optionSlot: keyboard.optionSlot, sustainedEffort: shoot || fight || sprawl, lowSingle, scramble: keyboard.scramble || !!touch.scramble || !!pad?.buttons[3]?.pressed, sitOut: keyboard.sitOut || !!touch.sitOut || !!pad?.buttons[11]?.pressed };
   }
 
   /** A short controller buzz for impacts and scores. */

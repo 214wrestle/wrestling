@@ -933,6 +933,44 @@ button:focus-visible {
   background: rgba(255, 255, 255, 0.7);
 }
 
+/* The named moves for this position on keys 1-4 (situation options): four fixed slots just above the pad. */
+.pad-options {
+  position: absolute;
+  right: max(1.6vw, env(safe-area-inset-right));
+  bottom: calc(max(2.2vh, env(safe-area-inset-bottom)) + 96px);
+  display: grid;
+  grid-template-columns: repeat(4, 84px);
+  gap: 0.4rem;
+  pointer-events: none;
+}
+.pad-options__opt {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0 0.35rem;
+  min-height: 38px;
+  padding: 0.25rem 0.4rem;
+  border-radius: 10px;
+  background: var(--glass);
+  border: 1px solid rgba(240, 200, 106, 0.55);
+  font: 700 0.7rem/1.05 var(--display);
+  font-stretch: 88%;
+  text-transform: uppercase;
+}
+.pad-options__opt kbd {
+  grid-row: span 2;
+  min-width: 1.2rem;
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.14);
+  font: 700 0.72rem/1.2 var(--body);
+  text-align: center;
+}
+.pad-options__opt small { color: var(--muted-ink); font: 600 0.56rem/1.1 var(--body); text-transform: none; }
+.pad-options__opt--hot { border-color: var(--gold); background: linear-gradient(180deg, rgba(255, 201, 74, 0.28), rgba(9, 12, 19, 0.85)); }
+.pad-options__opt--off { opacity: 0.4; }
+.pad-options__opt--empty { visibility: hidden; }
+
 /* Action pad: the three contextual moves */
 .pad {
   position: absolute;
@@ -1868,14 +1906,62 @@ button:focus-visible {
 }
 
 .touch__buttons {
-  display: grid;
-  grid-template-columns: repeat(2, auto);
-  gap: 0.5rem;
+  /* Fixed slots (owner, November 15: buttons must not move mid-situation). The status floats above, the named
+     moves for the position have four slots that are always there, and each action button has its own area. */
+  --tb-w: 5.4rem;
+  --tb-h: 4.2rem;
+  --to-h: 2.6rem;
+  --tb-gap: 0.5rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--tb-gap);
 }
 
+.touch__options {
+  display: grid;
+  grid-template-columns: repeat(2, var(--tb-w));
+  grid-template-rows: repeat(2, var(--to-h));
+  gap: calc(var(--tb-gap) * 0.8);
+}
+
+.touch__main {
+  display: grid;
+  grid-template-columns: repeat(2, var(--tb-w));
+  grid-template-rows: repeat(2, var(--tb-h));
+  grid-template-areas: "sprawl fight" "shoot level";
+  gap: var(--tb-gap);
+}
+
+.touch__main .touch__btn--sprawl { grid-area: sprawl; }
+.touch__main .touch__btn--fight { grid-area: fight; }
+.touch__main .touch__btn--shoot { grid-area: shoot; }
+.touch__main .touch__btn--level { grid-area: level; }
+
+.touch__btn.touch__opt {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0 0.25rem;
+  border-radius: 12px;
+  /* Solid enough to read the same over any part of the mat (the red circle tinted a translucent one). */
+  background: rgba(54, 42, 14, 0.84);
+  border-color: rgba(240, 200, 106, 0.6);
+  color: #ffe9b0;
+  font-size: 0.68rem;
+  line-height: 1;
+}
+.touch__btn.touch__opt .touch__hint { margin-top: 0.15rem; font-size: 0.55rem; }
+/* Long move names (Switch to double, Crossface cradle) wrap to two lines inside their slot instead of spilling out. */
+.touch__btn.touch__opt .touch__label--long { white-space: normal; font-size: 0.6rem; line-height: 1; letter-spacing: 0; }
+.touch__btn.touch__opt--hot { box-shadow: 0 0 0 3px var(--gold); background: rgba(128, 96, 22, 0.92); color: #fff; }
+.touch__btn.touch__opt--off { opacity: 0.4; }
+.touch__opt--empty { visibility: hidden; }
+
 .touch__btn {
-  width: 5.4rem;
-  height: 4.2rem;
+  width: var(--tb-w);
+  height: var(--tb-h);
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 16px;
   background: rgba(10, 14, 22, 0.72);
@@ -1898,8 +1984,6 @@ button:focus-visible {
 }
 
 .touch__btn--level {
-  height: 2.6rem;
-  min-height: 44px;
   font-size: 0.7rem;
 }
 
@@ -1988,6 +2072,13 @@ button:focus-visible {
   }
   .card {
     display: none;
+  }
+  /* Compact keyboard pad: the move slots as a slim row just above the slim pad. */
+  .pad-options {
+    left: max(8px, env(safe-area-inset-left));
+    right: max(8px, env(safe-area-inset-right));
+    bottom: calc(max(8px, env(safe-area-inset-bottom)) + 66px);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   /* Compact keyboard pad: the same three buttons as one slim row across the bottom. */
   .pad {
@@ -2100,13 +2191,9 @@ button:focus-visible {
 .top-restart button[aria-pressed="true"] {border-color:#f2c36b;background:#66502e;}
 
 .touch__btn[hidden] {display:none;}
-.touch__btn--small {height:2.8rem;}
-.touch__techniques {position:relative;}
-.touch__techniques summary {display:flex;align-items:center;justify-content:center;cursor:pointer;list-style:none;}
-.touch__techniques > div {position:absolute;bottom:calc(100% + 8px);right:0;display:grid;grid-template-columns:repeat(2,auto);gap:8px;padding:8px;background:#141b29;border-radius:12px;z-index:4;}
 
 /* Touch feedback remains legible above the fingers, including in pin battles. */
-.touch__status { grid-column:1 / -1; width:11.3rem; pointer-events:none; }
+.touch__status { position:absolute; right:0; bottom:calc(100% + var(--tb-gap)); width:calc(var(--tb-w) * 2 + var(--tb-gap)); pointer-events:none; }
 .touch__notice { min-height:2.2rem; padding:.4rem; border-radius:8px; background:#111c2eee; color:#fff; font:700 .75rem/1.2 var(--display); }
 .touch__notice--ok,.touch__notice--won { border-left:4px solid #80efab; }
 .touch__notice--lost,.touch__notice--blocked { border-left:4px solid #ffc06b; }
@@ -2133,9 +2220,11 @@ button:focus-visible {
 
 /* Keep feedback above the buttons inside short landscape phone viewports. */
 @media (orientation: landscape) and (max-height: 440px) {
-  .touch__buttons { grid-template-columns: repeat(3, 4.5rem); gap: .35rem; }
-  .touch__btn { width: 4.5rem; height: 3rem; font-size: .65rem; border-radius: 12px; }
-  .touch__btn--small, .touch__btn--level { height: 3rem; }
+  /* Short landscape: the four move slots sit to the left of the action buttons instead of above them. */
+  .touch__buttons { --tb-w: 4.5rem; --tb-h: 3rem; --to-h: 2.3rem; --tb-gap: .35rem; flex-direction: row; align-items: flex-end; }
+  .touch__options { grid-template-rows: repeat(2, var(--to-h)); align-self: flex-end; }
+  .touch__btn { font-size: .65rem; border-radius: 12px; }
+  .touch__btn.touch__opt { font-size: .6rem; }
   .touch__status { width: 14.2rem; }
   .touch__notice { min-height: 1.7rem; padding: .3rem; }
   .touch__contest { margin-top: .2rem; padding: .3rem; }
@@ -2196,9 +2285,9 @@ button:focus-visible {
 /* Compact controls leave the center clear on shorter portrait phones. */
 @media (orientation: portrait) and (max-width: 430px) and (max-height: 699px) {
   .touch__pad { width: 28vw; flex-shrink: 0; }
-  .touch__buttons { grid-template-columns: repeat(3, 3.75rem); gap: .35rem; }
-  .touch__btn { width: 3.75rem; height: 3rem; font-size: .65rem; border-radius: 12px; }
-  .touch__btn--small, .touch__btn--level { height: 3rem; }
+  .touch__buttons { --tb-w: 4.4rem; --tb-h: 3rem; --to-h: 2.2rem; --tb-gap: .35rem; }
+  .touch__btn { font-size: .65rem; border-radius: 12px; }
+  .touch__btn.touch__opt { font-size: .6rem; }
   .touch__status { width: 11.95rem; }
   .touch__notice { min-height: 1.7rem; padding: .3rem; }
   .touch__contest { padding: .3rem; margin-top: .2rem; }

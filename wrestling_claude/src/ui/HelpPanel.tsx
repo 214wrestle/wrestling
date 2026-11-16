@@ -9,6 +9,17 @@ interface Row {
 
 const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
   {
+    title: 'Moves for the position',
+    lead: 'Every position offers its own few named moves, in four slots that stay put while the position lasts: keys 1 to 4, or the gold buttons above the action buttons on a phone. A move lights up when what he is doing gives it to you; a dim one still works, it just rarely does.',
+    rows: [
+      { key: '1-4', move: 'Single leg', note: 'Trip (he bounces on the other leg), Dump (he drives into you), Switch to double (he plants and whizzers), Drive back (he stands tall). Hold one: it lifts the leg first if it has to. Picked as it lights, it goes faster and finishes with a burst.' },
+      { key: '1-4', move: 'Double · low single', note: 'Double: Lift (he stands tall), Trip (he bounces back off your drive), Drive through. Low single: Come up to a high single while he stays tall, or Switch to double.' },
+      { key: '1-4', move: 'Front headlock', note: 'Go behind (he is flat), Chin whip (he is coming up), Cement mixer (broken down), Shuck (he drives in). Caught in one yourself: Peek out from under his arm and turn back in on his hips.' },
+      { key: '1-4', move: 'On top', note: 'Riding: Tilt or Cradle once his base is low, Turk with your legs in, Legs in (hold). Broken down flat: Half nelson, Arm bar, Bar + half, Crossface cradle. He Granby rolls: Follow, roll through with him and stay on top.' },
+      { key: '1-4', move: 'On bottom', note: 'Sit out, Granby, Switch (best right after he commits his weight), Peterson roll (his weight over you, or straight off a Granby he stopped). Flat: Hip heist. On your feet: Standing switch.' },
+    ],
+  },
+  {
     title: 'On your feet',
     lead: 'Set it up, then execute: the tie you hold and where you push the stick pick the move, and the button shows its name. Sideways means across him; back means away from him.',
     rows: [
@@ -30,12 +41,12 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
     title: 'Scrambles',
     lead: 'A shot that gets in is a fight to finish it.',
     rows: [
-      { key: 'J', move: 'Drive through', note: 'Hold to finish. Sideways + J trips; Shift + J goes to the double. Hold K first to lift the leg.' },
+      { key: 'J', move: 'Drive through', note: 'Hold to finish; the named finishes are on 1-4. Hold K to lift the leg.' },
       { key: 'L', move: 'Crossface', note: 'Sprawl early, on his level change. Beat the shot and you are on top in a front headlock.' },
       { key: 'K', move: 'Whizzer', note: 'On a single or high crotch: beat it and you kick the leg free back to your feet.' },
-      { key: 'J', move: 'Counter', note: 'He is in on your legs: crackdown before he is deep, sit through on a deep single with the leg low, scramble roll when he has nearly finished (miss it and he scores).' },
+      { key: 'J', move: 'Counter', note: 'He is in on your legs: crackdown before he is deep, sit through on a deep single with the leg low, funk roll when he has nearly finished (miss it and he scores). Beat his single with the whizzer and you may go right on behind him for the takedown.' },
       { key: 'K', move: 'Scramble', note: 'While he is finishing a takedown on you: fight it. Costs stamina.' },
-      { key: 'J', move: 'Spin behind / chin whip', note: 'From a front headlock: spin behind when he is flat, chin whip as he comes up, J + Shift for a cement mixer to his back. K snaps him back down; L shucks him by while he drives in.' },
+      { key: 'J', move: 'Spin behind / chin whip', note: 'From a front headlock: spin behind when he is flat, chin whip as he comes up (the cement mixer is on 1-4). K snaps him back down; L shucks him by while he drives in.' },
       { key: 'K / L', move: 'Clear your head', note: 'Caught in a front headlock: hammer to dig out and get back up.' },
     ],
   },
@@ -44,7 +55,7 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
     lead: 'Your game plan sets how you ride: Turn him (back points) or Ride (riding time, harder to escape). Ride without trying a turn and the referee calls stalling. A tilt is held for the count, then you roll him back to his belly and go again.',
     rows: [
       { key: 'K', move: 'Break down', note: 'Chop the arm and drive; each one lowers his base. It commits you, so he can switch.' },
-      { key: 'J', move: 'Turn him', note: 'Tilt or half nelson once his base is low or he is flat; with your legs in it is a turk. Pick a bar or a cradle in Top attack. Hold the squeeze for the fall. A tilt or a loose throw is a quick 2 as he bellies out; squeezing tightens it for more.' },
+      { key: 'J', move: 'Turn him', note: 'Tilt or half nelson once his base is low or he is flat; with your legs in it is a turk. Each turn has its own key on 1-4 (on a keyboard, Top attack also picks the side of a bar). Hold the squeeze for the fall. A tilt or a loose throw is a quick 2 as he bellies out; squeezing tightens it for more.' },
       { key: 'L', move: 'Ride / return', note: 'Tighten the ride. If he stands up, L lifts him and returns him, J trips him, K is a crotch lift: a clean return puts him flat; tired, a big lift can be a slam (a point to him). Lock your hands only once he is on his feet: grabbing while he is still on a knee, as a return lands, or to stop his switch, sit-out or Granby is locked hands (a point to him). If the lock holds him down the referee stops it; if he wrestles through and gets out, he gets the escape or reversal and the point.' },
       { key: 'Shift', move: 'Cut / legs in', note: 'Tap to cut him loose (he gets 1). Hold to throw in the legs.' },
     ],
@@ -55,7 +66,7 @@ const GROUPS: Array<{ title: string; lead: string; rows: Row[] }> = [
     rows: [
       { key: 'J', move: 'Stand up', note: 'From a good base, best right off the whistle or with hand control. If he stops it you may be back on your base, broken down flat, or still half up to go again. Up on your feet: K for hand control and J to turn out, or K + Shift for a standing switch. Returned to the mat: J as you come down to turn in the moment you land (miss and you land flatter).' },
       { key: 'K', move: 'Hand control · Switch', note: 'Take his hand at your waist: your stand-up and sit-out work far better with it and with back pressure (L builds your base into him). Right after he chops or drives it is a switch: a reversal puts you on top.' },
-      { key: 'X', move: 'Sit out', note: 'Sit through and turn in toward him, or turn out away from him when he is over the top of you. From the tripod, or broken down flat on your belly, it is a hip heist: sit through, post a hand and swing your hips round to face him. Risky: he can pull you to your back. X + Shift is a Granby roll.' },
+      { key: 'X', move: 'Sit out', note: 'Sit through and turn in toward him, or turn out away from him when he is over the top of you. From the tripod, or broken down flat on your belly, it is a hip heist: sit through, post a hand and swing your hips round to face him. Risky: he can pull you to your back. X + Shift is a Granby roll; both are on 1-4 too.' },
       { key: 'L', move: 'Base up', note: 'Rebuild your base; on your back, hammer to fight off. Against his legs it closes your pockets; Shift catches the leg.' },
     ],
   },

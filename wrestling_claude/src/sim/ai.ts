@@ -1,7 +1,7 @@
 import {isArmBar} from './armBars';
 import { isScrambleSpecialist, heavyweightActivity, isFootSweepSpecialist, lateAttackUrgency, GABLE_PRESSURE_NAMES } from './athleteProfiles';
 import type { Bout, BottomTry } from './bout';
-import { BOUT, BOTTOM_CHAIN, COLD_READ, EDGE, Rng, edgeDistance, legCounterFor } from './bout';
+import { BOUT, BOTTOM_CHAIN, COLD_READ, EDGE, Rng, edgeDistance, finishRead, legCounterFor } from './bout';
 import { otherSide } from './types';
 import { STYLE_EFFECT, gradeStep, styleStep } from './attributeRatings';
 import { MAT } from './rules';
@@ -12,6 +12,9 @@ export type Difficulty = 'practice' | 'walk-on' | 'starter' | 'all-american';
 
 /** Chance the AI shoots right off his reach or snap (once per opening): base + aggression share. */
 export const POUNCE = { base: 0.12, aggression: 0.5 } as const;
+/** In on the legs, the chance a tick that he switches to the finish the defender's reaction gives him (finishRead),
+ *  times 1 + 4 x his switch read. */
+export const AI_FINISH_READ = { perTick: 0.005 };
 /** Seconds a warned rider keeps a standing man up before he cuts him instead of being hit for stalling on top. */
 export const STALL_CUT = 4;
 /**
@@ -143,7 +146,9 @@ export class WrestlerAI {
   private chainT = 0;
   private effortTime = 0;
   private legDefense: 'sprawl' | 'fight' | null = null;
-  private legFinishChoice: 'trip' | 'double' | 'drive' | null = null;
+  private legFinishChoice: 'trip' | 'double' | 'drive' | 'dump' | null = null;
+  /** On a double: the lift, the trip, or just the drive through. */
+  private doubleFinishChoice: 'liftDouble' | 'doubleTrip' | 'double' | null = null;
 
   constructor(
     private side: Side,
@@ -202,6 +207,7 @@ export class WrestlerAI {
       this.lastPos = key;
       this.legDefense = null;
       this.legFinishChoice = null;
+      this.doubleFinishChoice = null;
       // A human beat to read the new position before acting on it.
       this.decideT = this.p.reaction * 1.6 + this.rng.next() * 0.3;
       // Off the whistle on the feet, a moment to feel him out (step in, touch hands) before the
@@ -283,6 +289,8 @@ export class WrestlerAI {
     // Scramble specialists (and researched scramblers, STYLE_EFFECT.scrambleAI a second per step above 3) scramble.
     const scramRate = (isScrambleSpecialist(name) ? 0.3 : 0) + STYLE_EFFECT.scrambleAI * Math.max(0, gradeStep(bout.wrestlers[this.side], 'scrambling'));
     if ((pos.kind === 'legs' || pos.kind === 'fhl' || pos.kind === 'mat') && scramRate > 0 && this.rng.chance(dt * scramRate)) cmd.scramble = true;
+    // His Granby: a rider who reads it rolls through with him (SCRAMBLE), the sharper the more often.
+    if (pos.kind === 'move' && pos.id === 'granbyRoll' && pos.A === this.side && !pos.awarded && this.rng.chance(dt * (0.6 + 4 * this.p.switchRead))) cmd.scramble = true;
     return this.edges(cmd);
   }
 
@@ -594,9 +602,20 @@ export class WrestlerAI {
           const doublePreference = bout.wrestlers[this.side].motion?.shots.double ?? .45;
           const roll = this.rng.next();
           this.legFinishChoice = me.stamina < .35 || pos.progress > .75 ? 'drive'
-            : roll < .45 ? 'trip' : roll < .45 + doublePreference * .5 ? 'double' : 'drive';
+            : roll < .3 ? 'trip' : roll < .45 ? 'dump' : roll < .45 + doublePreference * .5 ? 'double' : 'drive';
         }
+        // Reading him (FINISH): now and then he goes to the finish the defender's reaction gives him, a little more
+        // often the better he is. Never off a converted double (a switch is a grip change, not a read).
+        const hot = (['trip', 'dump', 'drive'] as const).find(f => finishRead(pos, f) === 'hot');
+        if (hot && hot !== this.legFinishChoice && this.legFinishChoice !== 'double' && this.rng.next() < AI_FINISH_READ.perTick * (1 + 4 * this.p.switchRead)) this.legFinishChoice = hot;
         cmd.legAction = me.stamina > .15 ? this.legFinishChoice : 'drive';
+      } else if (pos.kind === 'legs' && pos.shot === 'double') {
+        // On a double: now and then the lift (strong men) or a trip; mostly the drive through.
+        if (!this.doubleFinishChoice) {
+          const roll = this.rng.next();
+          this.doubleFinishChoice = me.stamina < .35 ? 'double' : roll < .08 + bout.wrestlers[this.side].attributes.strength * .12 ? 'liftDouble' : roll < .32 ? 'doubleTrip' : 'double';
+        }
+        if (this.doubleFinishChoice !== 'double') cmd.legAction = this.doubleFinishChoice;
       }
       cmd.shoot = true;
       // Use the human hold cadence instead of continuous drive with no
@@ -656,7 +675,10 @@ export class WrestlerAI {
       return;
     }
     if (this.mashBeat()) {
-      if (this.rng.next() < 0.6) cmd.fight = true;
+      // Now and then he peeks out instead of digging (SCRAMBLE.peek): scramblers far more often.
+      const me = bout.wrestlers[this.side];
+      if (this.rng.next() < (isScrambleSpecialist(`${me.firstName} ${me.lastName}`) ? 0.12 : 0.04 + 0.03 * Math.max(0, gradeStep(me, 'scrambling')))) cmd.peekOut = true;
+      else if (this.rng.next() < 0.6) cmd.fight = true;
       else cmd.sprawl = true;
     }
   }
@@ -820,6 +842,8 @@ export class WrestlerAI {
         this.chainNext = chain.last === 'standUp' && (pos.pod ?? 0) > 0.3 ? (r < 0.65 ? 'standUp' : r < 0.9 ? sit() : 'switch')
           : chain.last === 'standUp' ? (r < 0.45 ? sit() : r < 0.75 || pos.commit < 0.2 ? 'standUp' : 'switch')
           : chain.last === 'switch' ? (r < 0.6 ? 'standUp' : sit())
+          // A Granby he followed or stopped: the Peterson off it now and then (SCRAMBLE.peterson).
+          : chain.last === 'granby' ? (r < 0.3 ? 'peterson' : r < 0.75 ? 'standUp' : sit())
           : r < 0.6 ? 'standUp' : r < 0.8 && pos.commit >= 0.2 ? 'switch' : sit();
         this.decideT = 0.45 + this.rng.next() * 0.45;
         if (this.rng.next() < 0.4) this.hipsT = 0.3;
@@ -849,6 +873,7 @@ export class WrestlerAI {
       this.decideT = 0.3 + this.rng.next() * 0.3;
       if (next === 'standUp') cmd.shoot = true;
       else if (next === 'switch') cmd.fight = true;
+      else if (next === 'peterson') cmd.peterson = true;
       else { cmd.sitOut = true; cmd.level = next === 'granby'; }
       return;
     }

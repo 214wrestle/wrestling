@@ -99,7 +99,8 @@ export function App() {
           sim.bout.athletes.forEach(a => {a.stamina=1});
         }}>{label}</button>)}
       </div>}
-      {state.screen==='playing' && game && <TopTurnPicker state={state} api={game} />}
+      {/* On a phone the turns are named moves in the touch slots (situation options); the picker is for keyboards. */}
+      {state.screen==='playing' && game && !state.touchControls && <TopTurnPicker state={state} api={game} />}
       {state.showHelp && game && <HelpPanel api={game} />}
     </div>
   );

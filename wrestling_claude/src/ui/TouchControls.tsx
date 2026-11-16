@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { NO_PAD, type PadState } from '../engine/Input';
+import { NO_PAD } from '../engine/Input';
 import { TouchGestures, type TouchKey } from '../engine/TouchGestures';
 import { availableTouchKeys } from './touchActions';
 import { actionInstruction } from '../game/prompts';
@@ -79,6 +79,10 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
   }, [api, reset]);
   const legActionSet = state.legActions?.join(',') ?? '';
   const previousContext = useRef({position:state.position, legActionSet});
+  // The named moves for this position: a finger stays on its move while the move is still offered.
+  const optionIds = state.options.flatMap(o => o ? [o.id] : []);
+  const optionSet = optionIds.join(',');
+  const previousOptions = useRef(optionSet);
 
   // Top/Bottom labels stay the same across ride, standing and exposure.
   // A finger holding Stand up must not silently become a Turn out press.
@@ -151,6 +155,12 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
       api.cancelTouch(key);
       buttonGroup.current?.querySelectorAll<HTMLButtonElement>(`[data-touch-key="${key}"]`).forEach(b => { delete b.dataset.held; });
     }
+    if (previousOptions.current !== optionSet && gestures.current.cancelUnavailable('option', optionIds)) {
+      cancelled = true;
+      api.cancelTouch('option');
+      buttonGroup.current?.querySelectorAll<HTMLButtonElement>('[data-touch-key="option"]').forEach(b => { if (!gestures.current.has('option')) delete b.dataset.held; });
+    }
+    previousOptions.current = optionSet;
     previousAvailable.current = available;
     previousLabels.current = state.prompts;
     if (cancelled) {
@@ -158,9 +168,9 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
       setFeedback({ text: 'Position changed · Choose your next move', result: 'attempt', id: ++noticeId.current });
       push();
     }
-  }, [promptLabels, availableSignature, state.position, legActionSet, api, push, reset]);
+  }, [promptLabels, availableSignature, state.position, legActionSet, optionSet, api, push, reset]);
 
-  const endAction = (e: React.PointerEvent<HTMLButtonElement>, cancelled: boolean, value?: boolean | NonNullable<PadState['technique']> | NonNullable<PadState['legAction']>) => {
+  const endAction = (e: React.PointerEvent<HTMLButtonElement>, cancelled: boolean, value?: boolean | string) => {
     const key = gestures.current.end(e.pointerId);
     if (!key) return; // Normal release already handled before lostpointercapture.
     if (!gestures.current.has(key)) {
@@ -170,7 +180,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
     // then push the surviving finger's finish back into that channel.
     // Boolean actions and identical technique fingers keep shared ownership.
     // A canceled different choice must not survive in the pending enum queue.
-    if (cancelled && (!gestures.current.has(key) || key === 'legAction' || key === 'technique' && gestures.current.state().technique !== value)) api.cancelTouch(key);
+    if (cancelled && (!gestures.current.has(key) || key === 'legAction' || key === 'option' || key === 'technique' && gestures.current.state().technique !== value)) api.cancelTouch(key);
     setHeld(gestures.current.size ? 'Working' : null);
     push();
     // Reveal the attempted move after a completed selection; cancellation stays put.
@@ -179,7 +189,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
       if (menu) menu.open = false;
     }
   };
-  const bindAction = (key: TouchKey, value: boolean | NonNullable<PadState['technique']> | NonNullable<PadState['legAction']> = true) => ({
+  const bindAction = (key: TouchKey, value: boolean | string = true) => ({
     'data-touch-key': key,
     onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
       gestures.current.begin(e.pointerId, key, value);
@@ -244,13 +254,19 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
             <small>{contestHint}</small>
           </div>}
         </div>
-        {(available.has('legRide') || available.has('closePockets')) && (available.has('legRide') ? ['legRide'] as const : ['closePockets','catchLeg'] as const).map(key => <button key={key} className="touch__btn touch__btn--small" {...bindAction(key)}>{ {legRide:'Work legs in',closePockets:'Close pockets',catchLeg:'Catch / clear leg'}[key] }<small className="touch__hint">Hold</small></button>)}
-
-        {state.legActions?.map(action => <button key={action} className="touch__btn touch__btn--small" {...bindAction('legAction', action)}>{ {lift:'Lift leg',trip:'Trip',double:state.legActions?.includes('lift')?'Switch double':'Finish double',drive:'Drive back'}[action] }<small className="touch__hint">Hold</small></button>)}
-
-
-        {available.has('technique') && <details className="touch__techniques"><summary className="touch__btn touch__btn--small">Techniques</summary><div>{(['duckUnder','superDuck','slideBy','firemansCarry','footSweep'] as const).map((move,i)=><button key={move} type="button" className="touch__btn" {...bindAction('technique', move)}>{['Duck under','Super duck','Slide by','Fireman’s','Foot sweep'][i]}<small className="touch__hint">Tap</small></button>)}</div></details>}
-        {(['sitOut', 'lowSingle', 'scramble'] as const).map(key => <button key={key} hidden={!available.has(key)} type="button" className="touch__btn" {...bindAction(key)}>{key === 'sitOut' ? 'Sit out' : key === 'lowSingle' ? 'Low single' : 'Scramble'}<small className="touch__hint">Tap</small></button>)}
+        {/* Fixed slots (owner, November 15: the buttons "jump all over the place ... make sure they don't move
+            mid-situation"). The named moves for this position sit in four fixed slots above the action buttons,
+            and the action buttons each keep one place; nothing shown or hidden moves another button. */}
+        <div className="touch__options" role="group" aria-label="Moves for this position">
+          {state.options.map((o, i) => o
+            ? <button key={`slot${i}`} type="button" data-slot={i}
+                className={`touch__btn touch__opt touch__opt--${o.state}${shown?.label === o.label ? ` touch__btn--${shown.result}` : ''}`}
+                {...bindAction('option', o.id)}>
+                <span className={`touch__label${o.label.length > 12 ? ' touch__label--long' : ''}`}>{o.label}</span><small className="touch__hint">{o.input}</small>
+              </button>
+            : <span key={`slot${i}`} className="touch__opt touch__opt--empty" aria-hidden="true" />)}
+        </div>
+        <div className="touch__main">
         {(['sprawl', 'fight', 'shoot'] as const).map((key) => (
           <button
             key={key}
@@ -271,6 +287,7 @@ export function TouchControls({ state, api }: { state: UiState; api: GameApi }) 
           <span className="touch__label">Lower</span>
           <small className="touch__hint">{state.top === state.humanSide ? 'Tap: cut (give 1) · Hold: legs in' : state.position === 'In on the legs' ? 'With Drive: double' : state.top !== null ? 'Hold: catch leg' : 'Hold'}</small>
         </button>
+        </div>
       </div>
     </div>
   );

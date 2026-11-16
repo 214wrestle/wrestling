@@ -125,6 +125,13 @@ function ActionPad({ state }: { state: UiState }) {
   if (state.touchControls) return null;
   const order: ButtonId[] = ['shoot', 'fight', 'sprawl'];
   return (
+    <>
+    {/* The named moves for this position on keys 1-4 (situation options): four fixed slots above the pad. */}
+    {state.options.some(Boolean) && <div className="pad-options" aria-label="Moves for this position">
+      {state.options.map((o, i) => o
+        ? <div key={i} className={`pad-options__opt pad-options__opt--${o.state}`}><kbd>{i + 1}</kbd><span>{o.label}</span><small>{o.input}</small></div>
+        : <div key={i} className="pad-options__opt pad-options__opt--empty" aria-hidden="true" />)}
+    </div>}
     <div className="pad" aria-label="Moves">
       {order.map((id) => {
         const p = state.prompts[id];
@@ -143,6 +150,7 @@ function ActionPad({ state }: { state: UiState }) {
         );
       })}
     </div>
+    </>
   );
 }
 

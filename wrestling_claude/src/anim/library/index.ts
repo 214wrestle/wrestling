@@ -25,3 +25,5 @@ import './legCounters';
 import './standingReturns';
 
 import './armBars';
+
+import './scrambles';

@@ -74,8 +74,23 @@ export const MOVES: Record<string, MoveDef> = {
     [style+'Turn',{id:style+'Turn',dur:2.2,camera:'mat',next:{kind:'mat',A:'A',frame:{x:0,z:0,yaw:0},sub:'exposed'}}],
     [style+'Resisted',{id:style+'Resisted',dur:1.5,camera:'mat',next:{kind:'mat',A:'A',frame:{x:0,z:0,yaw:0},sub:'flat',base:.3}}],
   ])) as Record<string,MoveDef>,
-  liftedLegTrip: {id:'liftedLegTrip',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Lifted leg — outside trip'},impact:{at:0.7,strength:0.65},next:{kind:'mat',A:'A',frame:{x:0.3,z:0.8,yaw:-PI/2},sub:'ride',base:0.5}},
-  liftedLegDrive: {id:'liftedLegDrive',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Lifted leg — drive back'},impact:{at:0.7,strength:0.6},next:{kind:'mat',A:'A',frame:{x:0,z:1.1,yaw:PI},sub:'ride',base:0.55}},
+  // The score banner shows the detail up to its first " — ", so each finish is named in full there (November 15).
+  liftedLegTrip: {id:'liftedLegTrip',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Single leg trip'},impact:{at:0.7,strength:0.65},next:{kind:'mat',A:'A',frame:{x:0.3,z:0.8,yaw:-PI/2},sub:'ride',base:0.5}},
+  liftedLegDrive: {id:'liftedLegDrive',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Single leg drive back'},impact:{at:0.7,strength:0.6},next:{kind:'mat',A:'A',frame:{x:0,z:1.1,yaw:PI},sub:'ride',base:0.55}},
+  // Situation options (owner, November 15: "single leg: trips, switch to double, dump"). The dump: leg up and him
+  // heavy on you, step the back foot round and turn the corner the way he leans; he goes down on his hip beside you.
+  liftedLegDump: {id:'liftedLegDump',dur:1.5,camera:'tight',award:{to:'A',kind:'takedown',at:0.8,detail:'Single leg dump'},impact:{at:0.66,strength:0.7},next:{kind:'mat',A:'A',frame:{x:-0.3,z:0.6,yaw:PI/2},sub:'ride',base:0.5}},
+  // The trip off a double: head on his chest, hands on the backs of his knees, step through and hook the near leg
+  // as he leans into the drive; he goes over backwards.
+  doubleLegTrip: {id:'doubleLegTrip',dur:1.35,camera:'low',slowmo:true,award:{to:'A',kind:'takedown',at:0.74,detail:'Double leg trip'},impact:{at:0.6,strength:0.85},next:{kind:'mat',A:'A',frame:{x:0.3,z:0.95,yaw:-PI/2},sub:'ride',base:0.5}},
+  // Scrambles (owner, November 15: "watch some scramble videos ... from the feet and top position"; research in
+  // docs/research/scrambles-nov15.md). From the feet: the shooter's peek-out from under a sprawl (he comes out on a
+  // double the other way, no score yet) and the defender's whizzer kick-out to the go-behind. From the top: the bottom
+  // man's Peterson roll (a reversal that takes the rider over with him) and the rider following a Granby through.
+  peekOut: {id:'peekOut',dur:1.1,camera:'tight',next:{kind:'legs',A:'B',frame:{x:0.5,z:-0.35,yaw:-PI/2},shot:'double'}},
+  whizzerGoBehind: {id:'whizzerGoBehind',dur:1.35,camera:'tight',award:{to:'B',kind:'takedown',at:0.78,detail:'Whizzer go-behind'},impact:{at:0.5,strength:0.5},next:{kind:'mat',A:'B',frame:{x:0.05,z:0.15,yaw:0},sub:'ride',base:0.45}},
+  petersonRoll: {id:'petersonRoll',dur:1.5,camera:'mat',slowmo:true,award:{to:'B',kind:'reversal',at:0.7,detail:'Peterson roll'},impact:{at:0.68,strength:0.6},next:{kind:'mat',A:'B',frame:{x:-0.55,z:0.05,yaw:0},sub:'ride',base:0.3}},
+  granbyFollow: {id:'granbyFollow',dur:1.1,camera:'mat',impact:{at:0.6,strength:0.45},next:{kind:'mat',A:'A',frame:{x:0.05,z:0.3,yaw:-PI/2},sub:'ride',base:0.35}},
   duckUnder: {id:'duckUnder',dur:1.3,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Duck under — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   superDuck: {id:'superDuck',dur:1.6,camera:'tight',award:{to:'A',kind:'takedown',at:0.85,detail:'Super duck — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
   footSweep: {id:'footSweep',dur:1.5,camera:'tight',award:{to:'A',kind:'takedown',at:0.9,detail:'Foot sweep — control established'},next:{kind:'mat',A:'A',frame:{x:0,z:0.4,yaw:PI},sub:'ride',base:0.5}},
@@ -245,11 +260,12 @@ export const MOVES: Record<string, MoveDef> = {
     camera: 'tight',
     next: { kind: 'neutral', a: { x: 0, z: -0.55, yaw: 0 }, b: { x: 0, z: 0.6, yaw: PI } },
   },
-  // Scramble roll: all but taken down, he rolls through over the shooter's back and comes up on top.
+  // Funk roll (the move people call it; id kept): all but taken down, he rolls through over the shooter's back and
+  // comes up on top (Cary Kolat, "Funk Roll Defense to Head Inside Single Leg").
   scrambleRoll: {
     id: 'scrambleRoll',
     dur: 1.5,
-    award: { to: 'B', kind: 'takedown', at: 0.8, detail: 'Scramble roll' },
+    award: { to: 'B', kind: 'takedown', at: 0.8, detail: 'Funk roll' },
     impact: { at: 0.5, strength: 0.45 },
     camera: 'mat',
     slowmo: true,

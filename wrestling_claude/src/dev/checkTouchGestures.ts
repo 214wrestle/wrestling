@@ -36,7 +36,8 @@ g.begin(13,'shoot',true);buffer.set({...NO_PAD,...g.state()});
 ok(buffer.sample().shoot,'fresh post-transition tap survives buffering');
 console.log('Relabeled actions cannot replay through the pending input buffer');
 
-// Simple controls: the panel is Shoot, Hand fight, Sprawl and Lower (plus Sit out on bottom).
+// Simple controls: the panel is Shoot, Hand fight, Sprawl and Lower, plus the named moves for the position in their
+// own fixed slots (situation options, November 15; Sit out is one of them now).
 // Bottom's Lower catches the leg and exists only while his legs are coming in; when they
 // leave, a finger holding it must be cancelled with its queued input.
 const ride={position:'Top' as const,top:0 as const,humanSide:0 as const,meters:[{label:'Base',value:.5,tone:'you' as const}],legActions:undefined};
@@ -69,4 +70,11 @@ for(const state of [ride,standing,legsComing,{...standing,position:'Neutral' as 
  for(const gone of ['technique','lowSingle','scramble','legAction','legRide','closePockets','catchLeg'] as const)ok(!keys.has(gone),`simple controls never show ${gone}`);
  ok(keys.size<=5,'never more than five buttons');
 }
-console.log('Touch panel stays at Shoot, Hand fight, Sprawl, Lower and Sit out');
+{
+ // The named moves are one more key, offered only while the position has some; never Sit out as its own button.
+ const bottom={...legsGone,options:[{id:'sitOut' as const,label:'Sit out',state:'idle' as const,input:'Tap' as const},null,null,null]};
+ const withMoves=availableTouchKeys(bottom),without=availableTouchKeys({...legsGone,options:[null,null,null,null]});
+ ok(withMoves.has('option')&&!without.has('option'),'the move slots take presses only while the position offers moves');
+ ok(!withMoves.has('sitOut')&&withMoves.size<=5,'Sit out is a named move, not its own button; five keys at most');
+}
+console.log('Touch panel stays at Shoot, Hand fight, Sprawl, Lower and the named moves for the position');

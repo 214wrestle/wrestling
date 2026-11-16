@@ -188,6 +188,14 @@ export type StartPosition = 'neutral' | 'top' | 'bottom';
 
 /* ------------------------------------------------------------- commands --- */
 
+/**
+ * Finishes in on the legs: lift the leg, trip it, switch to the double, drive him back, dump him the way he leans,
+ * and on a double the lift or the trip; on an ankle, come up to a high single. `drive` drives the capture as it is
+ * (the AI's plain finish, the keyboard's F); `driveBack` (the Drive back move) raises the leg first, then drives him
+ * back off it.
+ */
+export type LegAction = 'lift' | 'trip' | 'double' | 'drive' | 'driveBack' | 'dump' | 'liftDouble' | 'doubleTrip' | 'comeUp';
+
 /** Normalised per-tick intent from a human or the AI. */
 export interface Command {
   topTurn?: import('./armBars').TopTurnChoice;
@@ -196,7 +204,15 @@ export interface Command {
   legRide?: boolean;
   closePockets?: boolean;
   catchLeg?: boolean;
-  legAction?: 'lift' | 'trip' | 'double' | 'drive';
+  legAction?: LegAction;
+  /** In a front headlock on top: the finish asked for by name (situation options), instead of the one the position picks. */
+  fhlFinish?: 'goBehind' | 'chinWhip' | 'cementMixer';
+  /** Bottom in the ride: hand fight goes straight for the switch, even before the rider has committed his weight. */
+  switchTry?: boolean;
+  /** Bottom in the ride: the Peterson roll. */
+  peterson?: boolean;
+  /** Head trapped under a sprawl: peek out and turn back in on his hips. */
+  peekOut?: boolean;
   sustainedEffort?: boolean;
   technique?: 'duckUnder' | 'superDuck' | 'slideBy' | 'firemansCarry' | 'footSweep' | 'anklePick' | 'kneePick' | 'throwBy' | 'lateralDrop' | 'headlock';
   lowSingle?: boolean;

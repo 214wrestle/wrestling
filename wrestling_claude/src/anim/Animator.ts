@@ -321,7 +321,7 @@ export class Animator {
       // the pose actually held, then join its first running/lifting key.
       const finishEntry = view.mode === 'paired' && !view.hold
         ? view.clip === 'finishSingle' ? 0.35 : view.clip === 'finishHighCrotch' ? 0.3
-        : view.clip === 'liftedLegTrip' || view.clip === 'liftedLegDrive' ? 0.35 : 0 : 0;
+        : view.clip === 'liftedLegTrip' || view.clip === 'liftedLegDrive' || view.clip === 'liftedLegDump' ? 0.35 : 0 : 0;
       if (!this.instant && finishEntry && ['pairedlegsSingle','pairedlegsHighCrotch'].includes(this.lastMode)) {
         this.legFinishStart = this.display.slice();
         this.legFinishBlendEnd = finishEntry;

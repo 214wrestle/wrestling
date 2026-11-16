@@ -1,4 +1,4 @@
-import {isArmBar,isCradleTurn,flatTurnFor,type ArmBar} from './armBars';
+import {isArmBar,isCradleTurn,flatTurnFor,type ArmBar,type TopTurnChoice} from './armBars';
 import {legRideSkill,legRideQuality,LEG_CLEAR_THRESHOLD} from './legRideQuality';
 import { weightPhysics, absoluteStrength, moveWeight } from './weightPhysics';
 import { isScrambleSpecialist, isFootSweepSpecialist, HIGH_PACE_NAMES } from './athleteProfiles';
@@ -10,7 +10,7 @@ import { DEFAULT_PLAN, planEffects, topPlanEffects, type MatchPlan } from './str
 import { HOLD_PLACES, MOVES, SHOT_CLIPS, LEG_HOLDS } from './moves';
 import type { MatSub, MoveDef, MoveId, NextSpec, Place, Role, ShotKind } from './moves';
 import { otherSide } from './types';
-import type { Command, ScoreKind, Side, Signature, Vec2, Wrestler } from './types';
+import type { Command, LegAction, ScoreKind, Side, Signature, Vec2, Wrestler } from './types';
 
 /**
  * The bout: two bodies, their balance, their hands and the positions they fight
@@ -153,7 +153,11 @@ export type Position =
       lifted?: number;
       /** Contested arm/leg capture before the spladle roll, not secured control. */
       counterGrip?: number;
-      legFinish?: 'trip' | 'double' | 'drive';
+      legFinish?: LegFinish;
+      /** How his reaction read when that finish was picked (FINISH): 1 it gave it to you, -1 against it. */
+      finishHeat?: number;
+      /** When the attacker's drive last made him bounce (FINISH.bounceGap). */
+      bounceAt?: number;
       /** Seconds since the defender last worked his whizzer; a beaten shot then kicks out to the feet. */
       whizzer?: number;
       /** Best finish progress so far and when it was reached: no improvement for a while is a stalemate. */
@@ -253,7 +257,7 @@ export type Position =
       offBalance?: number;
       /** Preserve the actual capture if a defender interrupts an unscored finish. */
       sourceContest?:
-        | { kind: 'legs'; shot: ShotKind; lifted?: number; legFinish?: 'trip' | 'double' | 'drive' }
+        | { kind: 'legs'; shot: ShotKind; lifted?: number; legFinish?: LegFinish }
         | { kind: 'fhl'; recover: number };
       /** Where each role starts, in the frame, for root placement. */
       startA: Place;
@@ -344,6 +348,45 @@ export const COLD_SHOT = 0.12;
  */
 export const THROW_PUSH = { speed: 0.9, lean: 0.8, odds: 0.3, cap: 0.85, dropBase: 0.32, headlockBase: 0.27, tiedDrive: 0.4 } as const;
 export const LIFT_DOUBLE = { base: 0.12, strength: 0.2, quick: 0.12, quickT: 1.2, gas: 0.3 } as const;
+/**
+ * Finishes in on the legs (owner, November 15: "refine shot finishes ... single leg: trips, switch to double, dump").
+ * Each finish feeds on a reaction (finishRead), read the moment the finish is picked (the timing, like TIMING): picked
+ * on the reaction that gives it to you it drives `read` faster a second and goes off as a burst; picked against what
+ * he is doing, `misread` slower. Switching to the double gains `switchHot` when he is square in front of you
+ * and costs `switchCold` while he whizzers; coming up off the ankle raises the leg to `comeUp` and costs `comeUpCost`
+ * unless he sprawled back off it. The lift double goes at `liftRate` of the drive.
+ */
+export const FINISH = { read: 0.06, misread: 0.03, switchHot: 0.04, switchEven: 0, switchCold: 0.08, comeUp: 0.55, comeUpCost: 0.04, liftRate: 0.8,
+  /** Seconds between the bounces a drive with his leg up can start (tried at 1.2: no help to the balance). */
+  bounceGap: 0 };
+// (read 0.12 / misread 0.05 at first, with the AI reading four times as often, and the AI's plain drive lifting the leg
+// into the lifted-leg bonus: Varsity went 61% to 55% for the balance stand-in. Now 0.06 / 0.03, AI_FINISH_READ 0.005,
+// `drive` drives as it always did (Drive back is `driveBack`) and the bonus is for lifted-leg finishes only: 87% / 61%
+// again at 2,400 matches; outputs/nov15-situations/README.md.)
+/**
+ * Which finish his reaction gives you right now, in on the legs (research, November 15: the College Park technique
+ * handbook's "if he does X, do Y" finishes, with Askren, Jordan and Kolat). Leg up and him bouncing on the other leg
+ * to keep his balance: trip him. Driving into you (sprawling, crossfacing): dump him, his own drive takes him over.
+ * Planting the foot and whizzering: switch to the double, the "football tackle". Standing tall, doing nothing about
+ * it: drive him back. On the double, a man bouncing is tripped and one standing tall is lifted; a man sprawling his
+ * hips back is neither. Off the ankle, come up to a high single while he stays tall, not into his sprawl.
+ */
+export function finishRead(s: { shot: ShotKind; progress: number; lifted?: number; whizzer?: number; hop?: number; push?: number }, finish: LegAction): 'hot' | 'cold' | 'even' {
+  const up = (s.lifted ?? 0) >= 0.7;
+  const whizzer = (s.whizzer ?? 0) > 0;
+  const pushing = (s.push ?? 0) > 0;
+  const bouncing = (s.hop ?? 0) > 0 && !pushing && (s.whizzer ?? 0) < 0.9;
+  switch (finish) {
+    case 'trip': return !up ? 'even' : bouncing ? 'hot' : pushing ? 'cold' : 'even';
+    case 'dump': return !up ? 'even' : pushing ? 'hot' : bouncing ? 'cold' : 'even';
+    case 'drive': return !up ? 'even' : pushing || whizzer ? 'cold' : !bouncing ? 'hot' : 'even';
+    case 'double': return s.shot === 'double' ? 'even' : pushing ? 'cold' : whizzer ? 'hot' : 'even';
+    case 'doubleTrip': return pushing ? 'cold' : bouncing ? 'hot' : 'even';
+    case 'liftDouble': return pushing ? 'cold' : s.progress > 0.55 && !bouncing ? 'hot' : 'even';
+    case 'comeUp': return pushing ? 'cold' : s.progress > 0.4 ? 'hot' : 'even';
+    default: return 'even';
+  }
+}
 export const TIMING = { fast: 0.86, setUp: 0.6, cold: 1.08, impact: [0.3, 0.6], at: 0.72 } as const;
 /**
  * Exposures that are a flash (owner, November 10): a tilt, or thrown feet to back from the feet. He is caught on his
@@ -451,6 +494,23 @@ export const DANGEROUS_ON_FEET = { snap: 0.04, leg: 0.02 } as const;
 // Owner, November 10: a stand-up should work "more like 25%" (escapescan: 21% at standUp 0.55, flat by weight).
 export const PACE = { legs: 0.13, fhl: 0.45, standUp: 0.66, standEscape: 0.45, sitOut: 0.45, turn: 0.7, switch: 0.5 };
 /**
+ * Scrambles (owner, November 15: "watch some scramble videos overnight. From the feet and top position. Try to
+ * implement some into the gameplay"; research in docs/research/scrambles-nov15.md).
+ * - peterson: the bottom man traps the waist arm, hooks the near leg and rolls the rider over him (a reversal).
+ *   `base`, plus `commit` times the rider's weight out front, plus the chain edge off a stopped Granby; stopped, he
+ *   gives up `loss` of his base. Scaled like the switch (PACE.switch).
+ * - peek: flattened under a sprawl, the shooter peeks out and turns back in on the hips (a double the other way, no
+ *   score yet): `base` plus `scram` times his scrambling, `missed` more while the sprawler is recovering from a missed
+ *   go-behind; caught, he is re-sprawled (`loss` of head clearance).
+ * - whizzerGoBehind: a defender who beats a single with his whizzer goes behind for the takedown instead of just
+ *   kicking out: `base` plus `scram` times his scrambling over the middle, plus the gas he has over the shooter.
+ */
+export const SCRAMBLE = {
+  peterson: { base: 0.1, commit: 0.45, loss: 0.15 },
+  peek: { base: 0.14, scram: 0.25, missed: 0.12, loss: 0.12 },
+  whizzerGoBehind: { base: 0.12, scram: 0.3 },
+} as const;
+/**
  * Big men are hard to hold down (owner, November 10: "even higher when you start to get above 184 lbs. The really
  * big guys are hard to hold down and ride"). Extra share on the bottom man's stand-up, sit-out escape and breaking
  * the grip on his feet, and taken off the rider's return, by the bottom man's weight.
@@ -511,7 +571,11 @@ export const STAND_STOP = { flat: 0.03, up: 0.3, skill: 0.15, tight: 0.1 } as co
  * his quickness and what base he has, a hard way out but a way out.
  */
 export const SIT_OUT = { out: 0.2, over: 0.55, flat: 0.06 } as const;
-export type BottomTry = 'standUp' | 'sitOut' | 'granby' | 'switch';
+export type BottomTry = 'standUp' | 'sitOut' | 'granby' | 'switch' | 'peterson';
+/** The finish he has picked in on the legs (situation options): every leg action but the lift itself and coming up. */
+export type LegFinish = Exclude<LegAction, 'lift' | 'comeUp' | 'driveBack'>;
+/** A move asked for by name with a press (situation options), kept with that press until the position takes it. */
+export interface PressIntent { topTurn?: TopTurnChoice; fhlFinish?: Command['fhlFinish']; switchTry?: boolean }
 /**
  * The top man's breakdown at the whistle from the referee's position (owner, November 10: "give the top man 3-4
  * breakdown options prior to the whistle on the restart"). Chosen before the whistle; it lands `delay` after it unless
@@ -713,6 +777,9 @@ export class Bout {
   readonly athletes: [Athlete, Athlete];
   position: Position = { kind: 'free' };
   private prev: [Command, Command];
+  /** What a fresh press asked for by name (situation options): kept with the buffered press, so a tap that is
+   *  released before the position takes it still turns him the way it said. */
+  private pressIntent: [PressIntent, PressIntent] = [{}, {}];
   private effortClock: [number, number] = [0, 0];
   private lowRequest: [boolean, boolean] = [false, false];
   private techniqueRequest: [ {id: NonNullable<Command['technique']>; left: number} | null, {id: NonNullable<Command['technique']>; left: number} | null ] = [null, null];
@@ -721,6 +788,9 @@ export class Bout {
   private sitOutPending: [number, number] = [0, 0];
   /** Sit out with Lower held: a Granby roll instead. */
   private granbyPending: [number, number] = [0, 0];
+  /** The Peterson roll and the peek-out, asked for (situation options) and waiting for the position (SCRAMBLE). */
+  private petersonPending: [number, number] = [0, 0];
+  private peekPending: [number, number] = [0, 0];
   private pressCool: [number, number] = [0, 0];
   /** The human's side. The AI's press rates are its difficulty tuning, so only the human is limited. */
   pressLimitedSide: Side | null = null;
@@ -931,10 +1001,14 @@ export class Bout {
     for (const a of this.athletes) {
       let c = cmds[a.side];
       const p = this.prev[a.side];
+      if (c.shoot && !p.shoot) { this.pressIntent[a.side].topTurn = c.topTurn; this.pressIntent[a.side].fhlFinish = c.fhlFinish; }
+      if (c.fight && !p.fight) this.pressIntent[a.side].switchTry = c.switchTry;
       this.bottomChain[a.side].t += dt;
       this.scramblePending[a.side] = c.scramble && !p.scramble ? 2.5 : Math.max(0, this.scramblePending[a.side] - dt);
       this.granbyPending[a.side] = c.sitOut && !p.sitOut && c.level ? Math.max(0.3, queued) : Math.max(0, this.granbyPending[a.side] - dt);
       this.sitOutPending[a.side] = c.sitOut && !p.sitOut && !c.level ? Math.max(0.3, queued) : Math.max(0, this.sitOutPending[a.side] - dt);
+      this.petersonPending[a.side] = c.peterson && !p.peterson ? Math.max(0.3, queued) : Math.max(0, this.petersonPending[a.side] - dt);
+      this.peekPending[a.side] = c.peekOut && !p.peekOut ? Math.max(0.3, queued) : Math.max(0, this.peekPending[a.side] - dt);
       if (c.lowSingle && !p.lowSingle) c = cmds[a.side] = {...c, shoot:true, level:true};
       // Buffer fresh presses so a tap just before an action opens still counts.
       // Keep one fresh press through a restart or a short return to stance.
@@ -1211,6 +1285,12 @@ export class Bout {
             const shot = source?.shot ?? (s.id.toLowerCase().includes('double') ? 'double' : s.id.toLowerCase().includes('highcrotch') ? 'highCrotch' : s.id === 'finishLowSingle' ? 'lowSingle' : 'single');
             this.position = {kind:'legs', A:s.A, shot, lifted:source?.lifted, legFinish:source?.legFinish, mirror:s.mirror, t:0, frame:s.frame, progress:0.48, intensity:1};
           }
+        }
+        else if (s.id === 'granbyRoll') {
+          // Following the Granby through (SCRAMBLE): he rolls with him and is still on top as the roll comes round.
+          this.startMove('granbyFollow', s.A, s.frame, s.mirror);
+          this.ev.announce?.('Follows the roll', 'info', 'Rolled through with him and still on top');
+          return;
         }
         else {
           const mat = this.matPosition(s.A, s.frame, def.award.kind === 'escape' ? 'standing' : 'ride', 0.8);
@@ -1963,6 +2043,17 @@ export class Bout {
 
   /* ----------------------------------------------------------------- legs */
 
+  /** The move that finishes the leg he is on, by the finish he picked and how high the leg still is. */
+  private legFinishMove(s: Extract<Position, { kind: 'legs' }>, lift: boolean): MoveId {
+    const up = (s.lifted ?? 0) > 0.7;
+    if (s.legFinish === 'trip') return 'liftedLegTrip';
+    if (s.legFinish === 'dump' && up) return 'liftedLegDump';
+    if (s.legFinish === 'drive' && up) return 'liftedLegDrive';
+    if (s.shot === 'double' && s.legFinish === 'doubleTrip') return 'doubleLegTrip';
+    if (s.shot === 'double' && s.legFinish === 'liftDouble' && this.athletes[s.A].stamina > LIFT_DOUBLE.gas) return 'liftDouble';
+    return s.shot === 'lowSingle' ? 'finishLowSingle' : s.shot === 'highCrotch' ? 'finishHighCrotch' : s.shot === 'single' ? 'finishSingle' : lift ? 'liftDouble' : 'finishDouble';
+  }
+
   private tickLegs(dt: number, cmds: [Command, Command], s: Extract<Position, { kind: 'legs' }>): void {
     s.t += dt;
     const A = this.athletes[s.A];
@@ -1976,34 +2067,58 @@ export class Bout {
     const sn = Math.sin(s.frame.yaw);
     const fwdA = ca.moveX * sn + ca.moveZ * c;
 
-    const needsLift = ca.legAction === 'lift' || ca.legAction === 'trip' || ca.legAction === 'double';
+    // The finishes off a raised leg (trip, dump, drive back) raise it first: one held button does both.
+    const needsLift = ca.legAction === 'lift' || ca.legAction === 'trip' || ca.legAction === 'dump' || ca.legAction === 'driveBack';
     if (needsLift && (s.shot === 'single' || s.shot === 'highCrotch') && A.stamina > 0.15) {
       const wasBelowFull = (s.lifted ?? 0) < 1;
       s.lifted = Math.min(1, (s.lifted ?? 0) + dt * (0.6 + wa.strength * 0.5) * (1 + STYLE_EFFECT.physLift * this.styleSteps[A.side].phys));
       this.spend(A, dt * 0.045);
+      // Up on one leg he hops to keep his balance (the trip's moment, finishRead).
+      if (s.lifted >= 0.7 && wasBelowFull && (s.lifted - dt) < 0.7) s.hop = Math.max(s.hop ?? 0, LEG_MOTION.hopT);
       // Lift alone never finishes, so tell the player when to choose the finish.
-      if (wasBelowFull && s.lifted >= 1 && ca.legAction === 'lift') this.ev.announce?.('Leg up', 'info', 'Now Trip or Drive back');
+      if (wasBelowFull && s.lifted >= 1 && ca.legAction === 'lift') this.ev.announce?.('Leg up', 'info', 'Now trip him, dump him or drive him back');
     }
+    const fresh = ca.legAction !== this.prev[A.side].legAction;
     // A deliberate Drive choice replaces an earlier Trip even after defense
     // lowers the leg. With a low capture, run the ordinary shot finish instead.
     // Release/cancel still remembers the choice; converted doubles keep theirs.
-    if (ca.legAction === 'drive' && this.prev[A.side].legAction !== 'drive' && (s.shot === 'single' || s.shot === 'highCrotch')) {
+    const drives = ca.legAction === 'drive' || ca.legAction === 'driveBack';
+    if (drives && fresh && (s.shot === 'single' || s.shot === 'highCrotch')) {
       s.legFinish = (s.lifted ?? 0) > 0.7 ? 'drive' : undefined;
     }
-    if ((s.lifted ?? 0) > 0.7 && ca.legAction && ca.legAction !== 'lift') s.legFinish = ca.legAction;
-    // Remember the conversion so the same held control can drive its finish.
-    if (s.legFinish === 'double' && s.shot !== 'double') { s.shot = 'double'; s.lifted = 0; }
+    const picked = s.legFinish;
+    if ((s.lifted ?? 0) > 0.7 && (ca.legAction === 'trip' || ca.legAction === 'dump' || drives)) s.legFinish = drives ? 'drive' : ca.legAction as 'trip' | 'dump';
+    // Switch to the double (FINISH): let the leg go and take both. Square in front of you it is right there; while he
+    // is whizzering that leg is his to fight and the far one is back, so you give up ground getting it.
+    if (ca.legAction === 'double' && s.shot !== 'double') {
+      const read = finishRead(s, 'double');
+      s.progress = clamp(s.progress + (read === 'hot' ? FINISH.switchHot : read === 'cold' ? -FINISH.switchCold : -FINISH.switchEven), 0.02, 0.98);
+      s.shot = 'double'; s.lifted = 0; s.legFinish = undefined; s.whizzer = undefined;
+    }
+    // Up from the ankle to a high single: the leg comes up with him (FINISH.comeUp).
+    if (ca.legAction === 'comeUp' && fresh && s.shot === 'lowSingle') {
+      s.shot = 'single'; s.lifted = FINISH.comeUp; s.legFinish = undefined;
+      if (finishRead(s, 'comeUp') !== 'hot') s.progress = Math.max(0.02, s.progress - FINISH.comeUpCost);
+    }
+    // On the double: lift him (the lift and return), or trip him off it.
+    if ((ca.legAction === 'liftDouble' || ca.legAction === 'doubleTrip') && s.shot === 'double') s.legFinish = ca.legAction;
+    // The timing: how he was reacting the moment the finish was picked.
+    if (s.legFinish !== picked) { const r = s.legFinish ? finishRead(s, s.legFinish) : 'even'; s.finishHeat = r === 'hot' ? 1 : r === 'cold' ? -1 : 0; }
     // A selected finish keeps its identity, but pressure still needs live input
     // until the finishing animation commits. Releasing/cancelling a hold rests
     // the attacker instead of supplying free pressure from the stored choice.
-    const driving = ca.shoot || ca.legAction === 'drive' || ca.legAction === 'double' && s.shot === 'double' || fwdA > 0.3 || ca.legAction === 'trip' && s.legFinish === 'trip';
+    const driving = ca.shoot || drives || ca.legAction === 'double' && s.shot === 'double' || fwdA > 0.3
+      || (ca.legAction === 'trip' || ca.legAction === 'dump') && s.legFinish === ca.legAction
+      || (ca.legAction === 'liftDouble' || ca.legAction === 'doubleTrip') && s.shot === 'double';
     const lifting = needsLift && (s.shot === 'single' || s.shot === 'highCrotch');
-    if (ca.legAction && ca.legAction !== this.prev[A.side].legAction) {
-      const label = {lift:'Lift leg',trip:'Trip',double:s.shot === 'double' ? 'Finish double' : 'Switch double',drive:'Drive back'}[ca.legAction];
+    if (ca.legAction && fresh) {
+      const label = {lift:'Lift leg',trip:'Trip',dump:'Dump',double:s.shot === 'double' ? 'Drive through' : 'Switch to double',drive:'Drive back',driveBack:'Drive back',liftDouble:'Lift',doubleTrip:'Trip',comeUp:'Come up'}[ca.legAction];
       this.ev.announce?.(label, 'info', A.stamina <= 0.15 && lifting ? 'Not enough stamina to lift' : lifting && (s.lifted ?? 0) <= 0.7 ? 'Working to elevate the leg' : 'Driving the finish');
     }
     if (driving && s.legFinish === 'drive') { s.frame.x += sn * dt * 0.35; s.frame.z += c * dt * 0.35; }
     if (driving && s.legFinish === 'trip') s.frame.yaw += dt * (s.mirror ? -0.4 : 0.4);
+    // The dump turns the corner hard the way he leans: the pair pivots on the attacker's back foot.
+    if (driving && s.legFinish === 'dump') s.frame.yaw -= dt * (s.mirror ? -0.6 : 0.6);
     // Let a fresh capture settle while the player recognizes the finish controls.
     // This only removes idle grip decay: sprawls, grip clearing and poor position
     // still beat the entry; this grants no driving force or automatic finish.
@@ -2025,7 +2140,14 @@ export class Bout {
     // (November 9: -0.08 to -0.11. With neutral much busier, more of the extra attacks are fought off on the
     // legs instead of scoring, keeping match totals near where they were.)
     rate += 0.1 * this.edge(A.side) - PACE.legs;
-    if (driving && s.legFinish && s.legFinish !== 'double') rate += 0.07 * (0.5 + A.stamina);
+    // (The lifted-leg finishes off a single only: the double's lift and trip are not this.)
+    if (driving && (s.legFinish === 'trip' || s.legFinish === 'dump' || s.legFinish === 'drive')) rate += 0.07 * (0.5 + A.stamina);
+    // The finish his reaction gives you goes faster; the one he is set against goes slower (FINISH, finishRead).
+    if (driving && s.legFinish) {
+      rate += (s.finishHeat ?? 0) > 0 ? FINISH.read : (s.finishHeat ?? 0) < 0 ? -FINISH.misread : 0;
+      // Getting a man up in the air takes longer than driving him over.
+      if (s.legFinish === 'liftDouble') rate *= FINISH.liftRate;
+    }
     // Both just hanging on: nothing moves much either way until the referee stops it (LEG_BATTLE.idle).
     if (!driving && !lifting && !defending && !settlingGrip) rate = -0.02;
     if (cd.fight && s.lifted) s.lifted = Math.max(0, s.lifted - dt * 0.18);
@@ -2105,6 +2227,8 @@ export class Bout {
       s.progress += 0.025;
       // Each push is a visible drive: a burst of steps that turns the corner (LEG_MOTION).
       s.surge = LEG_MOTION.surgeT;
+      // Driven with the leg up (or on a double), he bounces to stay on his feet (not on every push: FINISH.bounceGap).
+      if (((s.lifted ?? 0) >= 0.7 || s.shot === 'double') && (s.t - (s.bounceAt ?? -99)) >= FINISH.bounceGap) { s.hop = Math.max(s.hop ?? 0, LEG_MOTION.hopT); s.bounceAt = s.t; }
       // A finishing burst is extra work beyond maintaining forward pressure,
       // just as the defender's repeated grip-clearing efforts cost stamina.
       this.spend(A, 0.012);
@@ -2123,14 +2247,26 @@ export class Bout {
         && this.rng.chance(LIFT_DOUBLE.base + wa.strength * LIFT_DOUBLE.strength + (s.t < LIFT_DOUBLE.quickT ? LIFT_DOUBLE.quick : 0));
       // Defense may lower a previously raised leg while Drive is held.
       // Keep the effort, but finish from the capture's actual elevation.
-      this.startMove(s.legFinish === 'trip' ? 'liftedLegTrip' : s.legFinish === 'drive' && (s.lifted ?? 0) > 0.7 ? 'liftedLegDrive' : s.shot === 'lowSingle' ? 'finishLowSingle' : s.shot === 'highCrotch' ? 'finishHighCrotch' : s.shot === 'single' ? 'finishSingle' : lift ? 'liftDouble' : 'finishDouble', s.A, s.frame, s.mirror);
+      this.startMove(this.legFinishMove(s, lift), s.A, s.frame, s.mirror);
+      // Picked on the reaction that gave it to him, the finish goes off as a burst (TIMING).
+      if ((s.finishHeat ?? 0) > 0 && s.legFinish) this.burst(0.8, s.A);
       return;
     }
     // A hard attempt that is fought off costs him: the longer he fought on the legs, the more (FATIGUE.failedShot).
     if (s.progress <= 0) this.spend(A, FATIGUE.failedShot * Math.min(8, s.t));
     if (s.progress <= 0 && s.whizzer && s.shot !== 'double') {
-      // Beaten with the whizzer: he kicks the leg free and both are back on their feet.
       D.stats.stuffs += 1;
+      // Kicked free with the head stuffed, a scrambler goes on behind him for the takedown (SCRAMBLE.whizzerGoBehind).
+      const G = SCRAMBLE.whizzerGoBehind;
+      const goBehind = clamp(G.base + ((wd.scrambling ?? wd.quickness) - 0.5) * G.scram + (D.stamina - A.stamina) * 0.3 + STYLE_EFFECT.scrambleCounter * this.styleSteps[D.side].scram, 0.03, 0.4);
+      if (!cooperative && this.rng.chance(goBehind)) {
+        this.ev.announce?.('Whizzer to the go-behind', 'big', 'Kicked the leg free and went behind');
+        this.ev.feedback?.(A.side, 'shoot', 'lost');
+        this.ev.feedback?.(D.side, 'fight', 'won', 'Go behind');
+        this.startMove('whizzerGoBehind', s.A, s.frame, s.mirror);
+        return;
+      }
+      // Beaten with the whizzer: he kicks the leg free and both are back on their feet.
       this.ev.announce?.('Whizzer kicks out', 'info');
       this.ev.feedback?.(A.side, 'shoot', 'lost');
       this.ev.feedback?.(D.side, 'fight', 'won');
@@ -2152,6 +2288,7 @@ export class Bout {
     // no score (checkBounds blows the whistle).
     const working = driving || cd.sprawl || cd.fight || crossface > 0;
     if (!cooperative && s.legFinish !== 'drive') this.legMotion(s, A, driving, lifting, working, dt);
+    else this.fadeLegBursts(s, dt);
     // Owner, November 10: holding a leg up for a few seconds is not a stalemate. A leg battle goes on while either man
     // works it, even with the leg back down on the mat; a stalemate is only nobody working. A long one with nobody
     // getting anywhere goes to a scramble that settles it (LEG_BATTLE).
@@ -2205,6 +2342,24 @@ export class Bout {
     if (cb.fight || cb.sprawl) work += dt * 0.08;
     s.recover = clamp(s.recover + work + dt * 0.04, 0, 1.01);
     s.drive = clamp((s.drive ?? 0) + (work > 0 ? 0.22 : 0) + (cb.fight || cb.sprawl ? dt * 0.4 : 0) - dt * 0.3, 0, 1);
+    // Peek-out (SCRAMBLE.peek): out from under the arm and straight back in on his hips, or caught and re-sprawled.
+    if (this.peekPending[Bm.side] > 0) {
+      this.peekPending[Bm.side] = 0;
+      this.spend(Bm, 0.06);
+      const K = SCRAMBLE.peek;
+      const p = clamp(K.base + ((wb.scrambling ?? wb.quickness) - 0.5) * K.scram + (wb.quickness - wt.quickness) * 0.15 + (s.cooldown > 0 ? K.missed : 0)
+        + (Bm.stamina - T.stamina) * 0.15 + STYLE_EFFECT.scrambleOdds * this.styleSteps[Bm.side].scram, 0.04, 0.45);
+      // A cooperative practice partner lets a learner rehearse it.
+      if (T.side === this.practicePartner || this.rng.chance(p)) {
+        this.ev.feedback?.(Bm.side, 'shoot', 'won', 'Peek out');
+        this.ev.announce?.('Peeks out', 'info', 'Out from under the sprawl and back in on the legs');
+        this.startMove('peekOut', s.A, s.frame, s.mirror ?? false);
+        return;
+      }
+      s.recover = Math.max(0, s.recover - K.loss);
+      this.ev.feedback?.(Bm.side, 'shoot', 'lost', 'Peek out');
+      this.ev.announce?.('Re-sprawled', 'info', 'Caught peeking out');
+    }
 
     // Top: snap him back down, or spin behind.
     if (this.take(T, 'fight')) {
@@ -2222,13 +2377,17 @@ export class Bout {
       // The position picks the finish (owner: keep the controls simple). Lower + Shoot with him broken down is
       // the cement mixer; once he is half way up the chin whip uses his rise; otherwise the spin behind, which
       // rarely works on a man with his hips under him, so snap him down first.
-      const mixer = !!cmds[T.side].level && s.recover < 0.4;
-      const whip = !mixer && s.recover >= 0.5;
+      // A finish asked for by name (situation options) is tried whatever the position, at the odds the position gives
+      // it: a cement mixer on a man who is half up, or a go-behind on hips still under him, rarely works.
+      const named = this.pressIntent[T.side].fhlFinish;
+      const mixer = named ? named === 'cementMixer' : !!cmds[T.side].level && s.recover < 0.4;
+      const whip = named ? named === 'chinWhip' : !mixer && s.recover >= 0.5;
       const id = mixer ? 'cementMixer' : whip ? 'chinWhip' : 'goBehind';
       const p = mixer
         ? clamp(0.14 + wt.strength * 0.2 + wt.mat * 0.15 + (0.4 - s.recover) * 0.7 - wb.defense * 0.15 - busy + planEdge * 0.5, 0.04, 0.5)
         : whip
-          ? clamp(0.2 + wt.quickness * 0.25 - wb.defense * 0.12 - (s.recover - 0.5) * 0.3 - busy * 0.5 + planEdge, 0.05, 0.5)
+          // (Named on a man still flat, it has no rise to use: the last term, zero whenever the position picks it.)
+          ? clamp(0.2 + wt.quickness * 0.25 - wb.defense * 0.12 - (s.recover - 0.5) * 0.3 - Math.max(0, 0.5 - s.recover) * 0.9 - busy * 0.5 + planEdge, 0.05, 0.5)
           : clamp(0.25 + wt.quickness * 0.22 + (0.55 - s.recover) * 0.55 - busy + planEdge, 0.05, 0.8);
       this.spend(T, mixer ? 0.07 : 0.04);
       if (this.rng.chance((p + this.signatureEdge(T.side, 'fhl', id)) * PACE.fhl * (1 - FATIGUE.finish * (1 - T.stamina)))) {
@@ -2496,13 +2655,18 @@ export class Bout {
         T.sinceTurnTry = 0;
         // With his legs in he can turn him off the leg (a turk) before the base is all the way down.
         const legsIn = (s.legRide ?? 0) >= 0.8;
-        if ((s.base < 0.35 || legsIn && s.base < BOUT.turkBase) && s.turnCool <= 0) {
+        const wantsTurk = this.pressIntent[T.side].topTurn?.style === 'turk';
+        if ((wantsTurk ? legsIn && s.base < BOUT.turkBase : s.base < 0.35 || legsIn && s.base < BOUT.turkBase) && s.turnCool <= 0) {
           const resist = this.wrestlers[Bm.side].turnResist ?? 0;
           const p = clamp(0.35 + (wt.turning ?? wt.mat) * 0.3 + STYLE_EFFECT.turnOdds * this.styleSteps[T.side].turn - wb.defense * 0.25 - (legsIn ? Math.max(0, s.base - 0.5) * 0.6 : s.base) + 0.15 * this.edge(T.side) - resist + tp.turn + (legsIn ? this.signatureEdge(T.side, 'legRider', true) : this.signatureEdge(T.side, 'tilt', true)), Math.max(0.02, 0.08 - resist * 0.12), 0.85);
           this.spend(T, 0.05);
           if (this.rng.chance(p * PACE.turn)) {
             this.ev.feedback?.(T.side, 'shoot', 'won');
-            const turnId = legsIn ? 'turk' : this.wrestlers[s.A].motion?.preferredTurn === 'cradle' ? 'cradle' : 'tilt';
+            // Asked for by name (situation options): the tilt or the near-side cradle off his broken base, the turk off the
+            // legs. Otherwise the legs decide, then his own favourite.
+            const named = this.pressIntent[T.side].topTurn?.style;
+            const turnId = named === 'tilt' || named === 'cradle' ? named : named === 'turk' && legsIn ? 'turk'
+              : legsIn ? 'turk' : this.wrestlers[s.A].motion?.preferredTurn === 'cradle' ? 'cradle' : 'tilt';
             this.startMove(turnId, s.A, s.frame, false);
             // A tilt off his own drive (basing up or driving back into him) rocks him over fast (TIMING).
             if (turnId === 'tilt') this.burst(clamp01(Math.max(s.basing ?? 0, s.back ?? 0) * 2), s.A);
@@ -2541,6 +2705,24 @@ export class Bout {
         s.base = Math.max(0, s.base - BOTTOM_CHAIN.granbyLoss);
         s.control = Math.min(1, s.control + 0.1);
         this.ev.feedback?.(Bm.side, 'shoot', 'lost', 'Granby roll');
+      }
+      // Peterson roll (SCRAMBLE.peterson): best with the rider's weight over him, and off a stopped Granby.
+      if (this.petersonPending[Bm.side] > 0 && s.base > 0.3) {
+        this.petersonPending[Bm.side] = 0;
+        this.spend(Bm, 0.07);
+        const P = SCRAMBLE.peterson;
+        const p = clamp(P.base + (wb.scrambling ?? wb.quickness) * 0.15 + wb.quickness * 0.1 + s.commit * P.commit - s.control * 0.25 - ((wt.riding ?? wt.mat) - 0.5) * 0.15
+          + (1 - T.stamina) * 0.1 + STYLE_EFFECT.bottomOdds * this.styleSteps[Bm.side].bottom + this.chainDamp(T.side) * this.chainEdge(Bm.side, 'peterson'), 0.03, 0.5) * PACE.switch;
+        if (T.side === this.practicePartner || this.rng.chance(p)) {
+          this.ev.feedback?.(Bm.side, 'shoot', 'won', 'Peterson roll');
+          this.startMove('petersonRoll', s.A, s.frame, false);
+          return;
+        }
+        this.stopped(Bm.side, 'peterson');
+        s.pod = 0;
+        s.base = Math.max(0, s.base - P.loss);
+        s.control = Math.min(1, s.control + 0.1);
+        this.ev.feedback?.(Bm.side, 'shoot', 'lost', 'Peterson roll');
       }
       if (this.sitOutPending[Bm.side] > 0 && s.base > 0.3) {
         this.sitOutPending[Bm.side] = 0;
@@ -2605,7 +2787,8 @@ export class Bout {
           else s.base -= BOTTOM_CHAIN.standLoss;
         } else s.base -= 0.12;
       }
-      if (s.commit < HANDS.switchWindow && this.take(Bm, 'fight')) {
+      // Switch asked for by name (situation options) goes for it now, before the rider commits: it rarely works then.
+      if (s.commit < HANDS.switchWindow && !this.pressIntent[Bm.side].switchTry && this.take(Bm, 'fight')) {
         // Hand fight: take the rider's wrist at the waist (HANDS). A tight rider gives it up slower.
         this.spend(Bm, 0.02);
         s.hands = Math.min(1, (s.hands ?? 0) + HANDS.gain * (0.7 + wb.quickness * 0.6) * (1.15 - 0.4 * s.control) * (0.6 + 0.4 * Bm.stamina));
@@ -2633,12 +2816,15 @@ export class Bout {
       }
     } else if (s.sub === 'flat') {
       const preferred=this.wrestlers[s.A].motion?.preferredTurn;
-      const choice=ct.topTurn;
+      // The turn asked for with the press (a situation option or the top attack picker); a tilt or turk asked for
+      // from the ride means nothing flat on his belly, so the legs or his own turn decide then.
+      const asked=this.pressIntent[s.A].topTurn??ct.topTurn;
+      const choice=asked&&(isArmBar(asked.style)||isCradleTurn(asked.style)||asked.style==='halfNelson')?asked:undefined;
       const selectedBar=choice&&isArmBar(choice.style)?{style:choice.style,mirror:choice.mirror}:!choice&&isArmBar(preferred)?{style:preferred,mirror:false}:undefined;
       // A chosen cradle, or (with no choice) his legs in for a turk, else his own turn from the flat.
       const legsIn=(s.legRide??0)>=0.8;
       const wName=`${this.wrestlers[s.A].firstName} ${this.wrestlers[s.A].lastName}`;
-      const flatTurn=choice&&isCradleTurn(choice.style)?choice.style:legsIn&&!choice?'turk':flatTurnFor(wName,preferred);
+      const flatTurn=choice&&(isCradleTurn(choice.style)||choice.style==='halfNelson')?choice.style:legsIn&&!choice?'turk':flatTurnFor(wName,preferred);
       if (Bm.side !== this.practicePartner) s.base = Math.min(1, s.base + dt * 0.05);
       s.heave = (s.heave ?? 0) * Math.exp(-dt * FLAT.heaveFade);
       s.flatChopT = Math.max(0, (s.flatChopT ?? 0) - dt);
@@ -2993,7 +3179,7 @@ export class Bout {
       // labelled "Lifted leg" or "Double leg", hiding how often the high crotch scores).
       const fromHighCrotch = m.sourceContest?.kind === 'legs' && m.sourceContest.shot === 'highCrotch' && def.award.kind === 'takedown' && m.id !== 'finishHighCrotch';
       const detail = fromHighCrotch
-        ? `High crotch — ${m.id === 'liftedLegTrip' ? 'outside trip' : m.id === 'liftedLegDrive' ? 'drive back' : 'to the double'}`
+        ? `High crotch — ${m.id === 'liftedLegTrip' ? 'outside trip' : m.id === 'liftedLegDrive' ? 'drive back' : m.id === 'liftedLegDump' ? 'dump' : 'to the double'}`
         : def.award.detail;
       this.ev.score?.(to, def.award.kind, detail);
       if (this.position !== m) return; // scoring ended the bout
@@ -3120,7 +3306,7 @@ export class Bout {
     const roll = this.rng.next();
     this.ev.announce?.('Scramble!', 'big', 'Fighting it out on the leg');
     if (roll < pTD) {
-      this.startMove(s.legFinish === 'trip' ? 'liftedLegTrip' : s.shot === 'lowSingle' ? 'finishLowSingle' : s.shot === 'highCrotch' ? 'finishHighCrotch' : s.shot === 'single' ? 'finishSingle' : 'finishDouble', s.A, s.frame, s.mirror);
+      this.startMove(this.legFinishMove(s, false), s.A, s.frame, s.mirror);
       return;
     }
     if (roll < 1 - LEG_BATTLE.stalemateShare) {
@@ -3182,8 +3368,15 @@ export class Bout {
    * The leg battle moves (LEG_MOTION): driving or walking him on a lifted leg, the attacker circles to turn the
    * corner; a defender who is only fighting it gives ground and turns his hips away; taps add bursts.
    */
+  /** The leg battle's bursts fade with time, whether or not the pair is travelling (practice, a drive back). */
+  private fadeLegBursts(s: Extract<Position, { kind: 'legs' }>, dt: number): void {
+    if (s.surge) s.surge = Math.max(0, s.surge - dt) || undefined;
+    if (s.hop) s.hop = Math.max(0, s.hop - dt) || undefined;
+    if (s.push) s.push = Math.max(0, s.push - dt) || undefined;
+  }
+
   private legMotion(s: Extract<Position, { kind: 'legs' }>, A: Athlete, driving: boolean, lifting: boolean, working: boolean, dt: number): void {
-    if (this.practicePartner !== null && this.practicePartner !== undefined) return;
+    if (this.practicePartner !== null && this.practicePartner !== undefined) { this.fadeLegBursts(s, dt); return; }
     const M = LEG_MOTION;
     const dir = (s.circleDir ??= s.mirror ? -1 : 1);
     const gas = 0.5 + 0.5 * A.stamina;
